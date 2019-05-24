@@ -17,20 +17,21 @@ namespace GridFSSyncService.Middleware
             _next = next;
         }
 
-        public Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context)
         {
             if (!context.Request.Path.HasValue)
             {
                 if (context.Request.Method != "GET")
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                return context.Response.WriteAsync(VersionString);
+                await context.Response.WriteAsync(VersionString);
+                return;
             }
 
-            return _next(context);
+            await _next(context);
         }
     }
 }
