@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -15,16 +14,11 @@ namespace GridFSSyncService.Middleware
 
         public VersionMiddleware(RequestDelegate next)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
+            _next = next;
         }
 
         public Task Invoke(HttpContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (!context.Request.Path.HasValue)
             {
                 if (context.Request.Method != "GET")

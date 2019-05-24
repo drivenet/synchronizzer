@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -17,17 +16,12 @@ namespace GridFSSyncService.Middleware
 
         public MetricsReportingMiddleware(RequestDelegate next, Components.IMetricsReader metricsReader)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _metricsReader = metricsReader ?? throw new ArgumentNullException(nameof(metricsReader));
+            _next = next;
+            _metricsReader = metricsReader;
         }
 
         public Task Invoke(HttpContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             var metricName = context.Request.Path.Value.TrimStart(PathChars);
             var metricValue = _metricsReader.GetValue(metricName);
             if (metricValue != null)

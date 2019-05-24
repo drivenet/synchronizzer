@@ -10,7 +10,9 @@ namespace GridFSSyncService.Composition
 {
     public static class Program
     {
-        public static void Main(string[] args)
+#pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays
+        public static void Main(string?[]? args)
+#pragma warning restore SA1011 // Closing square brackets should be spaced correctly
         {
             var commandLineOptions = GetCommandLineOptions(args);
             var appConfiguration = LoadAppConfiguration(commandLineOptions.Config);
@@ -29,7 +31,9 @@ namespace GridFSSyncService.Composition
                 .AddJsonFile(configPath, optional: false, reloadOnChange: true)
                 .Build();
 
-        private static CommandLineOptions GetCommandLineOptions(string[] args)
+#pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays
+        private static CommandLineOptions GetCommandLineOptions(string?[]? args)
+#pragma warning restore SA1011 // Closing square brackets should be spaced correctly
             => new ConfigurationBuilder()
                 .AddCommandLine(args)
                 .Build()
@@ -43,7 +47,7 @@ namespace GridFSSyncService.Composition
 
         private static IWebHost BuildWebHost(HostingOptions hostingOptions, IConfiguration appConfiguration)
             => new WebHostBuilder()
-                .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions?.Listen)
+                .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions.Listen)
                 .ConfigureLogging(loggingBuilder => ConfigureLogging(loggingBuilder, hostingOptions))
                 .UseKestrel(options => ConfigureKestrel(options))
                 .ConfigureServices(services => services.AddSingleton(appConfiguration))
@@ -52,16 +56,6 @@ namespace GridFSSyncService.Composition
 
         private static void ConfigureLogging(ILoggingBuilder loggingBuilder, HostingOptions hostingOptions)
         {
-            if (loggingBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(loggingBuilder));
-            }
-
-            if (hostingOptions == null)
-            {
-                throw new ArgumentNullException(nameof(hostingOptions));
-            }
-
             loggingBuilder.AddFilter((category, level) => level >= LogLevel.Warning || level == LogLevel.Trace);
             var hasJournalD = Tmds.Systemd.Journal.IsSupported;
             if (hasJournalD)

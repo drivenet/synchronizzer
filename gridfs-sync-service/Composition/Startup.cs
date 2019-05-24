@@ -12,48 +12,18 @@ namespace GridFSSyncService.Composition
 
         public Startup(IConfiguration configuration)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
             services.AddSingleton<Components.IMetricsReader, Components.NullMetricsReader>();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            if (app == null)
-            {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            app.Map("/metrics", ConfigureMetrics);
-            app.Map("/version", ConfigureVersion);
-        }
-
-        private static void ConfigureMetrics(IApplicationBuilder app)
-        {
-            if (app == null)
-            {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            app.UseMiddleware<Middleware.MetricsReportingMiddleware>();
-        }
-
-        private static void ConfigureVersion(IApplicationBuilder app)
-        {
-            if (app == null)
-            {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            app.UseMiddleware<Middleware.VersionMiddleware>();
+            app.Map("/metrics", builder => builder.UseMiddleware<Middleware.MetricsReportingMiddleware>());
+            app.Map("/version", builder => builder.UseMiddleware<Middleware.VersionMiddleware>());
         }
     }
 }
