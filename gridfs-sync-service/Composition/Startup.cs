@@ -22,7 +22,7 @@ namespace GridFSSyncService.Composition
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<Components.IMetricsReader>(Components.NullMetricsReader.Instance);
+            services.AddSingleton<Components.IMetricsReader, Components.NullMetricsReader>();
         }
 
         public void Configure(IApplicationBuilder app)
