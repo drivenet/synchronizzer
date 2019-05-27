@@ -18,6 +18,7 @@ namespace GridFSSyncService.Composition
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<Components.IMetricsReader, Components.NullMetricsReader>();
+            services.AddHostedService<Implementation.SyncService>();
         }
 
         public void Configure(IApplicationBuilder app)
