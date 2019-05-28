@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal interface IObjectManager
+    internal interface IObjectWriter
     {
         Task Upload(string objectName, Stream readOnlyInput);
 

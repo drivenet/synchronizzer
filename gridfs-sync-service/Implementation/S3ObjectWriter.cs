@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class S3ObjectManager : IObjectManager
+    internal sealed class S3ObjectWriter : IObjectWriter
     {
         public Task Delete(string objectName)
         {

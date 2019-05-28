@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class QueuingObjectManager : IObjectManager
+    internal sealed class QueuingObjectWriter : IObjectWriter
     {
         private const double GoldenRatio = 1.618;
 
         private readonly HashSet<Task> _uploadQueue = new HashSet<Task>();
         private readonly HashSet<Task> _deleteQueue = new HashSet<Task>();
-        private readonly IObjectManager _inner;
+        private readonly IObjectWriter _inner;
 
-        public QueuingObjectManager(IObjectManager inner)
+        public QueuingObjectWriter(IObjectWriter inner)
         {
             _inner = inner;
         }
