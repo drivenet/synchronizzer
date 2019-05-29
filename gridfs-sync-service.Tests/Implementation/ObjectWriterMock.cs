@@ -8,7 +8,7 @@ using GridFSSyncService.Implementation;
 
 namespace GridFSSyncService.Tests.Implementation
 {
-    internal sealed class ObjectWriterFake : IObjectWriter
+    internal sealed class ObjectWriterMock : IObjectWriter
     {
         private readonly Dictionary<string, Stream> _uploaded = new Dictionary<string, Stream>();
         private readonly HashSet<string> _deleted = new HashSet<string>();

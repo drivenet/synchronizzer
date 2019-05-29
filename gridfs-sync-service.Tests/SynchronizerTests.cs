@@ -60,12 +60,12 @@ namespace GridFSSyncService.Tests
             Assert.True(uploaded.SetEquals(writer.GetUploads().Select(upload => upload.Name)));
         }
 
-        private static ObjectWriterFake ArrangeAndAct(IEnumerable<ObjectInfo> localInfos, IEnumerable<ObjectInfo> remoteInfos)
+        private static ObjectWriterMock ArrangeAndAct(IEnumerable<ObjectInfo> localInfos, IEnumerable<ObjectInfo> remoteInfos)
         {
             var localSource = new ObjectSourceStub(localInfos);
             var reader = new ObjectReaderFake();
             var remoteSource = new ObjectSourceStub(remoteInfos);
-            var writer = new ObjectWriterFake();
+            var writer = new ObjectWriterMock();
             var synchronizer = new Synchronizer(localSource, reader, remoteSource, writer);
             synchronizer.Synchronize().GetAwaiter().GetResult();
             return writer;
