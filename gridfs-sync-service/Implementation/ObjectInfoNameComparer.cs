@@ -8,6 +8,6 @@ namespace GridFSSyncService.Implementation
         public static ObjectInfoNameComparer Instance { get; } = new ObjectInfoNameComparer();
 
         public int Compare(ObjectInfo x, ObjectInfo y)
-            => string.Compare(x?.Name, y?.Name, StringComparison.Ordinal);
+            => string.CompareOrdinal(x?.Name, y?.Name);
     }
 }

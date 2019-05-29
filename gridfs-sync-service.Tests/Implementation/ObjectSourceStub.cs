@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using GridFSSyncService.Implementation;
 
 namespace GridFSSyncService.Tests.Implementation
 {
-    internal sealed class ObjectSourceStub : IObjectSource
+    internal sealed class ObjectSourceStub : IObjectSource, IEnumerable<ObjectInfo>
     {
         private static readonly Task<IReadOnlyCollection<ObjectInfo>> EmptyTask = Task.FromResult<IReadOnlyCollection<ObjectInfo>>(Array.Empty<ObjectInfo>());
 
@@ -35,15 +37,17 @@ namespace GridFSSyncService.Tests.Implementation
             }
         }
 
-        public Task<IReadOnlyCollection<ObjectInfo>> GetObjects(string? fromName, ushort batchSize)
+        public IEnumerator<ObjectInfo> GetEnumerator() => (_list ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
+
+        public Task<IReadOnlyCollection<ObjectInfo>> GetObjects(string? fromName)
         {
-            if (_list == null || batchSize == 0)
+            if (_list is null)
             {
                 return EmptyTask;
             }
 
             int index;
-            if (fromName != null)
+            if (fromName is object)
             {
                 index = _list.BinarySearch(new ObjectInfo(fromName, 0), ObjectInfoNameComparer.Instance);
                 if (index < 0)
@@ -61,9 +65,10 @@ namespace GridFSSyncService.Tests.Implementation
             }
 
             var count = _list.Count - index;
-            if (count > batchSize)
+            const int BatchSize = 1000;
+            if (count > BatchSize)
             {
-                count = batchSize;
+                count = BatchSize;
             }
 
             if (count == 0)
@@ -73,5 +78,7 @@ namespace GridFSSyncService.Tests.Implementation
 
             return Task.FromResult<IReadOnlyCollection<ObjectInfo>>(_list.GetRange(index, count));
         }
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
     }
 }

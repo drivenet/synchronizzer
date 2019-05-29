@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text;
 
 namespace GridFSSyncService.Implementation
@@ -26,10 +27,23 @@ namespace GridFSSyncService.Implementation
         public long Size { get; }
 
         public int CompareTo(ObjectInfo other)
-            => other is null
-                ? 1 :
-                (Name, Size).CompareTo((other.Name, other.Size));
+        {
+            if (other is null)
+            {
+                return 1;
+            }
+
+            var nameResult = string.CompareOrdinal(Name, other.Name);
+            if (nameResult == 0)
+            {
+                nameResult = Size.CompareTo(other.Size);
+            }
+
+            return nameResult;
+        }
 
         public override int GetHashCode() => Name.GetHashCode(StringComparison.Ordinal);
+
+        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1}", Name, Size);
     }
 }

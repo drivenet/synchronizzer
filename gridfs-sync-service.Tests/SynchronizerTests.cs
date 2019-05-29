@@ -22,8 +22,24 @@ namespace GridFSSyncService.Tests
                     Enumerable.Empty<ObjectInfo>()
                 },
                 {
-                    GenerateObjectInfos(Seed).Take(131730),
-                    GenerateObjectInfos(Seed).Take(191920)
+                    GenerateObjectInfos(Seed, 3000),
+                    GenerateObjectInfos(Seed, 4000)
+                },
+                {
+                    GenerateObjectInfos(Seed, 317303),
+                    GenerateObjectInfos(Seed, 919201)
+                },
+                {
+                    GenerateObjectInfos(Seed, 919201),
+                    GenerateObjectInfos(Seed, 317303)
+                },
+                {
+                    GenerateObjectInfos(Seed, 317303),
+                    GenerateObjectInfos(Seed + 1, 919201)
+                },
+                {
+                    GenerateObjectInfos(Seed, 919201),
+                    GenerateObjectInfos(Seed + 1, 317303)
                 },
             };
 
@@ -51,15 +67,15 @@ namespace GridFSSyncService.Tests
             var remoteSource = new ObjectSourceStub(remoteInfos);
             var writer = new ObjectWriterFake();
             var synchronizer = new Synchronizer(localSource, reader, remoteSource, writer);
-            synchronizer.Synchronize().Wait();
+            synchronizer.Synchronize().GetAwaiter().GetResult();
             return writer;
         }
 
-        private static IEnumerable<ObjectInfo> GenerateObjectInfos(int seed)
+        private static IEnumerable<ObjectInfo> GenerateObjectInfos(int seed, int count)
         {
             var rng1 = new Random(seed);
             var rng2 = new Random(seed + 1);
-            while (true)
+            for (var i = 0; i < count; i++)
             {
                 yield return new ObjectInfo(rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture), rng1.Next());
             }
