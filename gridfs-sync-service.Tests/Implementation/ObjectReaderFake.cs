@@ -8,10 +8,8 @@ namespace GridFSSyncService.Tests.Implementation
 {
     internal sealed class ObjectReaderFake : IObjectReader
     {
-        public Task<Stream> Read(string name)
-        {
-            var stream = new MemoryStream(Array.Empty<byte>(), false);
-            return Task.FromResult<Stream>(stream);
-        }
+        private readonly Task<Stream> _emptyStream = Task.FromResult<Stream>(new MemoryStream(Array.Empty<byte>(), false));
+
+        public Task<Stream> Read(string name) => _emptyStream;
     }
 }
