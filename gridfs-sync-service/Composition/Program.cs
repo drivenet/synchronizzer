@@ -71,11 +71,6 @@ namespace GridFSSyncService.Composition
 
         private static void ConfigureKestrel(KestrelServerOptions options)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             options.AddServerHeader = false;
             options.Limits.MaxRequestBodySize = 0;
             options.Limits.MaxRequestHeadersTotalSize = 4096;
