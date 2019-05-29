@@ -49,7 +49,7 @@ namespace GridFSSyncService.Tests
         {
             localInfos = localInfos.ToList();
             remoteInfos = remoteInfos.ToList();
-            var writer = ActAndArrange(localInfos, remoteInfos);
+            var writer = ArrangeAndAct(localInfos, remoteInfos);
 
             var deleted = remoteInfos.Select(info => info.Name).ToHashSet();
             deleted.ExceptWith(localInfos.Select(info => info.Name));
@@ -60,7 +60,7 @@ namespace GridFSSyncService.Tests
             Assert.True(uploaded.SetEquals(writer.GetUploads().Select(upload => upload.Name)));
         }
 
-        private static ObjectWriterFake ActAndArrange(IEnumerable<ObjectInfo> localInfos, IEnumerable<ObjectInfo> remoteInfos)
+        private static ObjectWriterFake ArrangeAndAct(IEnumerable<ObjectInfo> localInfos, IEnumerable<ObjectInfo> remoteInfos)
         {
             var localSource = new ObjectSourceStub(localInfos);
             var reader = new ObjectReaderFake();
