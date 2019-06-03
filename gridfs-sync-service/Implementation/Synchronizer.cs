@@ -24,43 +24,20 @@ namespace GridFSSyncService.Implementation
             var remoteInfos = new ObjectInfos();
             while (remoteInfos.IsLive && localInfos.IsLive)
             {
-                var localTask = localInfos.HasFreeSpace
-                    ? _localSource.GetObjects(localInfos.LastName, cancellationToken)
-                    : null;
-
-                var remoteTask = remoteInfos.HasFreeSpace
-                    ? _remoteSource.GetObjects(remoteInfos.LastName, cancellationToken)
-                    : null;
-
-                if (localTask is object)
-                {
-                    localInfos.Add(await localTask);
-                }
-
-                if (remoteTask is object)
-                {
-                    remoteInfos.Add(await remoteTask);
-                }
+                await Task.WhenAll(
+                    localInfos.Populate(_localSource, cancellationToken),
+                    remoteInfos.Populate(_remoteSource, cancellationToken));
 
                 foreach (var objectInfo in localInfos)
                 {
                     var name = objectInfo.Name;
-                    bool upload;
-                    if (remoteInfos.IsLive)
+                    if (remoteInfos.LastName is string lastName
+                        && string.CompareOrdinal(name, lastName) > 0)
                     {
-                        if (string.CompareOrdinal(name, remoteInfos.LastName) > 0)
-                        {
-                            break;
-                        }
-
-                        upload = !remoteInfos.HasObject(objectInfo);
-                    }
-                    else
-                    {
-                        upload = true;
+                        break;
                     }
 
-                    if (upload)
+                    if (!remoteInfos.HasObject(objectInfo))
                     {
                         using (var input = await _localReader.Read(name, cancellationToken))
                         {
@@ -74,22 +51,13 @@ namespace GridFSSyncService.Implementation
                 foreach (var objectInfo in remoteInfos)
                 {
                     var name = objectInfo.Name;
-                    bool delete;
-                    if (localInfos.IsLive)
+                    if (localInfos.LastName is string lastName
+                        && string.CompareOrdinal(name, lastName) > 0)
                     {
-                        if (string.CompareOrdinal(name, localInfos.LastName) > 0)
-                        {
-                            break;
-                        }
-
-                        delete = !localInfos.HasObjectByName(objectInfo);
-                    }
-                    else
-                    {
-                        delete = true;
+                        break;
                     }
 
-                    if (delete)
+                    if (!localInfos.HasObjectByName(objectInfo))
                     {
                         await _remoteWriter.Delete(name, cancellationToken);
                     }

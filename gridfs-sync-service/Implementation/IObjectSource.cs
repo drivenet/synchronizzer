@@ -6,6 +6,6 @@ namespace GridFSSyncService.Implementation
 {
     internal interface IObjectSource
     {
-        Task<IReadOnlyCollection<ObjectInfo>> GetObjects(string? fromName, CancellationToken cancellationToken);
+        Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken);
     }
 }

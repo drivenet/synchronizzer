@@ -40,7 +40,7 @@ namespace GridFSSyncService.Tests.Implementation
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_list ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
 
-        public Task<IReadOnlyCollection<ObjectInfo>> GetObjects(string? fromName, CancellationToken cancellationToken)
+        public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_list is null)

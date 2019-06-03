@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
@@ -11,57 +13,37 @@ namespace GridFSSyncService.Implementation
         private static readonly IComparer<ObjectInfo> NameOnlyComparer = new ObjectInfoNameComparer();
 
         private List<ObjectInfo>? _infos = new List<ObjectInfo>();
-        private string? _lastName;
         private int _skip;
 
-        public string? LastName
-        {
-            get
-            {
-                if (_infos is null)
-                {
-                    throw CreateCompletedException();
-                }
-
-                return _lastName;
-            }
-        }
+        public string? LastName { get; private set; }
 
         public bool IsLive => _infos is object;
 
-        public bool HasFreeSpace => _infos?.Count < MaxListLength || _skip != 0;
-
-        private List<ObjectInfo> Infos
-        {
-            get
-            {
-                if (_infos is null)
-                {
-                    throw CreateCompletedException();
-                }
-
-                return _infos;
-            }
-        }
-
-        public void Add(IEnumerable<ObjectInfo> newInfos)
+        public async Task Populate(IObjectSource source, CancellationToken cancellationToken)
         {
             if (_infos is null)
             {
-                throw CreateCompletedException();
+                return;
             }
 
             _infos.RemoveRange(0, _skip);
             _skip = 0;
+            if (_infos.Count >= MaxListLength)
+            {
+                return;
+            }
+
+            var newInfos = await source.GetOrdered(LastName, cancellationToken);
             _infos.AddRange(newInfos);
             var count = _infos.Count;
             if (count == 0)
             {
                 _infos = null;
+                LastName = null;
                 return;
             }
 
-            _lastName = _infos[count - 1].Name;
+            LastName = _infos[count - 1].Name;
         }
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_infos ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
@@ -73,20 +55,34 @@ namespace GridFSSyncService.Implementation
                 throw CreateCompletedException();
             }
 
+            var count = _infos.Count;
+            if (_skip >= count)
+            {
+                throw new InvalidOperationException(FormattableString.Invariant($"Skip {_skip} is greater than or equal to count {count}"));
+            }
+
             ++_skip;
         }
 
         public bool HasObject(ObjectInfo objectInfo)
         {
-            var infos = Infos;
-            var index = infos.BinarySearch(0, infos.Count, objectInfo, null);
+            if (_infos == null)
+            {
+                return false;
+            }
+
+            var index = _infos.BinarySearch(objectInfo, null);
             return index >= 0;
         }
 
         public bool HasObjectByName(ObjectInfo objectInfo)
         {
-            var infos = Infos;
-            var index = infos.BinarySearch(0, infos.Count, objectInfo, NameOnlyComparer);
+            if (_infos == null)
+            {
+                return false;
+            }
+
+            var index = _infos.BinarySearch(objectInfo, NameOnlyComparer);
             return index >= 0;
         }
 
