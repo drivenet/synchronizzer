@@ -24,7 +24,7 @@ namespace GridFSSyncService.Middleware
         {
             var metricName = context.Request.Path.Value.TrimStart(PathChars);
             var metricValue = _metricsReader.GetValue(metricName);
-            if (metricValue is object)
+            if (metricValue != null)
             {
                 if (context.Request.Method != "GET")
                 {

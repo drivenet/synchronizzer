@@ -81,6 +81,6 @@ namespace GridFSSyncService.Tests.Implementation
             return Task.FromResult<IReadOnlyCollection<ObjectInfo>>(_list.GetRange(index, count));
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
