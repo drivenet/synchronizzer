@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
@@ -21,7 +22,7 @@ namespace GridFSSyncService.Implementation
             _remoteWriter = remoteWriter;
         }
 
-        public async Task Synchronize()
+        public async Task Synchronize(CancellationToken cancellationToken)
         {
             const int MaxListLength = 8192;
             string? lastLocalName = null;
@@ -32,11 +33,11 @@ namespace GridFSSyncService.Implementation
             while (true)
             {
                 var localTask = localList?.Count < MaxListLength
-                    ? _localSource.GetObjects(lastLocalName)
+                    ? _localSource.GetObjects(lastLocalName, cancellationToken)
                     : EmptyTask;
 
                 var remoteTask = remoteList?.Count < MaxListLength
-                    ? _remoteSource.GetObjects(lastRemoteName)
+                    ? _remoteSource.GetObjects(lastRemoteName, cancellationToken)
                     : EmptyTask;
 
                 if (localList is object)
@@ -101,9 +102,9 @@ namespace GridFSSyncService.Implementation
 
                         if (upload)
                         {
-                            using (var input = await _localReader.Read(name))
+                            using (var input = await _localReader.Read(name, cancellationToken))
                             {
-                                await _remoteWriter.Upload(name, input);
+                                await _remoteWriter.Upload(name, input, cancellationToken);
                             }
                         }
 
@@ -143,7 +144,7 @@ namespace GridFSSyncService.Implementation
 
                         if (delete)
                         {
-                            await _remoteWriter.Delete(name);
+                            await _remoteWriter.Delete(name, cancellationToken);
                         }
 
                         ++skipRemote;
@@ -165,7 +166,7 @@ namespace GridFSSyncService.Implementation
                 }
             }
 
-            await _remoteWriter.Flush();
+            await _remoteWriter.Flush(cancellationToken);
         }
     }
 }

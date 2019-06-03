@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using GridFSSyncService.Implementation;
@@ -14,8 +15,9 @@ namespace GridFSSyncService.Tests.Implementation
         private readonly HashSet<string> _deleted = new HashSet<string>();
         private bool _isDirty;
 
-        public Task Delete(string objectName)
+        public Task Delete(string objectName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (_uploaded.ContainsKey(objectName))
             {
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Object was uploaded.");
@@ -30,14 +32,16 @@ namespace GridFSSyncService.Tests.Implementation
             return Task.CompletedTask;
         }
 
-        public Task Flush()
+        public Task Flush(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             _isDirty = false;
             return Task.CompletedTask;
         }
 
-        public Task Upload(string objectName, Stream readOnlyInput)
+        public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (_deleted.Contains(objectName))
             {
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Object was deleted.");

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using GridFSSyncService.Implementation;
@@ -39,8 +40,9 @@ namespace GridFSSyncService.Tests.Implementation
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_list ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
 
-        public Task<IReadOnlyCollection<ObjectInfo>> GetObjects(string? fromName)
+        public Task<IReadOnlyCollection<ObjectInfo>> GetObjects(string? fromName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (_list is null)
             {
                 return EmptyTask;

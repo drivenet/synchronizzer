@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
@@ -20,33 +22,35 @@ namespace GridFSSyncService.Implementation
 
         private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount * GoldenRatio);
 
-        public async Task Delete(string objectName)
+        public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
-            await EnsureQueueSize(_deleteQueue, MaxQueueSize);
-            var task = _inner.Delete(objectName);
+            await EnsureQueueSize(_deleteQueue, MaxQueueSize, cancellationToken);
+            var task = _inner.Delete(objectName, cancellationToken);
             _deleteQueue.Add(task);
         }
 
-        public async Task Flush()
+        public async Task Flush(CancellationToken cancellationToken)
         {
             await Task.WhenAll(
-                EnsureQueueSize(_uploadQueue, 0),
-                EnsureQueueSize(_deleteQueue, 0));
-            await _inner.Flush();
+                EnsureQueueSize(_uploadQueue, 0, cancellationToken),
+                EnsureQueueSize(_deleteQueue, 0, cancellationToken));
+            await _inner.Flush(cancellationToken);
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput)
+        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
-            await EnsureQueueSize(_uploadQueue, MaxQueueSize);
-            var task = _inner.Upload(objectName, readOnlyInput);
+            await EnsureQueueSize(_uploadQueue, MaxQueueSize, cancellationToken);
+            var task = _inner.Upload(objectName, readOnlyInput, cancellationToken);
             _uploadQueue.Add(task);
         }
 
-        private static async Task EnsureQueueSize(HashSet<Task> queue, int size)
+        private static async Task EnsureQueueSize(HashSet<Task> queue, int size, CancellationToken cancellationToken)
         {
+            var tcs = new TaskCompletionSource<bool>();
+            using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
             while (queue.Count >= size)
             {
-                var task = await Task.WhenAny(queue);
+                var task = await Task.WhenAny(queue.Append(tcs.Task));
                 queue.Remove(task);
                 await task;
             }

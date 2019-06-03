@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Amazon.S3;
@@ -16,12 +17,12 @@ namespace GridFSSyncService.Implementation
             _bucketName = bucketName;
         }
 
-        public Task Delete(string objectName)
-            => _s3.DeleteAsync(_bucketName, objectName, null);
+        public Task Delete(string objectName, CancellationToken cancellationToken)
+            => _s3.DeleteAsync(_bucketName, objectName, null, cancellationToken);
 
-        public Task Flush() => Task.CompletedTask;
+        public Task Flush(CancellationToken cancellationToken) => Task.CompletedTask;
 
-        public Task Upload(string objectName, Stream readOnlyInput)
-            => _s3.UploadObjectFromStreamAsync(_bucketName, objectName, readOnlyInput, null);
+        public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+            => _s3.UploadObjectFromStreamAsync(_bucketName, objectName, readOnlyInput, null, cancellationToken);
     }
 }
