@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
     internal sealed class Synchronizer
     {
-        private static readonly Task<IReadOnlyCollection<ObjectInfo>> EmptyTask = Task.FromResult<IReadOnlyCollection<ObjectInfo>>(Array.Empty<ObjectInfo>());
-
         private readonly IObjectSource _localSource;
         private readonly IObjectReader _localReader;
         private readonly IObjectSource _remoteSource;
@@ -24,145 +20,81 @@ namespace GridFSSyncService.Implementation
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
-            const int MaxListLength = 8192;
-            string? lastLocalName = null;
-            string? lastRemoteName = null;
-            var localList = (List<ObjectInfo>?)new List<ObjectInfo>();
-            var remoteList = (List<ObjectInfo>?)new List<ObjectInfo>();
-            var comparer = new ObjectInfoNameComparer();
-            while (true)
+            var localInfos = new ObjectInfos();
+            var remoteInfos = new ObjectInfos();
+            while (remoteInfos.IsLive && localInfos.IsLive)
             {
-                var localTask = localList?.Count < MaxListLength
-                    ? _localSource.GetObjects(lastLocalName, cancellationToken)
-                    : EmptyTask;
+                var localTask = localInfos.HasFreeSpace
+                    ? _localSource.GetObjects(localInfos.LastName, cancellationToken)
+                    : null;
 
-                var remoteTask = remoteList?.Count < MaxListLength
-                    ? _remoteSource.GetObjects(lastRemoteName, cancellationToken)
-                    : EmptyTask;
+                var remoteTask = remoteInfos.HasFreeSpace
+                    ? _remoteSource.GetObjects(remoteInfos.LastName, cancellationToken)
+                    : null;
 
-                if (localList is object)
+                if (localTask is object)
                 {
-                    localList.AddRange(await localTask);
-                    var count = localList.Count;
-                    if (count > 0)
-                    {
-                        lastLocalName = localList[count - 1].Name;
-                    }
-                    else
-                    {
-                        localList = null;
-                        lastLocalName = null;
-                    }
+                    localInfos.Add(await localTask);
                 }
 
-                if (remoteList is object)
+                if (remoteTask is object)
                 {
-                    remoteList.AddRange(await remoteTask);
-                    var count = remoteList.Count;
-                    if (count > 0)
-                    {
-                        lastRemoteName = remoteList[count - 1].Name;
-                    }
-                    else
-                    {
-                        remoteList = null;
-                        lastRemoteName = null;
-                    }
+                    remoteInfos.Add(await remoteTask);
                 }
 
-                var skipLocal = 0;
-                if (localList is object)
+                foreach (var objectInfo in localInfos)
                 {
-                    var lastIndex = 0;
-                    foreach (var objectInfo in localList)
+                    var name = objectInfo.Name;
+                    bool upload;
+                    if (remoteInfos.IsLive)
                     {
-                        var name = objectInfo.Name;
-                        if (lastRemoteName is object
-                            && string.CompareOrdinal(name, lastRemoteName) > 0)
+                        if (string.CompareOrdinal(name, remoteInfos.LastName) > 0)
                         {
                             break;
                         }
 
-                        var upload = false;
-                        if (remoteList is object)
-                        {
-                            var index = remoteList.BinarySearch(lastIndex, remoteList.Count - lastIndex, objectInfo, null);
-                            if (index < 0)
-                            {
-                                upload = true;
-                                index = ~index;
-                            }
-
-                            lastIndex = index;
-                        }
-                        else
-                        {
-                            upload = true;
-                        }
-
-                        if (upload)
-                        {
-                            using (var input = await _localReader.Read(name, cancellationToken))
-                            {
-                                await _remoteWriter.Upload(name, input, cancellationToken);
-                            }
-                        }
-
-                        ++skipLocal;
+                        upload = !remoteInfos.HasObject(objectInfo);
                     }
+                    else
+                    {
+                        upload = true;
+                    }
+
+                    if (upload)
+                    {
+                        using (var input = await _localReader.Read(name, cancellationToken))
+                        {
+                            await _remoteWriter.Upload(name, input, cancellationToken);
+                        }
+                    }
+
+                    localInfos.Skip();
                 }
 
-                if (remoteList is object)
+                foreach (var objectInfo in remoteInfos)
                 {
-                    var skipRemote = 0;
-                    var lastIndex = 0;
-                    foreach (var objectInfo in remoteList)
+                    var name = objectInfo.Name;
+                    bool delete;
+                    if (localInfos.IsLive)
                     {
-                        var name = objectInfo.Name;
-                        if (lastLocalName is object
-                            && string.CompareOrdinal(name, lastLocalName) > 0)
+                        if (string.CompareOrdinal(name, localInfos.LastName) > 0)
                         {
                             break;
                         }
 
-                        var delete = false;
-                        if (localList is object)
-                        {
-                            var index = localList.BinarySearch(lastIndex, localList.Count - lastIndex, objectInfo, comparer);
-                            if (index < 0)
-                            {
-                                delete = true;
-                                index = ~index;
-                            }
-
-                            lastIndex = index;
-                        }
-                        else
-                        {
-                            delete = true;
-                        }
-
-                        if (delete)
-                        {
-                            await _remoteWriter.Delete(name, cancellationToken);
-                        }
-
-                        ++skipRemote;
+                        delete = !localInfos.HasObjectByName(objectInfo);
                     }
-
-                    remoteList.RemoveRange(0, skipRemote);
-                }
-
-                if (localList is object)
-                {
-                    localList.RemoveRange(0, skipLocal);
-                }
-                else
-                {
-                    if (remoteList is null)
+                    else
                     {
-                        break;
+                        delete = true;
                     }
+
+                    if (delete)
+                    {
+                        await _remoteWriter.Delete(name, cancellationToken);
+                    }
+
+                    remoteInfos.Skip();
                 }
             }
 
