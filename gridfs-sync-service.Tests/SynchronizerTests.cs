@@ -22,6 +22,22 @@ namespace GridFSSyncService.Tests
                     Enumerable.Empty<ObjectInfo>()
                 },
                 {
+                    GenerateObjectInfos(Seed, 171),
+                    GenerateObjectInfos(Seed, 313)
+                },
+                {
+                    GenerateObjectInfos(Seed, 313),
+                    GenerateObjectInfos(Seed, 171)
+                },
+                {
+                    GenerateObjectInfos(Seed, 171),
+                    GenerateObjectInfos(Seed + 1, 313)
+                },
+                {
+                    GenerateObjectInfos(Seed, 313),
+                    GenerateObjectInfos(Seed + 1, 171)
+                },
+                {
                     GenerateObjectInfos(Seed, 3000),
                     GenerateObjectInfos(Seed, 4000)
                 },
@@ -49,26 +65,21 @@ namespace GridFSSyncService.Tests
         {
             localInfos = localInfos.ToList();
             remoteInfos = remoteInfos.ToList();
-            var writer = ArrangeAndAct(localInfos, remoteInfos);
-
-            var deleted = remoteInfos.Select(info => info.Name).ToHashSet();
-            deleted.ExceptWith(localInfos.Select(info => info.Name));
-            Assert.True(deleted.SetEquals(writer.GetDeletes()));
-
-            var uploaded = localInfos.Select(info => info.Name).ToHashSet();
-            uploaded.ExceptWith(remoteInfos.Select(info => info.Name));
-            Assert.True(uploaded.SetEquals(writer.GetUploads().Select(upload => upload.Name)));
-        }
-
-        private static ObjectWriterMock ArrangeAndAct(IEnumerable<ObjectInfo> localInfos, IEnumerable<ObjectInfo> remoteInfos)
-        {
             var localSource = new ObjectSourceStub(localInfos);
-            var reader = new ObjectReaderFake();
+            var reader = new ObjectReaderMock();
             var remoteSource = new ObjectSourceStub(remoteInfos);
             var writer = new ObjectWriterMock();
             var synchronizer = new Synchronizer(localSource, reader, remoteSource, writer);
             synchronizer.Synchronize().GetAwaiter().GetResult();
-            return writer;
+
+            var deleted = remoteInfos.Select(info => info.Name).ToHashSet();
+            var uploaded = localInfos
+                .Where(info => !deleted.Contains(info.Name))
+                .Select(info => (info.Name, reader.GetStream(info.Name)))
+                .ToHashSet();
+            deleted.ExceptWith(localInfos.Select(info => info.Name));
+            Assert.True(deleted.SetEquals(writer.GetDeletes()));
+            Assert.True(uploaded.SetEquals(writer.GetUploads()));
         }
 
         private static IEnumerable<ObjectInfo> GenerateObjectInfos(int seed, int count)
