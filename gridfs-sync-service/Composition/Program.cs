@@ -29,6 +29,7 @@ namespace GridFSSyncService.Composition
         private static IConfiguration LoadAppConfiguration(string configPath)
             => new ConfigurationBuilder()
                 .AddJsonFile(configPath, optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables("GRIDFS_SYNC_")
                 .Build();
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays

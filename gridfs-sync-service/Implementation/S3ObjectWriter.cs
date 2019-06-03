@@ -2,27 +2,35 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace GridFSSyncService.Implementation
 {
     internal sealed class S3ObjectWriter : IObjectWriter
     {
-        private readonly IAmazonS3 _s3;
-        private readonly string _bucketName;
+        private readonly S3WriteContext _context;
 
-        public S3ObjectWriter(IAmazonS3 s3, string bucketName)
+        public S3ObjectWriter(S3WriteContext context)
         {
-            _s3 = s3;
-            _bucketName = bucketName;
+            _context = context;
         }
 
         public Task Delete(string objectName, CancellationToken cancellationToken)
-            => _s3.DeleteAsync(_bucketName, objectName, null, cancellationToken);
+            => _context.S3.DeleteAsync(_context.BucketName, objectName, null, cancellationToken);
 
         public Task Flush(CancellationToken cancellationToken) => Task.CompletedTask;
 
-        public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
-            => _s3.UploadObjectFromStreamAsync(_bucketName, objectName, readOnlyInput, null, cancellationToken);
+        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        {
+            var request = new PutObjectRequest
+            {
+                BucketName = _context.BucketName,
+                Key = objectName,
+                InputStream = readOnlyInput,
+                AutoCloseStream = false,
+                StorageClass = _context.StorageClass,
+            };
+            await _context.S3.PutObjectAsync(request, cancellationToken);
+        }
     }
 }

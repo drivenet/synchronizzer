@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class Synchronizer
+    internal sealed class Synchronizer : ISynchronizer
     {
         private readonly IObjectSource _localSource;
         private readonly IObjectReader _localReader;
