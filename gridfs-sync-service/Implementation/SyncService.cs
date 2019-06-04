@@ -16,7 +16,7 @@ namespace GridFSSyncService.Implementation
 
         private readonly ISynchronizer _synchronizer;
         private readonly ITimeSource _timeSource;
-        private readonly ILogger<SyncService> _logger;
+        private readonly ILogger _logger;
 
         public SyncService(ISynchronizer synchronizer, ITimeSource timeSource, ILogger<SyncService> logger)
         {
