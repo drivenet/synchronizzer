@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Collections.Generic;
+
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace GridFSSyncService.Composition
 {
@@ -16,24 +17,14 @@ namespace GridFSSyncService.Composition
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.ConfigureOptions<SyncOptionsConfig>();
             services.AddSingleton<Components.IMetricsReader>(Components.NullMetricsReader.Instance);
             services.AddSingleton<Components.ITimeSource>(Components.SystemTimeSource.Instance);
             services.AddHostedService<Implementation.SyncService>();
-            services.AddSingleton<Implementation.FilesystemObjectSource>();
-            services.AddSingleton<Implementation.FilesystemObjectReader>();
-            services.AddSingleton<Implementation.S3ObjectSource>();
-            services.AddSingleton<Implementation.S3ObjectWriter>();
-            var s3Context = Implementation.S3Utils.CreateContext(_configuration.GetSection("s3"));
-            services.AddSingleton(s3Context);
-            services.AddSingleton<Implementation.S3Context>(s3Context);
-            services.AddSingleton<Implementation.ISynchronizer>(provider =>
-                new Implementation.RobustSynchronizer(
-                    new Implementation.Synchronizer(
-                        provider.GetRequiredService<Implementation.FilesystemObjectSource>(),
-                        provider.GetRequiredService<Implementation.FilesystemObjectReader>(),
-                        provider.GetRequiredService<Implementation.S3ObjectSource>(),
-                        provider.GetRequiredService<Implementation.S3ObjectWriter>()),
-                    provider.GetRequiredService<ILogger<Implementation.ISynchronizer>>()));
+            services.AddSingleton<Implementation.ISynchronizer, ScopingSynchronizer>();
+            services.AddScoped<Implementation.ISynchronizer, CompositeSynchronizer>();
+            services.AddScoped<IEnumerable<Implementation.ISynchronizer>, SynchronizerSource>();
+            services.AddSingleton<ISynchronizerBuilder, SynchronizerBuilder>();
         }
 
         public void Configure(IApplicationBuilder app)

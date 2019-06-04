@@ -3,36 +3,38 @@
 using Amazon.Runtime;
 using Amazon.S3;
 
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace GridFSSyncService.Implementation
 {
     internal static class S3Utils
     {
-        public static S3WriteContext CreateContext(IConfiguration configuration)
+        public static S3WriteContext CreateContext(Uri uri)
         {
-            var accessKey = configuration.GetValue<string>("accessKey");
-            var secretKey = configuration.GetValue<string>("secretKey");
-            var bucketName = configuration.GetValue<string>("bucketName");
-            var storageClassString = configuration.GetValue<string>("storageClass");
-            var regionEndpointString = configuration.GetValue<string>("regionEndpoint");
-            var regionEndpoint = regionEndpointString is object
-                ? Amazon.RegionEndpoint.GetBySystemName(regionEndpointString)
-                : null;
-            var serviceUrl = configuration.GetValue<string>("serviceUrl");
-            var credentials = new BasicAWSCredentials(accessKey, secretKey);
-            var config = new AmazonS3Config
+            if (!uri.IsAbsoluteUri
+                || !"s3".Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                ServiceURL = serviceUrl,
-            };
+                throw new ArgumentOutOfRangeException(nameof(uri), uri, "Invalid S3 URI.");
+            }
 
-            if (regionEndpoint is null)
+            var query = QueryHelpers.ParseQuery(uri.Query);
+            var accessKey = query["accessKey"];
+            var secretKey = query["secretKey"];
+            var bucketName = uri.AbsolutePath.TrimStart('/');
+            var storageClassString = query["class"];
+            var host = uri.Host;
+
+            var credentials = new BasicAWSCredentials(accessKey, secretKey);
+            var config = new AmazonS3Config();
+            var regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(host);
+            if (regionEndpoint.DisplayName != "Unknown")
             {
-                config.ForcePathStyle = true;
+                config.RegionEndpoint = regionEndpoint;
             }
             else
             {
-                config.RegionEndpoint = regionEndpoint;
+                config.ForcePathStyle = true;
+                config.ServiceURL = new UriBuilder(Uri.UriSchemeHttps, host).Uri.AbsoluteUri;
             }
 
             S3StorageClass storageClass;
@@ -59,7 +61,7 @@ namespace GridFSSyncService.Implementation
             }
 
             var client = new AmazonS3Client(credentials, config);
-            return new Implementation.S3WriteContext(client, bucketName, storageClass);
+            return new S3WriteContext(client, bucketName, storageClass);
         }
     }
 }

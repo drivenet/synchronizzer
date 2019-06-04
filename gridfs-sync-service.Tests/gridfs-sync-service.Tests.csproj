@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
-    <WarningsAsErrors>CS8600;CS8602;CS8603;CS8618</WarningsAsErrors>
+    <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8618;CS8625</WarningsAsErrors>
     <NoWarn>CA2007</NoWarn>
   </PropertyGroup>
 

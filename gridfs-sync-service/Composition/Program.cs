@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -11,7 +12,7 @@ namespace GridFSSyncService.Composition
     public static class Program
     {
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays
-        public static void Main(string?[]? args)
+        public static async Task Main(string?[]? args)
 #pragma warning restore SA1011 // Closing square brackets should be spaced correctly
         {
             var commandLineOptions = GetCommandLineOptions(args);
@@ -21,7 +22,7 @@ namespace GridFSSyncService.Composition
                 var hostingOptions = GetHostingOptions(commandLineOptions.HostingConfig);
                 using (var host = BuildWebHost(hostingOptions, appConfiguration))
                 {
-                    host.Run();
+                    await host.RunAsync();
                 }
             }
         }
@@ -29,7 +30,7 @@ namespace GridFSSyncService.Composition
         private static IConfiguration LoadAppConfiguration(string configPath)
             => new ConfigurationBuilder()
                 .AddJsonFile(configPath, optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables("GRIDFS_SYNC_")
+                .AddEnvironmentVariables("GSS_")
                 .Build();
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays

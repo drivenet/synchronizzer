@@ -7,9 +7,9 @@ namespace GridFSSyncService.Implementation
 {
     internal sealed class FilesystemObjectSource : IObjectSource
     {
-        public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Array.Empty<ObjectInfo>();
         }
     }
 }

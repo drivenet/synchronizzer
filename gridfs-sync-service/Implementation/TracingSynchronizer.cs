@@ -2,15 +2,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class RobustSynchronizer : ISynchronizer
+    internal sealed class TracingSynchronizer : ISynchronizer
     {
         private readonly ISynchronizer _inner;
+        private readonly ILogger<ISynchronizer> _logger;
 
-        public RobustSynchronizer(ISynchronizer inner)
+        public TracingSynchronizer(ISynchronizer inner, ILogger<ISynchronizer> logger)
         {
             _inner = inner;
+            _logger = logger;
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)
@@ -21,13 +25,14 @@ namespace GridFSSyncService.Implementation
             }
             catch (OperationCanceledException)
             {
+                _logger.LogWarning("Synchronization canceled.");
                 throw;
             }
-#pragma warning disable CA1031 // Do not catch general exception types -- required for robust operation
-            catch
+            catch (Exception exception)
             {
+                _logger.LogError(exception, "Synchronization failed.");
+                throw;
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }
