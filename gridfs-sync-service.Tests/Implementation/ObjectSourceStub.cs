@@ -11,7 +11,7 @@ namespace GridFSSyncService.Tests.Implementation
 {
     internal sealed class ObjectSourceStub : IObjectSource, IEnumerable<ObjectInfo>
     {
-        private static readonly Task<IReadOnlyCollection<ObjectInfo>> EmptyTask = Task.FromResult<IReadOnlyCollection<ObjectInfo>>(Array.Empty<ObjectInfo>());
+        private static readonly Task<IEnumerable<ObjectInfo>> EmptyTask = Task.FromResult(Enumerable.Empty<ObjectInfo>());
 
         private readonly List<ObjectInfo>? _list;
 
@@ -40,7 +40,7 @@ namespace GridFSSyncService.Tests.Implementation
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_list ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
 
-        public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public Task<IEnumerable<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_list is null)
@@ -78,7 +78,7 @@ namespace GridFSSyncService.Tests.Implementation
                 return EmptyTask;
             }
 
-            return Task.FromResult<IReadOnlyCollection<ObjectInfo>>(_list.GetRange(index, count));
+            return Task.FromResult(_list.GetRange(index, count).AsEnumerable());
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

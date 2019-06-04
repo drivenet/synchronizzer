@@ -22,17 +22,23 @@ namespace GridFSSyncService.Composition
                 throw new ArgumentNullException(nameof(job), "Missing job name.");
             }
 
+            if (job.Local is null)
+            {
+                throw new ArgumentNullException(nameof(job), "Missing job local address.");
+            }
+
             if (job.Remote is null)
             {
                 throw new ArgumentNullException(nameof(job), "Missing job remote address.");
             }
 
+            var filesystemContext = new FilesystemContext(job.Local.LocalPath);
             var s3Context = S3Utils.CreateContext(job.Remote);
             var synchronizer = new RobustSynchronizer(
                 new TracingSynchronizer(
                     new Synchronizer(
-                        new FilesystemObjectSource(),
-                        new FilesystemObjectReader(),
+                        new FilesystemObjectSource(filesystemContext),
+                        new FilesystemObjectReader(filesystemContext),
                         new S3ObjectSource(s3Context),
                         new S3ObjectWriter(s3Context)),
                     _logger,
