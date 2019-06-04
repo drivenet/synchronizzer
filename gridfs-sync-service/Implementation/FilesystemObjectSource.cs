@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using static System.FormattableString;
 
 namespace GridFSSyncService.Implementation
 {
@@ -20,18 +23,14 @@ namespace GridFSSyncService.Implementation
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (fromName is object)
-            {
-                return Enumerable.Empty<ObjectInfo>();
-            }
-
-            return Iterate("", cancellationToken);
+            return Get(fromName, cancellationToken);
         }
 
-        private IEnumerable<ObjectInfo> Iterate(string path, CancellationToken cancellationToken)
+        private IEnumerable<ObjectInfo> Get(string? fromName, CancellationToken cancellationToken)
         {
-            string? prefix = null;
-            foreach (var info in new DirectoryInfo(_context.FilePath + Path.DirectorySeparatorChar + path).GetFileSystemInfos())
+            var directoryInfo = new DirectoryInfo(_context.FilePath);
+            var prefix = directoryInfo.FullName + Path.DirectorySeparatorChar;
+            foreach (var info in directoryInfo.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if ((info.Attributes & (FileAttributes.Encrypted | FileAttributes.Temporary | FileAttributes.Offline)) != 0)
@@ -39,28 +38,24 @@ namespace GridFSSyncService.Implementation
                     continue;
                 }
 
-                switch (info)
+                if (info is FileInfo fileInfo)
                 {
-                    case FileInfo fileInfo:
-                        if (prefix == null)
-                        {
-                            prefix = path;
-                            if (Path.DirectorySeparatorChar != '/')
-                            {
-                                prefix = prefix.Replace(Path.DirectorySeparatorChar, '/');
-                            }
-                        }
+                    var name = fileInfo.FullName;
+                    if (!name.StartsWith(prefix, StringComparison.Ordinal))
+                    {
+                        throw new InvalidDataException(Invariant($"The name \"{name}\" does not start with expected prefix \"{prefix}\"."));
+                    }
 
-                        yield return new ObjectInfo(prefix + fileInfo.Name, fileInfo.Length);
-                        break;
+                    name = name.Substring(prefix.Length);
+                    if (Path.DirectorySeparatorChar != '/')
+                    {
+                        name = name.Replace(Path.DirectorySeparatorChar, '/');
+                    }
 
-                    case DirectoryInfo directoryInfo:
-                        foreach (var item in Iterate(path + directoryInfo.Name + Path.DirectorySeparatorChar, cancellationToken))
-                        {
-                            yield return item;
-                        }
-
-                        break;
+                    if (string.CompareOrdinal(name, fromName) > 0)
+                    {
+                        yield return new ObjectInfo(name, fileInfo.Length);
+                    }
                 }
             }
         }
