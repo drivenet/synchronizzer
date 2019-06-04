@@ -18,12 +18,21 @@ namespace GridFSSyncService.Implementation
         {
             var response = await _context.S3.ListObjectsAsync(_context.BucketName, fromName, cancellationToken);
             var s3Objects = response.S3Objects;
-            if (s3Objects.Count == 0)
+            var count = s3Objects.Count;
+            var skip = 0;
+            if (count != 0 && s3Objects[0].Key == fromName)
+            {
+                skip = 1;
+            }
+
+            if (count <= skip)
             {
                 return Enumerable.Empty<ObjectInfo>();
             }
 
-            return s3Objects.Select(s3Object => new ObjectInfo(s3Object.Key, s3Object.Size));
+            return s3Objects
+                .Skip(skip)
+                .Select(s3Object => new ObjectInfo(s3Object.Key, s3Object.Size));
         }
     }
 }
