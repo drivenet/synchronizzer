@@ -58,7 +58,7 @@ namespace GridFSSyncService.Composition
 
         private static void ConfigureLogging(ILoggingBuilder loggingBuilder, HostingOptions hostingOptions)
         {
-            loggingBuilder.AddFilter((category, level) => level >= LogLevel.Warning || level == LogLevel.Trace);
+            loggingBuilder.AddFilter(Filter);
             var hasJournalD = Tmds.Systemd.Journal.IsSupported;
             if (hasJournalD)
             {
@@ -67,8 +67,17 @@ namespace GridFSSyncService.Composition
 
             if (!hasJournalD || hostingOptions.ForceConsoleLogging)
             {
-                loggingBuilder.AddConsole(options => options.DisableColors = true);
+                loggingBuilder.AddConsole(options =>
+                {
+                    options.DisableColors = true;
+                    options.IncludeScopes = true;
+                });
             }
+
+            static bool Filter(string category, LogLevel level)
+                => level >= LogLevel.Warning
+                    || level == LogLevel.Trace
+                    || !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void ConfigureKestrel(KestrelServerOptions options)
