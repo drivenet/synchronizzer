@@ -24,9 +24,12 @@ namespace GridFSSyncService.Implementation
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
-            await EnsureQueueSize(_deleteQueue, MaxQueueSize, cancellationToken);
+            await EnsureQueueSize(_deleteQueue, MaxQueueSize - 1, cancellationToken);
             var task = _inner.Delete(objectName, cancellationToken);
-            _deleteQueue.Add(task);
+            lock (_deleteQueue)
+            {
+                _deleteQueue.Add(task);
+            }
         }
 
         public async Task Flush(CancellationToken cancellationToken)
@@ -39,9 +42,12 @@ namespace GridFSSyncService.Implementation
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
-            await EnsureQueueSize(_uploadQueue, MaxQueueSize, cancellationToken);
+            await EnsureQueueSize(_uploadQueue, MaxQueueSize - 1, cancellationToken);
             var task = _inner.Upload(objectName, readOnlyInput, cancellationToken);
-            _uploadQueue.Add(task);
+            lock (_uploadQueue)
+            {
+                _uploadQueue.Add(task);
+            }
         }
 
         private static Task EnsureQueueSize(HashSet<Task> queue, int size, CancellationToken cancellationToken)
@@ -61,8 +67,21 @@ namespace GridFSSyncService.Implementation
             using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
             do
             {
-                var task = await Task.WhenAny(queue.Append(tcs.Task));
-                if (!queue.Remove(task))
+                List<Task> tasks;
+                lock (queue)
+                {
+                    tasks = queue.ToList();
+                }
+
+                tasks.Add(tcs.Task);
+                var task = await Task.WhenAny(tasks);
+                bool removed;
+                lock (queue)
+                {
+                    removed = queue.Remove(task);
+                }
+
+                if (!removed)
                 {
                     throw new InvalidDataException(FormattableString.Invariant($"Missing task {task} in queue."));
                 }
