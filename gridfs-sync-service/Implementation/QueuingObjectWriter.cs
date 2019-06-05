@@ -44,16 +44,32 @@ namespace GridFSSyncService.Implementation
             _uploadQueue.Add(task);
         }
 
-        private static async Task EnsureQueueSize(HashSet<Task> queue, int size, CancellationToken cancellationToken)
+        private static Task EnsureQueueSize(HashSet<Task> queue, int size, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (queue.Count <= size)
+            {
+                return Task.CompletedTask;
+            }
+
+            return EnsureQueueSizeSlow(queue, size, cancellationToken);
+        }
+
+        private static async Task EnsureQueueSizeSlow(HashSet<Task> queue, int size, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
             using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
-            while (queue.Count >= size)
+            do
             {
                 var task = await Task.WhenAny(queue.Append(tcs.Task));
-                queue.Remove(task);
+                if (!queue.Remove(task))
+                {
+                    throw new InvalidDataException(FormattableString.Invariant($"Missing task {task} in queue."));
+                }
+
                 await task;
             }
+            while (queue.Count > size);
         }
     }
 }
