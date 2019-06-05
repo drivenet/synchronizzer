@@ -93,6 +93,7 @@ namespace GridFSSyncService.Composition
         private static void ConfigureNetworking()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.DefaultConnectionLimit = 1000;
             ServicePointManager.CheckCertificateRevocationList = true;
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.DnsRefreshTimeout = 3000;
