@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace GridFSSyncService.Implementation
                 return;
             }
 
+            ObjectInfo? lastInfo = _infos.LastOrDefault();
             _infos.RemoveRange(0, _skip);
             _skip = 0;
             if (_infos.Count >= MaxListLength)
@@ -34,7 +36,17 @@ namespace GridFSSyncService.Implementation
             }
 
             var newInfos = await source.GetOrdered(LastName, cancellationToken);
-            _infos.AddRange(newInfos);
+            foreach (var info in newInfos)
+            {
+                if (info.CompareTo(lastInfo) <= 0)
+                {
+                    throw new InvalidDataException(FormattableString.Invariant($"Current object info {info} is not sorted wrt {lastInfo}."));
+                }
+
+                _infos.Add(info);
+                lastInfo = info;
+            }
+
             var count = _infos.Count;
             if (count == 0)
             {
