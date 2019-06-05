@@ -8,11 +8,13 @@ namespace GridFSSyncService.Composition
 {
     internal sealed class SynchronizerBuilder : ISynchronizerBuilder
     {
-        private readonly ILogger<TracingSynchronizer> _logger;
+        private readonly ILogger<TracingSynchronizer> _syncLogger;
+        private readonly ILogger<TracingObjectWriter> _objectLogger;
 
-        public SynchronizerBuilder(ILogger<TracingSynchronizer> logger)
+        public SynchronizerBuilder(ILogger<TracingSynchronizer> syncLogger, ILogger<TracingObjectWriter> objectLogger)
         {
-            _logger = logger;
+            _syncLogger = syncLogger;
+            _objectLogger = objectLogger;
         }
 
         public ISynchronizer Build(SyncJob job)
@@ -37,7 +39,7 @@ namespace GridFSSyncService.Composition
             var synchronizer = new RobustSynchronizer(
                 new TracingSynchronizer(
                     new Synchronizer(localReader, remoteWriter),
-                    _logger,
+                    _syncLogger,
                     job.Name));
             return synchronizer;
         }
@@ -50,12 +52,15 @@ namespace GridFSSyncService.Composition
                 new FilesystemObjectReader(context));
         }
 
-        private static IRemoteWriter CreateRemoteWriter(Uri uri)
+        private IRemoteWriter CreateRemoteWriter(Uri uri)
         {
             var context = S3Utils.CreateContext(uri);
             return new RemoteWriter(
                 new S3ObjectSource(context),
-                new QueuingObjectWriter(new S3ObjectWriter(context)));
+                new QueuingObjectWriter(
+                    new TracingObjectWriter(
+                        new S3ObjectWriter(context),
+                        _objectLogger)));
         }
     }
 }
