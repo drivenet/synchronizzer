@@ -5,16 +5,12 @@ namespace GridFSSyncService.Implementation
 {
     internal sealed class Synchronizer : ISynchronizer
     {
-        private readonly IObjectSource _localSource;
-        private readonly IObjectReader _localReader;
-        private readonly IObjectSource _remoteSource;
-        private readonly IObjectWriter _remoteWriter;
+        private readonly ILocalReader _localReader;
+        private readonly IRemoteWriter _remoteWriter;
 
-        public Synchronizer(IObjectSource localSource, IObjectReader localReader, IObjectSource remoteSource, IObjectWriter remoteWriter)
+        public Synchronizer(ILocalReader localReader, IRemoteWriter remoteWriter)
         {
-            _localSource = localSource;
             _localReader = localReader;
-            _remoteSource = remoteSource;
             _remoteWriter = remoteWriter;
         }
 
@@ -25,8 +21,8 @@ namespace GridFSSyncService.Implementation
             while (remoteInfos.IsLive && localInfos.IsLive)
             {
                 await Task.WhenAll(
-                    localInfos.Populate(_localSource, cancellationToken),
-                    remoteInfos.Populate(_remoteSource, cancellationToken));
+                    localInfos.Populate(_localReader, cancellationToken),
+                    remoteInfos.Populate(_remoteWriter, cancellationToken));
 
                 foreach (var objectInfo in localInfos)
                 {

@@ -32,18 +32,30 @@ namespace GridFSSyncService.Composition
                 throw new ArgumentNullException(nameof(job), "Missing job remote address.");
             }
 
-            var filesystemContext = new FilesystemContext(job.Local.LocalPath);
-            var s3Context = S3Utils.CreateContext(job.Remote);
+            var localReader = CreateLocalReader(job.Local);
+            var remoteWriter = CreateRemoteWriter(job.Remote);
             var synchronizer = new RobustSynchronizer(
                 new TracingSynchronizer(
-                    new Synchronizer(
-                        new FilesystemObjectSource(filesystemContext),
-                        new FilesystemObjectReader(filesystemContext),
-                        new S3ObjectSource(s3Context),
-                        new S3ObjectWriter(s3Context)),
+                    new Synchronizer(localReader, remoteWriter),
                     _logger,
                     job.Name));
             return synchronizer;
+        }
+
+        private static ILocalReader CreateLocalReader(Uri uri)
+        {
+            var context = FilesystemUtils.CreateContext(uri);
+            return new LocalReader(
+                new FilesystemObjectSource(context),
+                new FilesystemObjectReader(context));
+        }
+
+        private static IRemoteWriter CreateRemoteWriter(Uri uri)
+        {
+            var context = S3Utils.CreateContext(uri);
+            return new RemoteWriter(
+                new S3ObjectSource(context),
+                new S3ObjectWriter(context));
         }
     }
 }
