@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +16,7 @@ namespace GridFSSyncService.Composition
         public static async Task Main(string?[]? args)
 #pragma warning restore SA1011 // Closing square brackets should be spaced correctly
         {
+            ConfigureNetworking();
             var commandLineOptions = GetCommandLineOptions(args);
             var appConfiguration = LoadAppConfiguration(commandLineOptions.Config);
             while (true)
@@ -86,6 +88,16 @@ namespace GridFSSyncService.Composition
             options.Limits.MaxRequestBodySize = 0;
             options.Limits.MaxRequestHeadersTotalSize = 4096;
             options.Limits.MaxConcurrentConnections = 10;
+        }
+
+        private static void ConfigureNetworking()
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.CheckCertificateRevocationList = true;
+            ServicePointManager.Expect100Continue = false;
+            ServicePointManager.DnsRefreshTimeout = 3000;
+            ServicePointManager.EnableDnsRoundRobin = true;
+            ServicePointManager.ReusePort = true;
         }
     }
 }
