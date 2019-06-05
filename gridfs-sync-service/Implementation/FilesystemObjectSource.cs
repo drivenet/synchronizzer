@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,10 +23,12 @@ namespace GridFSSyncService.Implementation
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Get(fromName, cancellationToken);
+            var result = Enumerate(fromName, cancellationToken).ToList();
+            result.Sort();
+            return result;
         }
 
-        private IEnumerable<ObjectInfo> Get(string? fromName, CancellationToken cancellationToken)
+        private IEnumerable<ObjectInfo> Enumerate(string? fromName, CancellationToken cancellationToken)
         {
             var directoryInfo = new DirectoryInfo(_context.FilePath);
             var prefix = directoryInfo.FullName + Path.DirectorySeparatorChar;
