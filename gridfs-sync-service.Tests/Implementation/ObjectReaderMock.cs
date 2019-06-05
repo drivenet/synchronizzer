@@ -12,14 +12,14 @@ namespace GridFSSyncService.Tests.Implementation
     {
         private readonly Dictionary<string, Stream> _map = new Dictionary<string, Stream>();
 
-        public Task<Stream> Read(string name, CancellationToken cancellationToken)
+        public Task<Stream> Read(string objectName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             Stream stream = new MemoryStream(Array.Empty<byte>(), false);
-            _map.Add(name, stream);
+            _map.Add(objectName, stream);
             return Task.FromResult(stream);
         }
 
-        public Stream GetStream(string name) => _map[name];
+        public Stream GetStream(string objectName) => _map[objectName];
     }
 }

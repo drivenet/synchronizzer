@@ -6,6 +6,6 @@ namespace GridFSSyncService.Implementation
 {
     internal interface IObjectReader
     {
-        Task<Stream> Read(string name, CancellationToken cancellationToken);
+        Task<Stream> Read(string objectName, CancellationToken cancellationToken);
     }
 }

@@ -14,15 +14,15 @@ namespace GridFSSyncService.Implementation
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously -- opening local file is synchronous
-        public async Task<Stream> Read(string name, CancellationToken cancellationToken)
+        public async Task<Stream> Read(string objectName, CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (Path.DirectorySeparatorChar != '/' && Path.AltDirectorySeparatorChar != '/')
             {
-                name = name.Replace('/', Path.DirectorySeparatorChar);
+                objectName = objectName.Replace('/', Path.DirectorySeparatorChar);
             }
 
-            Stream stream = File.Open(_context.FilePath + Path.DirectorySeparatorChar + name, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            Stream stream = File.Open(_context.FilePath + Path.DirectorySeparatorChar + objectName, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             return stream;
         }
     }
