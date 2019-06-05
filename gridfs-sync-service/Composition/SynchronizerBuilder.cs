@@ -55,7 +55,7 @@ namespace GridFSSyncService.Composition
             var context = S3Utils.CreateContext(uri);
             return new RemoteWriter(
                 new S3ObjectSource(context),
-                new S3ObjectWriter(context));
+                new QueuingObjectWriter(new S3ObjectWriter(context)));
         }
     }
 }
