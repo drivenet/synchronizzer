@@ -35,9 +35,15 @@ namespace GridFSSyncService.Implementation
 
                     if (!remoteInfos.HasObject(objectInfo))
                     {
-                        using (var input = await _localReader.Read(name, cancellationToken))
+                        var input = await _localReader.Read(name, cancellationToken);
+                        try
                         {
                             await _remoteWriter.Upload(name, input, cancellationToken);
+                        }
+                        catch
+                        {
+                            input.Dispose();
+                            throw;
                         }
                     }
 
