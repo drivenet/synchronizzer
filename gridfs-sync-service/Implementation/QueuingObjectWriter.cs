@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class QueuingObjectWriter : IObjectWriter
+    internal sealed class QueuingObjectWriter : IObjectWriter, IDisposable
     {
-        private const double GoldenRatio = 1.618;
-
-        private readonly HashSet<Task> _uploadQueue = new HashSet<Task>();
-        private readonly HashSet<Task> _deleteQueue = new HashSet<Task>();
+        private readonly QueuingTaskManager _tasks = new QueuingTaskManager();
         private readonly IObjectWriter _inner;
 
         public QueuingObjectWriter(IObjectWriter inner)
@@ -20,75 +15,22 @@ namespace GridFSSyncService.Implementation
             _inner = inner;
         }
 
-        private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount * GoldenRatio);
+        public Task Delete(string objectName, CancellationToken cancellationToken)
+            => _tasks.Enqueue(
+                token => _inner.Delete(objectName, token),
+                cancellationToken);
 
-        public async Task Delete(string objectName, CancellationToken cancellationToken)
-        {
-            await EnsureQueueSize(_deleteQueue, MaxQueueSize - 1, cancellationToken);
-            var task = _inner.Delete(objectName, cancellationToken);
-            lock (_deleteQueue)
-            {
-                _deleteQueue.Add(task);
-            }
-        }
+        public void Dispose() => _tasks.Dispose();
 
         public async Task Flush(CancellationToken cancellationToken)
         {
-            await Task.WhenAll(
-                EnsureQueueSize(_uploadQueue, 0, cancellationToken),
-                EnsureQueueSize(_deleteQueue, 0, cancellationToken));
+            await _tasks.WaitAll(cancellationToken);
             await _inner.Flush(cancellationToken);
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
-        {
-            await EnsureQueueSize(_uploadQueue, MaxQueueSize - 1, cancellationToken);
-            var task = _inner.Upload(objectName, readOnlyInput, cancellationToken);
-            lock (_uploadQueue)
-            {
-                _uploadQueue.Add(task);
-            }
-        }
-
-        private static Task EnsureQueueSize(HashSet<Task> queue, int size, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (queue.Count <= size)
-            {
-                return Task.CompletedTask;
-            }
-
-            return EnsureQueueSizeSlow(queue, size, cancellationToken);
-        }
-
-        private static async Task EnsureQueueSizeSlow(HashSet<Task> queue, int size, CancellationToken cancellationToken)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
-            do
-            {
-                List<Task> tasks;
-                lock (queue)
-                {
-                    tasks = queue.ToList();
-                }
-
-                tasks.Add(tcs.Task);
-                var task = await Task.WhenAny(tasks);
-                bool removed;
-                lock (queue)
-                {
-                    removed = queue.Remove(task);
-                }
-
-                if (!removed)
-                {
-                    throw new InvalidDataException(FormattableString.Invariant($"Missing task {task} in queue."));
-                }
-
-                await task;
-            }
-            while (queue.Count > size);
-        }
+        public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+            => _tasks.Enqueue(
+                token => _inner.Upload(objectName, readOnlyInput, token),
+                cancellationToken);
     }
 }
