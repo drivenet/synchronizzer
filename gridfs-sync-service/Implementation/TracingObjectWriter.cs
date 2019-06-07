@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,7 +23,21 @@ namespace GridFSSyncService.Implementation
             using (_logger.BeginScope("deleting \"{ObjectName}\"", objectName))
             {
                 _logger.LogDebug(Events.BeginDelete, "Begin delete.");
-                await _inner.Delete(objectName, cancellationToken);
+                try
+                {
+                    await _inner.Delete(objectName, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation(Events.CancelledDelete, "Delete was cancelled.");
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Delete failed.");
+                    throw;
+                }
+
                 _logger.LogDebug(Events.EndDelete, "End delete.");
             }
         }
@@ -37,7 +52,21 @@ namespace GridFSSyncService.Implementation
             using (_logger.BeginScope("uploading \"{ObjectName}\"", objectName))
             {
                 _logger.LogDebug(Events.BeginUpload, "Begin upload.");
-                await _inner.Upload(objectName, readOnlyInput, cancellationToken);
+                try
+                {
+                    await _inner.Upload(objectName, readOnlyInput, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation(Events.CancelledUpload, "Upload was cancelled.");
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Upload failed.");
+                    throw;
+                }
+
                 _logger.LogDebug(Events.EndUpload, "End upload.");
             }
         }
@@ -48,6 +77,8 @@ namespace GridFSSyncService.Implementation
             public static readonly EventId EndUpload = new EventId(2, nameof(EndUpload));
             public static readonly EventId BeginDelete = new EventId(3, nameof(BeginDelete));
             public static readonly EventId EndDelete = new EventId(4, nameof(EndDelete));
+            public static readonly EventId CancelledUpload = new EventId(5, nameof(CancelledUpload));
+            public static readonly EventId CancelledDelete = new EventId(6, nameof(CancelledDelete));
         }
     }
 }
