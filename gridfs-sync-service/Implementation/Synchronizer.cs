@@ -35,7 +35,9 @@ namespace GridFSSyncService.Implementation
 
                     if (!remoteInfos.HasObject(objectInfo))
                     {
+#pragma warning disable CA2000 // Dispose objects before losing scope -- expected to be disposed by Upload
                         var input = await _localReader.Read(name, cancellationToken);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         try
                         {
                             await _remoteWriter.Upload(name, input, cancellationToken);
