@@ -69,7 +69,9 @@ namespace GridFSSyncService.Tests
             var reader = new ObjectReaderMock();
             var remoteSource = new ObjectSourceStub(remoteInfos);
             var writer = new ObjectWriterMock();
-            var synchronizer = new Synchronizer(localSource, reader, remoteSource, writer);
+            var localReader = new LocalReader(localSource, reader);
+            var remoteWriter = new RemoteWriter(remoteSource, writer);
+            var synchronizer = new Synchronizer(localReader, remoteWriter);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 
             var deleted = remoteInfos.Select(info => info.Name).ToHashSet();
