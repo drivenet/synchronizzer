@@ -19,9 +19,12 @@ namespace GridFSSyncService.Implementation
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Deleting \"{ObjectName}\".", objectName);
-            await _inner.Delete(objectName, cancellationToken);
-            _logger.LogDebug("Deleted \"{ObjectName}\".", objectName);
+            using (_logger.BeginScope("deleting \"{ObjectName}\"", objectName))
+            {
+                _logger.LogDebug(Events.BeginDelete, "Begin delete.");
+                await _inner.Delete(objectName, cancellationToken);
+                _logger.LogDebug(Events.EndDelete, "End delete.");
+            }
         }
 
         public Task Flush(CancellationToken cancellationToken)
@@ -31,9 +34,20 @@ namespace GridFSSyncService.Implementation
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Uploading \"{ObjectName}\".", objectName);
-            await _inner.Upload(objectName, readOnlyInput, cancellationToken);
-            _logger.LogDebug("Uploaded \"{ObjectName}\".", objectName);
+            using (_logger.BeginScope("uploading \"{ObjectName}\"", objectName))
+            {
+                _logger.LogDebug(Events.BeginUpload, "Begin upload.");
+                await _inner.Upload(objectName, readOnlyInput, cancellationToken);
+                _logger.LogDebug(Events.EndUpload, "End upload.");
+            }
+        }
+
+        private static class Events
+        {
+            public static readonly EventId BeginUpload = new EventId(1, nameof(BeginUpload));
+            public static readonly EventId EndUpload = new EventId(2, nameof(EndUpload));
+            public static readonly EventId BeginDelete = new EventId(3, nameof(BeginDelete));
+            public static readonly EventId EndDelete = new EventId(4, nameof(EndDelete));
         }
     }
 }
