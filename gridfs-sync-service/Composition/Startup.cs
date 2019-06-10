@@ -20,6 +20,9 @@ namespace GridFSSyncService.Composition
             services.ConfigureOptions<SyncOptionsConfig>();
             services.AddSingleton<Components.IMetricsReader>(Components.NullMetricsReader.Instance);
             services.AddSingleton<Components.ITimeSource>(Components.SystemTimeSource.Instance);
+            services.AddSingleton<Components.MetricsContainer>();
+            services.AddSingleton<Components.IMetricsReader>(provider => provider.GetRequiredService<Components.MetricsContainer>());
+            services.AddSingleton<Components.IMetricsWriter>(provider => provider.GetRequiredService<Components.MetricsContainer>());
             services.AddHostedService<Implementation.SyncService>();
             services.AddSingleton(Implementation.SyncTimeHolder.Instance);
             services.AddSingleton<Implementation.ISynchronizer, ScopingSynchronizer>();

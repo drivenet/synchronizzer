@@ -1,5 +1,6 @@
 ﻿using System;
 
+using GridFSSyncService.Components;
 using GridFSSyncService.Implementation;
 
 using Microsoft.Extensions.Logging;
@@ -10,11 +11,13 @@ namespace GridFSSyncService.Composition
     {
         private readonly ILogger<TracingSynchronizer> _syncLogger;
         private readonly ILogger<TracingObjectWriter> _objectLogger;
+        private readonly IMetricsWriter _metricsWriter;
 
-        public SynchronizerBuilder(ILogger<TracingSynchronizer> syncLogger, ILogger<TracingObjectWriter> objectLogger)
+        public SynchronizerBuilder(ILogger<TracingSynchronizer> syncLogger, ILogger<TracingObjectWriter> objectLogger, IMetricsWriter metricsWriter)
         {
             _syncLogger = syncLogger;
             _objectLogger = objectLogger;
+            _metricsWriter = metricsWriter;
         }
 
         public ISynchronizer Build(SyncJob job)
@@ -60,7 +63,9 @@ namespace GridFSSyncService.Composition
                 new QueuingObjectWriter(
                     new RobustObjectWriter(
                         new TracingObjectWriter(
-                            new S3ObjectWriter(context),
+                            new CountingObjectWriter(
+                                new S3ObjectWriter(context),
+                                _metricsWriter),
                             _objectLogger))));
         }
     }

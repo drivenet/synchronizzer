@@ -20,23 +20,27 @@ namespace GridFSSyncService.Middleware
             _metricsReader = metricsReader;
         }
 
-        public Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context)
         {
             var metricName = context.Request.Path.Value.TrimStart(PathChars);
             var metricValue = _metricsReader.GetValue(metricName);
+            string metricString;
             if (metricValue != null)
             {
                 if (context.Request.Method != "GET")
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                var metricString = ((double)metricValue).ToString(CultureInfo.InvariantCulture);
-                return context.Response.WriteAsync(metricString);
+                metricString = ((double)metricValue).ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                metricString = "0";
             }
 
-            return _next(context);
+            await context.Response.WriteAsync(metricString);
         }
     }
 }
