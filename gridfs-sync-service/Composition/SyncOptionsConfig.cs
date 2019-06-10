@@ -45,7 +45,11 @@ namespace GridFSSyncService.Composition
             {
                 var query = UriVars.Replace(
                     uri.Query,
-                    match => template.GetValue(match.Groups[1].Value, ""));
+                    match =>
+                    {
+                        var key = match.Groups[1].Value;
+                        return template.GetValue(key, key);
+                    });
                 if (query != uri.Query)
                 {
                     uri = new UriBuilder(uri) { Query = query }.Uri;
