@@ -47,11 +47,14 @@ namespace GridFSSyncService.Composition
             return synchronizer;
         }
 
-        private static ILocalReader CreateLocalReader(Uri uri)
+        private ILocalReader CreateLocalReader(Uri uri)
         {
             var context = FilesystemUtils.CreateContext(uri);
             return new LocalReader(
-                new FilesystemObjectSource(context),
+                new CountingObjectSource(
+                    new FilesystemObjectSource(context),
+                    _metricsWriter,
+                    "fs_local"),
                 new FilesystemObjectReader(context));
         }
 
@@ -59,7 +62,10 @@ namespace GridFSSyncService.Composition
         {
             var context = S3Utils.CreateContext(uri);
             return new RemoteWriter(
-                new S3ObjectSource(context),
+                new CountingObjectSource(
+                    new S3ObjectSource(context),
+                    _metricsWriter,
+                    "s3_remote"),
                 new QueuingObjectWriter(
                     new RobustObjectWriter(
                         new TracingObjectWriter(
