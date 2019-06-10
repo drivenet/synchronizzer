@@ -16,7 +16,7 @@ namespace GridFSSyncService.Implementation
             _context = context;
         }
 
-        public async Task<IEnumerable<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
             var request = new ListObjectsV2Request
             {
@@ -25,7 +25,8 @@ namespace GridFSSyncService.Implementation
             };
             var response = await _context.S3.ListObjectsV2Async(request, cancellationToken);
             return response.S3Objects
-                .Select(s3Object => new ObjectInfo(s3Object.Key.TrimEnd('/'), s3Object.Size));
+                .Select(s3Object => new ObjectInfo(s3Object.Key.TrimEnd('/'), s3Object.Size))
+                .ToList();
         }
     }
 }
