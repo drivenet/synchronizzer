@@ -21,6 +21,7 @@ namespace GridFSSyncService.Composition
             services.AddSingleton<Components.IMetricsReader>(Components.NullMetricsReader.Instance);
             services.AddSingleton<Components.ITimeSource>(Components.SystemTimeSource.Instance);
             services.AddHostedService<Implementation.SyncService>();
+            services.AddSingleton(Implementation.SyncTimeHolder.Instance);
             services.AddSingleton<Implementation.ISynchronizer, ScopingSynchronizer>();
             services.AddScoped<Implementation.ISynchronizer, CompositeSynchronizer>();
             services.AddScoped<IEnumerable<Implementation.ISynchronizer>, SynchronizerSource>();
