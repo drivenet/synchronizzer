@@ -58,9 +58,10 @@ namespace GridFSSyncService.Composition
             return new RemoteWriter(
                 new S3ObjectSource(context),
                 new QueuingObjectWriter(
-                    new TracingObjectWriter(
-                        new S3ObjectWriter(context),
-                        _objectLogger)));
+                    new RobustObjectWriter(
+                        new TracingObjectWriter(
+                            new S3ObjectWriter(context),
+                            _objectLogger))));
         }
     }
 }
