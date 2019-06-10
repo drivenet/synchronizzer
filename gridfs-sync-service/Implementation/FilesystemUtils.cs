@@ -10,7 +10,7 @@ namespace GridFSSyncService.Implementation
                 || !uri.IsFile
                 || uri.IsUnc)
             {
-                throw new ArgumentOutOfRangeException(nameof(uri), uri, "Invalid filesystem URI.");
+                throw new ArgumentOutOfRangeException(nameof(uri), "Invalid filesystem URI.");
             }
 
             return new FilesystemContext(uri.LocalPath);

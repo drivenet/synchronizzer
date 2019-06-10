@@ -14,7 +14,7 @@ namespace GridFSSyncService.Implementation
             if (!uri.IsAbsoluteUri
                 || !"s3".Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                throw new ArgumentOutOfRangeException(nameof(uri), uri, "Invalid S3 URI.");
+                throw new ArgumentOutOfRangeException(nameof(uri), "Invalid S3 URI.");
             }
 
             var query = QueryHelpers.ParseQuery(uri.Query);
