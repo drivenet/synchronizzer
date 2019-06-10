@@ -20,7 +20,7 @@ namespace GridFSSyncService.Implementation
 
         public Task Flush(CancellationToken cancellationToken) => _writer.Flush(cancellationToken);
 
-        public Task<IEnumerable<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken) => _source.GetOrdered(fromName, cancellationToken);
+        public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken) => _source.GetOrdered(fromName, cancellationToken);
 
         public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken) => _writer.Upload(objectName, readOnlyInput, cancellationToken);
     }
