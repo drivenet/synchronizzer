@@ -20,7 +20,7 @@ namespace GridFSSyncService.Implementation
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
-            using (_logger.BeginScope("deleting \"{ObjectName}\"", objectName))
+            using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
                 _logger.LogDebug(Events.BeginDelete, "Begin delete.");
                 try
@@ -49,7 +49,7 @@ namespace GridFSSyncService.Implementation
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
-            using (_logger.BeginScope("uploading \"{ObjectName}\"", objectName))
+            using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
                 _logger.LogDebug(Events.BeginUpload, "Begin upload.");
                 try
