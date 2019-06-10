@@ -47,32 +47,52 @@ namespace GridFSSyncService.Composition
             return synchronizer;
         }
 
-        private ILocalReader CreateLocalReader(Uri uri)
+        private ILocalReader CreateLocalReader(string address)
         {
-            var context = FilesystemUtils.CreateContext(uri);
-            return new LocalReader(
-                new CountingObjectSource(
-                    new FilesystemObjectSource(context),
-                    _metricsWriter,
-                    "fs_local"),
-                new FilesystemObjectReader(context));
+            if (Uri.TryCreate(address, UriKind.Absolute, out var uri))
+            {
+                var context = FilesystemUtils.CreateContext(uri);
+                return new LocalReader(
+                    new CountingObjectSource(
+                        new FilesystemObjectSource(context),
+                        _metricsWriter,
+                        "fs_local"),
+                    new FilesystemObjectReader(context));
+            }
+            else if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
+            {
+                var context = MongoUtils.CreateContext(address);
+                return new LocalReader(
+                    new CountingObjectSource(
+                        new GridFSObjectSource(context),
+                        _metricsWriter,
+                        "fs_local"),
+                    new GridFSObjectReader(context));
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
         }
 
-        private IRemoteWriter CreateRemoteWriter(Uri uri)
+        private IRemoteWriter CreateRemoteWriter(string address)
         {
-            var context = S3Utils.CreateContext(uri);
-            return new RemoteWriter(
-                new CountingObjectSource(
-                    new S3ObjectSource(context),
-                    _metricsWriter,
-                    "s3_remote"),
-                new QueuingObjectWriter(
-                    new RobustObjectWriter(
-                        new TracingObjectWriter(
-                            new CountingObjectWriter(
-                                new S3ObjectWriter(context),
-                                _metricsWriter),
-                            _objectLogger))));
+            if (Uri.TryCreate(address, UriKind.Absolute, out var uri))
+            {
+                var context = S3Utils.CreateContext(uri);
+                return new RemoteWriter(
+                    new CountingObjectSource(
+                        new S3ObjectSource(context),
+                        _metricsWriter,
+                        "s3_remote"),
+                    new QueuingObjectWriter(
+                        new RobustObjectWriter(
+                            new TracingObjectWriter(
+                                new CountingObjectWriter(
+                                    new S3ObjectWriter(context),
+                                    _metricsWriter),
+                                _objectLogger))));
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(address), "Invalid remote address.");
         }
     }
 }

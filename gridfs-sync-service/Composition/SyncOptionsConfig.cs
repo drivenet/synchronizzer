@@ -33,30 +33,26 @@ namespace GridFSSyncService.Composition
             var template = _configuration.GetSection("vars");
             foreach (var job in jobs)
             {
-                job.Local = ReplaceUri(job.Local, template);
-                job.Remote = ReplaceUri(job.Remote, template);
-                job.Recycle = ReplaceUri(job.Recycle, template);
+                job.Local = ReplaceAddress(job.Local, template);
+                job.Remote = ReplaceAddress(job.Remote, template);
+                job.Recycle = ReplaceAddress(job.Recycle, template);
             }
         }
 
-        private static Uri? ReplaceUri(Uri? uri, IConfiguration template)
+        private static string? ReplaceAddress(string? address, IConfiguration template)
         {
-            if (uri is object && uri.IsAbsoluteUri)
+            if (address is object)
             {
-                var query = UriVars.Replace(
-                    uri.Query,
+                address = UriVars.Replace(
+                    address,
                     match =>
                     {
                         var key = match.Groups[1].Value;
                         return template.GetValue(key, key);
                     });
-                if (query != uri.Query)
-                {
-                    uri = new UriBuilder(uri) { Query = query }.Uri;
-                }
             }
 
-            return uri;
+            return address;
         }
     }
 }

@@ -6,10 +6,10 @@ namespace GridFSSyncService.Composition
     {
         public string? Name { get; set; }
 
-        public Uri? Local { get; set; }
+        public string? Local { get; set; }
 
-        public Uri? Remote { get; set; }
+        public string? Remote { get; set; }
 
-        public Uri? Recycle { get; set; }
+        public string? Recycle { get; set; }
     }
 }
