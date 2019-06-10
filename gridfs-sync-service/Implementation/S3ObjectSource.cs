@@ -24,9 +24,11 @@ namespace GridFSSyncService.Implementation
                 StartAfter = fromName,
             };
             var response = await _context.S3.ListObjectsV2Async(request, cancellationToken);
-            return response.S3Objects
-                .Select(s3Object => new ObjectInfo(s3Object.Key.TrimEnd('/'), s3Object.Size))
-                .ToList();
+            var s3Objects = response.S3Objects;
+            var result = new List<ObjectInfo>(s3Objects.Count);
+            result.AddRange(s3Objects.Select(
+                s3Object => new ObjectInfo(s3Object.Key.TrimEnd('/'), s3Object.Size)));
+            return result;
         }
     }
 }
