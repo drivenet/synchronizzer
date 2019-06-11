@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,46 +9,23 @@ namespace GridFSSyncService.Implementation
     {
         private const double GoldenRatio = 1.618;
 
-        private readonly ConcurrentDictionary<Task, CancellationTokenSource> _queue = new ConcurrentDictionary<Task, CancellationTokenSource>();
+        private readonly HashSet<Task> _queue = new HashSet<Task>();
         private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
 
         private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount * GoldenRatio);
 
         public void Dispose()
         {
-            foreach (var cancel in _queue.Values)
-            {
-                cancel.Dispose();
-            }
-
             _cancel.Dispose();
         }
 
         public async Task Enqueue(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
             await EnsureQueueSize(MaxQueueSize - 1, cancellationToken);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancel.Token, cancellationToken);
-            try
+            var task = Run(action, cancellationToken);
+            lock (_queue)
             {
-                var task = action(cts.Token);
-                if (!_queue.TryAdd(task, cts))
-                {
-                    cts.Dispose();
-                }
-            }
-            catch
-            {
-                try
-                {
-                    cts.Dispose();
-                }
-#pragma warning disable CA1031 // Do not catch general exception types -- critical recovery path
-                catch
-#pragma warning restore CA1031 // Do not catch general exception types
-                {
-                }
-
-                throw;
+                _queue.Add(task);
             }
         }
 
@@ -71,41 +47,58 @@ namespace GridFSSyncService.Implementation
         {
             var tcs = new TaskCompletionSource<bool>();
             using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
-            do
+            var tasks = new List<Task>(_queue.Count);
+            tasks.Add(tcs.Task);
+            while (true)
             {
-                var tasks = _queue.Keys.ToList();
-                tasks.Add(tcs.Task);
-                var task = await Task.WhenAny(tasks);
-                if (_queue.TryRemove(task, out var cts))
+                lock (_queue)
                 {
-                    cts.Dispose();
+                    tasks.AddRange(_queue);
                 }
 
+                var task = await Task.WhenAny(tasks);
+                bool removed;
                 try
                 {
                     await task;
                 }
-                catch
+                finally
                 {
-                    CancelAll();
-                    throw;
+                    lock (_queue)
+                    {
+                        removed = _queue.Remove(task);
+                    }
                 }
+
+                if (!removed)
+                {
+                    throw new InvalidProgramException("Failed to remove task.");
+                }
+
+                if (_queue.Count <= size)
+                {
+                    break;
+                }
+
+                tasks.RemoveRange(1, tasks.Count - 1);
             }
-            while (_queue.Count > size);
         }
 
-        private void CancelAll()
+        private async Task Run(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
-            var cancels = _queue.Values.ToList();
-            foreach (var cancel in cancels)
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancel.Token, cancellationToken);
+            try
             {
-                try
-                {
-                    cancel.Cancel();
-                }
-                catch (ObjectDisposedException)
-                {
-                }
+                await action(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch
+            {
+                _cancel.Cancel();
+                throw;
             }
         }
     }
