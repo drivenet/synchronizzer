@@ -31,6 +31,7 @@ namespace GridFSSyncService.Composition
             services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
             services.AddSingleton<ILocalReaderResolver, LocalReaderResolver>();
             services.AddSingleton<IRemoteWriterResolver, RemoteWriterResolver>();
+            services.AddSingleton<IQueuingTaskManagerSelector, QueuingTaskManagerSelector>();
         }
 
         public void Configure(IApplicationBuilder app)

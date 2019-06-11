@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class QueuingTaskManager : IDisposable
+    internal sealed class QueuingTaskManager : IDisposable, IQueuingTaskManager
     {
         private const double GoldenRatio = 1.618;
 
