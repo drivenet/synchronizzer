@@ -33,7 +33,8 @@ namespace GridFSSyncService.Composition
                             new TracingObjectWriter(
                                 new CountingObjectWriter(
                                     new S3ObjectWriter(context),
-                                    _metricsWriter),
+                                    _metricsWriter,
+                                    "s3"),
                                 _objectLogger))));
             }
 

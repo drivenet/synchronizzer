@@ -11,11 +11,17 @@ namespace GridFSSyncService.Implementation
     {
         private readonly IObjectWriter _inner;
         private readonly IMetricsWriter _writer;
+        private readonly string _prefix;
 
-        public CountingObjectWriter(IObjectWriter inner, IMetricsWriter writer)
+        public CountingObjectWriter(IObjectWriter inner, IMetricsWriter writer, string key)
         {
             _inner = inner;
             _writer = writer;
+            _prefix = "writer.";
+            if (key.Length != 0)
+            {
+                _prefix = _prefix + key + ".";
+            }
         }
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
@@ -30,11 +36,11 @@ namespace GridFSSyncService.Implementation
             }
             catch
             {
-                _writer.Add("writer.delete_errors", 1);
+                _writer.Add(_prefix + "delete_errors", 1);
                 throw;
             }
 
-            _writer.Add("writer.deletes", 1);
+            _writer.Add(_prefix + "deletes", 1);
         }
 
         public async Task Flush(CancellationToken cancellationToken)
@@ -49,11 +55,11 @@ namespace GridFSSyncService.Implementation
             }
             catch
             {
-                _writer.Add("writer.flush_errors", 1);
+                _writer.Add(_prefix + "flush_errors", 1);
                 throw;
             }
 
-            _writer.Add("writer.flushes", 1);
+            _writer.Add(_prefix + "flushes", 1);
         }
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
@@ -70,12 +76,12 @@ namespace GridFSSyncService.Implementation
             }
             catch
             {
-                _writer.Add("writer.upload_errors", 1);
+                _writer.Add(_prefix + "upload_errors", 1);
                 throw;
             }
 
-            _writer.Add("writer.uploads", 1);
-            _writer.Add("writer.uploads_length", length);
+            _writer.Add(_prefix + "uploads", 1);
+            _writer.Add(_prefix + "uploads_length", length);
         }
     }
 }
