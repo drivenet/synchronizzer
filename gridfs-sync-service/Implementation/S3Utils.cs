@@ -25,7 +25,10 @@ namespace GridFSSyncService.Implementation
             var host = uri.Host;
 
             var credentials = new BasicAWSCredentials(accessKey, secretKey);
-            var config = new AmazonS3Config();
+            var config = new AmazonS3Config
+            {
+                ForcePathStyle = true,
+            };
             var regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(host);
             if (regionEndpoint.DisplayName != "Unknown")
             {
@@ -33,7 +36,11 @@ namespace GridFSSyncService.Implementation
             }
             else
             {
-                config.ForcePathStyle = true;
+                if (query.TryGetValue("region", out var region))
+                {
+                    config.AuthenticationRegion = region;
+                }
+
                 config.ServiceURL = new UriBuilder(Uri.UriSchemeHttps, host).Uri.AbsoluteUri;
             }
 
