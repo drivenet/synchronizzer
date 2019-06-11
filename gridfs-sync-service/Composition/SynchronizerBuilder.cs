@@ -56,17 +56,17 @@ namespace GridFSSyncService.Composition
                     new CountingObjectSource(
                         new FilesystemObjectSource(context),
                         _metricsWriter,
-                        "fs_local"),
+                        "local.fs"),
                     new FilesystemObjectReader(context));
             }
             else if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
             {
-                var context = MongoUtils.CreateContext(address);
+                var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
                     new CountingObjectSource(
                         new GridFSObjectSource(context),
                         _metricsWriter,
-                        "fs_local"),
+                        "local.gridfs"),
                     new GridFSObjectReader(context));
             }
 
@@ -82,7 +82,7 @@ namespace GridFSSyncService.Composition
                     new CountingObjectSource(
                         new S3ObjectSource(context),
                         _metricsWriter,
-                        "s3_remote"),
+                        "remote.s3"),
                     new QueuingObjectWriter(
                         new RobustObjectWriter(
                             new TracingObjectWriter(

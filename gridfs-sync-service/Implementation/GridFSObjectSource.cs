@@ -14,11 +14,11 @@ namespace GridFSSyncService.Implementation
     {
         private static readonly SortDefinition<GridFSFileInfo<BsonValue>> FilenameSort = Builders.Sort.Ascending(info => info.Filename);
 
-        private readonly IGridFSBucket<BsonValue> _gridFS;
+        private readonly GridFSContext _context;
 
-        public GridFSObjectSource(IGridFSBucket<BsonValue> gridFS)
+        public GridFSObjectSource(GridFSContext context)
         {
-            _gridFS = gridFS;
+            _context = context;
         }
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ namespace GridFSSyncService.Implementation
                 Sort = FilenameSort,
             };
             var result = new List<ObjectInfo>(BatchSize);
-            using (var infos = await _gridFS.FindAsync(filter, options, cancellationToken))
+            using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
             {
                 await infos.ForEachAsync(
                     info => result.Add(new ObjectInfo(info.Filename, info.Length)),

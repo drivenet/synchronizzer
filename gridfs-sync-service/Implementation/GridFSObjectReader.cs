@@ -2,21 +2,20 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using MongoDB.Bson;
 using MongoDB.Driver.GridFS;
 
 namespace GridFSSyncService.Implementation
 {
     internal sealed class GridFSObjectReader : IObjectReader
     {
-        private readonly IGridFSBucket<BsonValue> _gridFS;
+        private readonly GridFSContext _context;
 
-        public GridFSObjectReader(IGridFSBucket<BsonValue> gridFS)
+        public GridFSObjectReader(GridFSContext context)
         {
-            _gridFS = gridFS;
+            _context = context;
         }
 
         public async Task<Stream> Read(string objectName, CancellationToken cancellationToken)
-            => await _gridFS.OpenDownloadStreamByNameAsync(objectName, cancellationToken: cancellationToken);
+            => await _context.Bucket.OpenDownloadStreamByNameAsync(objectName, new GridFSDownloadByNameOptions { Seekable = true }, cancellationToken);
     }
 }
