@@ -24,7 +24,7 @@ namespace GridFSSyncService.Composition
             var options = _options.Value;
             foreach (var job in options.Jobs ?? Array.Empty<SyncJob>())
             {
-                var synchronizer = _factory.Build(job);
+                var synchronizer = _factory.Create(job);
                 yield return synchronizer;
             }
         }

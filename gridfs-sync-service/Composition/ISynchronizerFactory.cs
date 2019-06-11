@@ -4,6 +4,6 @@ namespace GridFSSyncService.Composition
 {
     internal interface ISynchronizerFactory
     {
-        ISynchronizer Build(SyncJob job);
+        ISynchronizer Create(SyncJob job);
     }
 }

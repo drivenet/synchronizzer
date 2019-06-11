@@ -20,7 +20,7 @@ namespace GridFSSyncService.Composition
             _metricsWriter = metricsWriter;
         }
 
-        public ISynchronizer Build(SyncJob job)
+        public ISynchronizer Create(SyncJob job)
         {
             if (job.Name is null)
             {
