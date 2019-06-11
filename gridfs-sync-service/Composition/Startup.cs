@@ -28,7 +28,7 @@ namespace GridFSSyncService.Composition
             services.AddSingleton<Implementation.ISynchronizer, ScopingSynchronizer>();
             services.AddScoped<Implementation.ISynchronizer, CompositeSynchronizer>();
             services.AddScoped<IEnumerable<Implementation.ISynchronizer>, SynchronizerSource>();
-            services.AddSingleton<ISynchronizerBuilder, SynchronizerBuilder>();
+            services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
         }
 
         public void Configure(IApplicationBuilder app)

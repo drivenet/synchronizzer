@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace GridFSSyncService.Composition
 {
-    internal sealed class SynchronizerBuilder : ISynchronizerBuilder
+    internal sealed class SynchronizerFactory : ISynchronizerFactory
     {
         private readonly ILogger<TracingSynchronizer> _syncLogger;
         private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly IMetricsWriter _metricsWriter;
 
-        public SynchronizerBuilder(ILogger<TracingSynchronizer> syncLogger, ILogger<TracingObjectWriter> objectLogger, IMetricsWriter metricsWriter)
+        public SynchronizerFactory(ILogger<TracingSynchronizer> syncLogger, ILogger<TracingObjectWriter> objectLogger, IMetricsWriter metricsWriter)
         {
             _syncLogger = syncLogger;
             _objectLogger = objectLogger;

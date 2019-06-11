@@ -11,12 +11,12 @@ namespace GridFSSyncService.Composition
     internal sealed class SynchronizerSource : IEnumerable<ISynchronizer>
     {
         private readonly IOptions<SyncOptions> _options;
-        private readonly ISynchronizerBuilder _builder;
+        private readonly ISynchronizerFactory _factory;
 
-        public SynchronizerSource(IOptions<SyncOptions> options, ISynchronizerBuilder builder)
+        public SynchronizerSource(IOptions<SyncOptions> options, ISynchronizerFactory factory)
         {
             _options = options;
-            _builder = builder;
+            _factory = factory;
         }
 
         public IEnumerator<ISynchronizer> GetEnumerator()
@@ -24,7 +24,7 @@ namespace GridFSSyncService.Composition
             var options = _options.Value;
             foreach (var job in options.Jobs ?? Array.Empty<SyncJob>())
             {
-                var synchronizer = _builder.Build(job);
+                var synchronizer = _factory.Build(job);
                 yield return synchronizer;
             }
         }
