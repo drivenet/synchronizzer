@@ -64,7 +64,11 @@ namespace GridFSSyncService.Implementation
                 var tasks = _queue.Keys.ToList();
                 tasks.Add(tcs.Task);
                 var task = await Task.WhenAny(tasks);
-                _queue.TryRemove(task, out var _);
+                if (_queue.TryRemove(task, out var cts))
+                {
+                    cts.Dispose();
+                }
+
                 try
                 {
                     await task;
