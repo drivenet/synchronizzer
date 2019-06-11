@@ -18,7 +18,7 @@ namespace GridFSSyncService.Implementation
         {
             var localInfos = new ObjectInfos();
             var remoteInfos = new ObjectInfos();
-            while (remoteInfos.IsLive && localInfos.IsLive)
+            while (remoteInfos.IsLive || localInfos.IsLive)
             {
                 await Task.WhenAll(
                     localInfos.Populate(_localReader, cancellationToken),
