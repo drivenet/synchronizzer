@@ -27,8 +27,10 @@ namespace GridFSSyncService.Composition
             services.AddSingleton(Implementation.SyncTimeHolder.Instance);
             services.AddSingleton<Implementation.ISynchronizer, ScopingSynchronizer>();
             services.AddScoped<Implementation.ISynchronizer, CompositeSynchronizer>();
-            services.AddScoped<IEnumerable<Implementation.ISynchronizer>, SynchronizerSource>();
+            services.AddScoped<IEnumerable<Implementation.ISynchronizer>, SynchronizersResolver>();
             services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
+            services.AddSingleton<ILocalReaderResolver, LocalReaderResolver>();
+            services.AddSingleton<IRemoteWriterResolver, RemoteWriterResolver>();
         }
 
         public void Configure(IApplicationBuilder app)
