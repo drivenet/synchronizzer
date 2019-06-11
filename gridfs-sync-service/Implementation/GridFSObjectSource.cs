@@ -29,8 +29,9 @@ namespace GridFSSyncService.Implementation
             const int BatchSize = 1000;
             var options = new GridFSFindOptions<BsonValue>
             {
-                Limit = BatchSize,
                 Sort = FilenameSort,
+                BatchSize = BatchSize,
+                Limit = BatchSize,
             };
             var result = new List<ObjectInfo>(BatchSize);
             using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
