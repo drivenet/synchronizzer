@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Configuration;
@@ -48,7 +48,13 @@ namespace GridFSSyncService.Composition
                     match =>
                     {
                         var key = match.Groups[1].Value;
-                        return template.GetValue(key, key);
+                        var value = template.GetValue(key, key);
+                        if (value != key)
+                        {
+                            value = WebUtility.UrlEncode(value);
+                        }
+
+                        return value;
                     });
             }
 
