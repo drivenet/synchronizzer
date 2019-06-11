@@ -32,11 +32,23 @@ namespace GridFSSyncService.Implementation
             try
             {
                 var task = action(cts.Token);
-                _queue.TryAdd(task, cts);
+                if (!_queue.TryAdd(task, cts))
+                {
+                    cts.Dispose();
+                }
             }
             catch
             {
-                cts.Dispose();
+                try
+                {
+                    cts.Dispose();
+                }
+#pragma warning disable CA1031 // Do not catch general exception types -- critical recovery path
+                catch
+#pragma warning restore CA1031 // Do not catch general exception types
+                {
+                }
+
                 throw;
             }
         }
