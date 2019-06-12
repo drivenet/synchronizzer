@@ -32,7 +32,14 @@ namespace GridFSSyncService.Implementation
                 _timeHolder.SetWait(MinimumInterval);
 
                 var timer = Stopwatch.StartNew();
-                await _synchronizer.Synchronize(stoppingToken);
+                try
+                {
+                    await _synchronizer.Synchronize(stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                }
+
                 var timeSpent = timer.Elapsed;
                 if (timeSpent < TimeSpan.Zero)
                 {
