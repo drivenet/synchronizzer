@@ -23,6 +23,14 @@ namespace GridFSSyncService.Tests
                 },
                 {
                     GenerateObjectInfos(Seed, 171),
+                    Enumerable.Empty<ObjectInfo>()
+                },
+                {
+                    Enumerable.Empty<ObjectInfo>(),
+                    GenerateObjectInfos(Seed, 313)
+                },
+                {
+                    GenerateObjectInfos(Seed, 171),
                     GenerateObjectInfos(Seed, 313)
                 },
                 {
@@ -36,6 +44,14 @@ namespace GridFSSyncService.Tests
                 {
                     GenerateObjectInfos(Seed, 313),
                     GenerateObjectInfos(Seed + 1, 171)
+                },
+                {
+                    GenerateObjectInfos(Seed, 3000),
+                    Enumerable.Empty<ObjectInfo>()
+                },
+                {
+                    Enumerable.Empty<ObjectInfo>(),
+                    GenerateObjectInfos(Seed, 4000)
                 },
                 {
                     GenerateObjectInfos(Seed, 3000),
