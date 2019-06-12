@@ -4,6 +4,6 @@ namespace GridFSSyncService.Composition
 {
     internal interface IRemoteWriterResolver
     {
-        IRemoteWriter Resolve(string address);
+        IRemoteWriter Resolve(string address, string? recycleAddress);
     }
 }

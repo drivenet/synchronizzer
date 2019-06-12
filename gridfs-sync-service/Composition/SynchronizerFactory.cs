@@ -37,7 +37,7 @@ namespace GridFSSyncService.Composition
             }
 
             var localReader = _localReaderResolver.Resolve(job.Local);
-            var remoteWriter = _remoteWriterResolver.Resolve(job.Remote);
+            var remoteWriter = _remoteWriterResolver.Resolve(job.Remote, job.Recycle);
             var synchronizer = Create(job.Name, localReader, remoteWriter);
             return synchronizer;
         }
