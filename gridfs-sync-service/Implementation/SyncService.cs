@@ -20,40 +20,43 @@ namespace GridFSSyncService.Implementation
         public SyncService(ISynchronizer synchronizer, SyncTimeHolder timeHolder, ILogger<SyncService> logger)
         {
             _synchronizer = synchronizer;
-            _logger = logger;
             _timeHolder = timeHolder;
+            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (true)
             {
-                await _timeHolder.Wait(stoppingToken);
-                _timeHolder.SetWait(MinimumInterval);
-
-                var timer = Stopwatch.StartNew();
-                try
+                using (_logger.BeginScope("session \"{Id:N}\"", Guid.NewGuid()))
                 {
-                    await _synchronizer.Synchronize(stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                }
+                    await _timeHolder.Wait(stoppingToken);
+                    _timeHolder.SetWait(MinimumInterval);
 
-                var timeSpent = timer.Elapsed;
-                if (timeSpent < TimeSpan.Zero)
-                {
-                    _logger.LogCritical("Invalid time spent synchronizing {TimeSpent}.", timeSpent);
-                }
+                    var timer = Stopwatch.StartNew();
+                    try
+                    {
+                        await _synchronizer.Synchronize(stoppingToken);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                    }
 
-                var wait = Interval - timeSpent;
-                if (wait < MinimumInterval)
-                {
-                    _logger.LogError("Wait {Wait} is less than minimum {MinimumInterval}.", wait, MinimumInterval);
-                    wait = MinimumInterval;
-                }
+                    var timeSpent = timer.Elapsed;
+                    if (timeSpent < TimeSpan.Zero)
+                    {
+                        _logger.LogCritical("Invalid time spent synchronizing {TimeSpent}.", timeSpent);
+                    }
 
-                _timeHolder.SetWait(wait);
+                    var wait = Interval - timeSpent;
+                    if (wait < MinimumInterval)
+                    {
+                        _logger.LogError("Wait {Wait} is less than minimum {MinimumInterval}.", wait, MinimumInterval);
+                        wait = MinimumInterval;
+                    }
+
+                    _timeHolder.SetWait(wait);
+                }
             }
         }
     }
