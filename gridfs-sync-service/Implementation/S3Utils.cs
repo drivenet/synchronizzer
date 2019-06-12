@@ -14,17 +14,27 @@ namespace GridFSSyncService.Implementation
             if (!uri.IsAbsoluteUri
                 || !"s3".Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                throw new ArgumentOutOfRangeException(nameof(uri), "Invalid S3 URI.");
+                throw new ArgumentOutOfRangeException(
+                    nameof(uri),
+                    uri.GetComponents(UriComponents.HttpRequestUrl, UriFormat.SafeUnescaped),
+                    "Invalid S3 URI.");
             }
 
-            var query = QueryHelpers.ParseQuery(uri.Query);
-            var accessKey = query["accessKey"];
-            var secretKey = query["secretKey"];
+            var userInfo = uri.UserInfo.Split(':', 2);
+            if (userInfo.Length != 2)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(uri),
+                    uri.GetComponents(UriComponents.HttpRequestUrl, UriFormat.SafeUnescaped),
+                    "The S3 URI is missing credentials.");
+            }
+
+            var credentials = new BasicAWSCredentials(userInfo[0], userInfo[1]);
+
             var bucketName = uri.AbsolutePath.TrimStart('/');
-            var storageClassString = query["class"];
+            var query = QueryHelpers.ParseQuery(uri.Query);
             var host = uri.Host;
 
-            var credentials = new BasicAWSCredentials(accessKey, secretKey);
             var config = new AmazonS3Config
             {
                 ForcePathStyle = true,
@@ -44,6 +54,7 @@ namespace GridFSSyncService.Implementation
                 config.ServiceURL = new UriBuilder(Uri.UriSchemeHttps, host).Uri.AbsoluteUri;
             }
 
+            query.TryGetValue("class", out var storageClassString);
             S3StorageClass storageClass;
             switch (storageClassString)
             {
