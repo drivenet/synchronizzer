@@ -6,8 +6,8 @@ namespace GridFSSyncService.Implementation
 {
     internal interface IQueuingTaskManager
     {
-        Task Enqueue(Func<CancellationToken, Task> action, CancellationToken cancellationToken);
+        Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken);
 
-        Task WaitAll(CancellationToken cancellationToken);
+        Task WaitAll(object sender, CancellationToken cancellationToken);
     }
 }

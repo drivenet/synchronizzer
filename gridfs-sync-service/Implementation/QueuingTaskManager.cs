@@ -1,92 +1,71 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GridFSSyncService.Implementation
 {
-    internal sealed class QueuingTaskManager : IDisposable, IQueuingTaskManager
+    internal sealed class QueuingTaskManager : IQueuingTaskManager
     {
         private const double GoldenRatio = 1.618;
 
-        private readonly HashSet<Task> _queue = new HashSet<Task>();
-        private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
+        private readonly ConcurrentDictionary<Task, object> _queue = new ConcurrentDictionary<Task, object>();
+        private readonly ConditionalWeakTable<object, CancellationTokenSource> _cancel = new ConditionalWeakTable<object, CancellationTokenSource>();
 
         private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount * GoldenRatio);
 
-        public void Dispose()
+        public async Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
-            _cancel.Dispose();
-        }
-
-        public async Task Enqueue(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
-        {
-            await EnsureQueueSize(MaxQueueSize - 1, cancellationToken);
-            var task = Run(action, cancellationToken);
-            lock (_queue)
+            await EnsureQueueSize(MaxQueueSize - 1, null, cancellationToken);
+            var task = Run(sender, action, cancellationToken);
+            if (!_queue.TryAdd(task, sender))
             {
-                _queue.Add(task);
+                throw new InvalidOperationException("The task was already added.");
             }
         }
 
-        public Task WaitAll(CancellationToken cancellationToken)
-            => EnsureQueueSize(0, cancellationToken);
+        public Task WaitAll(object sender, CancellationToken cancellationToken)
+            => EnsureQueueSize(0, sender, cancellationToken);
 
-        private Task EnsureQueueSize(int size, CancellationToken cancellationToken)
+        private async Task EnsureQueueSize(int size, object? sender, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_queue.Count <= size)
-            {
-                return Task.CompletedTask;
-            }
-
-            return EnsureQueueSizeSlow(size, cancellationToken);
-        }
-
-        private async Task EnsureQueueSizeSlow(int size, CancellationToken cancellationToken)
-        {
             var tcs = new TaskCompletionSource<bool>();
             using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
-            var tasks = new List<Task>(_queue.Count);
-            tasks.Add(tcs.Task);
+            var tasks = new List<Task>();
             while (true)
             {
-                lock (_queue)
+                var queue = sender is object
+                    ? _queue.Where(pair => pair.Value == sender).Select(pair => pair.Key)
+                    : _queue.Keys;
+                tasks.AddRange(queue);
+                if (tasks.Count <= size)
                 {
-                    tasks.AddRange(_queue);
+                    break;
                 }
 
+                tasks.Add(tcs.Task);
                 var task = await Task.WhenAny(tasks);
-                bool removed;
                 try
                 {
                     await task;
                 }
                 finally
                 {
-                    lock (_queue)
-                    {
-                        removed = _queue.Remove(task);
-                    }
+                    _queue.TryRemove(task, out _);
                 }
 
-                if (!removed)
-                {
-                    throw new InvalidProgramException("Failed to remove task.");
-                }
-
-                if (_queue.Count <= size)
-                {
-                    break;
-                }
-
-                tasks.RemoveRange(1, tasks.Count - 1);
+                tasks.Clear();
             }
         }
 
-        private async Task Run(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
+        private async Task Run(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancel.Token, cancellationToken);
+            var cancel = _cancel.GetOrCreateValue(sender);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel.Token, cancellationToken);
             try
             {
                 await action(cts.Token);
@@ -97,7 +76,7 @@ namespace GridFSSyncService.Implementation
             }
             catch
             {
-                _cancel.Cancel();
+                cancel.Cancel();
                 throw;
             }
         }

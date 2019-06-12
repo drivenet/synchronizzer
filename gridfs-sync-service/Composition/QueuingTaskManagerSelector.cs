@@ -5,24 +5,13 @@ using GridFSSyncService.Implementation;
 
 namespace GridFSSyncService.Composition
 {
-    internal sealed class QueuingTaskManagerSelector : IQueuingTaskManagerSelector, IDisposable
+    internal sealed class QueuingTaskManagerSelector : IQueuingTaskManagerSelector
     {
-        private static readonly Func<string, Lazy<QueuingTaskManager>> ManagerFactory =
-            _ => new Lazy<QueuingTaskManager>(() => new QueuingTaskManager());
+        private static readonly Func<string, Lazy<IQueuingTaskManager>> ManagerFactory =
+            _ => new Lazy<IQueuingTaskManager>(() => new QueuingTaskManager());
 
-        private readonly ConcurrentDictionary<string, Lazy<QueuingTaskManager>> _managers =
-            new ConcurrentDictionary<string, Lazy<QueuingTaskManager>>();
-
-        public void Dispose()
-        {
-            foreach (var manager in _managers.Values)
-            {
-                if (manager.IsValueCreated)
-                {
-                    manager.Value.Dispose();
-                }
-            }
-        }
+        private readonly ConcurrentDictionary<string, Lazy<IQueuingTaskManager>> _managers =
+            new ConcurrentDictionary<string, Lazy<IQueuingTaskManager>>();
 
         public IQueuingTaskManager Select(string key)
             => _managers.GetOrAdd(key, ManagerFactory).Value;

@@ -17,17 +17,19 @@ namespace GridFSSyncService.Implementation
 
         public Task Delete(string objectName, CancellationToken cancellationToken)
             => _taskManager.Enqueue(
+                this,
                 token => _inner.Delete(objectName, token),
                 cancellationToken);
 
         public async Task Flush(CancellationToken cancellationToken)
         {
-            await _taskManager.WaitAll(cancellationToken);
+            await _taskManager.WaitAll(this, cancellationToken);
             await _inner.Flush(cancellationToken);
         }
 
         public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
             => _taskManager.Enqueue(
+                this,
                 token => _inner.Upload(objectName, readOnlyInput, token),
                 cancellationToken);
     }
