@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace GridFSSyncService.Composition
@@ -18,22 +17,15 @@ namespace GridFSSyncService.Composition
         {
             ConfigureNetworking();
             var commandLineOptions = GetCommandLineOptions(args);
-            var appConfiguration = LoadAppConfiguration(commandLineOptions.Config);
             while (true)
             {
                 var hostingOptions = GetHostingOptions(commandLineOptions.HostingConfig);
-                using (var host = BuildWebHost(hostingOptions, appConfiguration))
+                using (var host = BuildWebHost(hostingOptions, commandLineOptions.Config))
                 {
                     await host.RunAsync();
                 }
             }
         }
-
-        private static IConfiguration LoadAppConfiguration(string configPath)
-            => new ConfigurationBuilder()
-                .AddJsonFile(configPath, optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables("GSS_")
-                .Build();
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays
         private static CommandLineOptions GetCommandLineOptions(string?[]? args)
@@ -49,12 +41,12 @@ namespace GridFSSyncService.Composition
                 .Build()
                 .Get<HostingOptions>() ?? new HostingOptions();
 
-        private static IWebHost BuildWebHost(HostingOptions hostingOptions, IConfiguration appConfiguration)
-            => new WebHostBuilder()
-                .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions.Listen)
+        private static IWebHost BuildWebHost(HostingOptions hostingOptions, string configPath)
+            => WebHostBuilderExtensions.UseStartup<Startup>(new WebHostBuilder()
                 .ConfigureLogging(loggingBuilder => ConfigureLogging(loggingBuilder, hostingOptions))
+                .ConfigureAppConfiguration(configurationBuilder => ConfigureConfiguration(configurationBuilder, configPath)))
+                .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions.Listen)
                 .UseKestrel(options => ConfigureKestrel(options))
-                .ConfigureServices(services => services.AddSingleton(appConfiguration))
                 .UseStartup<Startup>()
                 .Build();
 
@@ -80,6 +72,12 @@ namespace GridFSSyncService.Composition
                 => level >= LogLevel.Warning
                     || level == LogLevel.Trace
                     || !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void ConfigureConfiguration(IConfigurationBuilder configurationBuilder, string configPath)
+        {
+            configurationBuilder.AddJsonFile(configPath, optional: false, reloadOnChange: true);
+            configurationBuilder.AddEnvironmentVariables("GSS_");
         }
 
         private static void ConfigureKestrel(KestrelServerOptions options)
