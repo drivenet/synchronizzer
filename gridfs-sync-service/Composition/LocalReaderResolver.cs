@@ -24,7 +24,10 @@ namespace GridFSSyncService.Composition
                         new FilesystemObjectSource(context),
                         _metricsWriter,
                         "local.fs"),
-                    new FilesystemObjectReader(context));
+                    new CountingObjectReader(
+                        new FilesystemObjectReader(context),
+                        _metricsWriter,
+                        "fs"));
             }
 
             if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
@@ -38,9 +41,12 @@ namespace GridFSSyncService.Composition
                             Retries),
                         _metricsWriter,
                         "local.gridfs"),
-                    new RetryingObjectReader(
-                        new GridFSObjectReader(context),
-                        Retries));
+                    new CountingObjectReader(
+                        new RetryingObjectReader(
+                            new GridFSObjectReader(context),
+                            Retries),
+                        _metricsWriter,
+                        "gridfs"));
             }
 
             throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
