@@ -32,7 +32,9 @@ namespace GridFSSyncService.Composition
                 var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
                     new CountingObjectSource(
-                        new GridFSObjectSource(context),
+                        new RetryingObjectSource(
+                            new GridFSObjectSource(context),
+                            4),
                         _metricsWriter,
                         "local.gridfs"),
                     new GridFSObjectReader(context));
