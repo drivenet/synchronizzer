@@ -10,8 +10,8 @@ namespace GridFSSyncService.Implementation
 {
     internal sealed class SyncService : BackgroundService
     {
-        private static readonly TimeSpan Interval = TimeSpan.FromHours(21);
-        private static readonly TimeSpan MinimumInterval = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan Interval = TimeSpan.FromHours(7);
+        private static readonly TimeSpan MinimumInterval = TimeSpan.FromMinutes(7);
 
         private readonly ISynchronizer _synchronizer;
         private readonly SyncTimeHolder _timeHolder;
