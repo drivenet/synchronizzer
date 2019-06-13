@@ -29,15 +29,18 @@ namespace GridFSSyncService.Composition
 
             if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
             {
+                const int Retries = 4;
                 var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
                     new CountingObjectSource(
                         new RetryingObjectSource(
                             new GridFSObjectSource(context),
-                            4),
+                            Retries),
                         _metricsWriter,
                         "local.gridfs"),
-                    new GridFSObjectReader(context));
+                    new RetryingObjectReader(
+                        new GridFSObjectReader(context),
+                        Retries));
             }
 
             throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
