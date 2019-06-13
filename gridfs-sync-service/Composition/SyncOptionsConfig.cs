@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace GridFSSyncService.Composition
 {
-    internal sealed class SyncOptionsConfig : IConfigureOptions<SyncOptions>, IPostConfigureOptions<SyncOptions>
+    internal sealed class SyncOptionsConfig : IPostConfigureOptions<SyncOptions>
     {
         private static readonly Regex UriVars = new Regex(@"\$(\w+)\$", RegexOptions.CultureInvariant);
 
@@ -15,11 +15,6 @@ namespace GridFSSyncService.Composition
         public SyncOptionsConfig(IConfiguration configuration)
         {
             _configuration = configuration;
-        }
-
-        public void Configure(SyncOptions options)
-        {
-            _configuration.Bind(options);
         }
 
         public void PostConfigure(string name, SyncOptions options)

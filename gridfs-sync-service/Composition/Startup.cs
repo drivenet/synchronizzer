@@ -17,6 +17,7 @@ namespace GridFSSyncService.Composition
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<SyncOptions>(_configuration);
             services.ConfigureOptions<SyncOptionsConfig>();
             services.AddSingleton<Components.IMetricsReader>(Components.NullMetricsReader.Instance);
             services.AddSingleton<Components.ITimeSource>(Components.SystemTimeSource.Instance);
