@@ -24,6 +24,7 @@ namespace GridFSSyncService.Middleware
         {
             var metricName = context.Request.Path.Value.TrimStart(PathChars);
             var metricValue = _metricsReader.GetValue(metricName);
+            string metricString;
             if (metricValue != null)
             {
                 if (context.Request.Method != "GET")
@@ -32,12 +33,14 @@ namespace GridFSSyncService.Middleware
                     return;
                 }
 
-                var metricString = ((double)metricValue).ToString(CultureInfo.InvariantCulture);
-                await context.Response.WriteAsync(metricString);
-                return;
+                metricString = ((double)metricValue).ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                metricString = "0";
             }
 
-            await _next.Invoke(context);
+            await context.Response.WriteAsync(metricString);
         }
     }
 }
