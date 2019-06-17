@@ -9,18 +9,21 @@ namespace GridFSSyncService.Composition
 {
     internal sealed class RemoteWriterResolver : IRemoteWriterResolver
     {
-        private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly IQueuingTaskManagerSelector _taskManagerSelector;
         private readonly IMetricsWriter _metricsWriter;
+        private readonly ILogger<TracingObjectWriter> _objectLogger;
+        private readonly ILogger<TracingObjectSource> _objectSourceLogger;
 
         public RemoteWriterResolver(
-            ILogger<TracingObjectWriter> objectLogger,
             IQueuingTaskManagerSelector taskManagerSelector,
-            IMetricsWriter metricsWriter)
+            IMetricsWriter metricsWriter,
+            ILogger<TracingObjectWriter> objectLogger,
+            ILogger<TracingObjectSource> objectSourceLogger)
         {
-            _objectLogger = objectLogger;
             _taskManagerSelector = taskManagerSelector;
             _metricsWriter = metricsWriter;
+            _objectLogger = objectLogger;
+            _objectSourceLogger = objectSourceLogger;
         }
 
         public IRemoteWriter Resolve(string address, string? recycleAddress)
@@ -49,7 +52,10 @@ namespace GridFSSyncService.Composition
             var taskManager = _taskManagerSelector.Select("s3|" + context.S3.Config.DetermineServiceURL());
             return new RemoteWriter(
                 new CountingObjectSource(
-                    new S3ObjectSource(context),
+                    new TracingObjectSource(
+                        new S3ObjectSource(context),
+                        "remote",
+                        _objectSourceLogger),
                     _metricsWriter,
                     "remote.s3"),
                 new QueuingObjectWriter(

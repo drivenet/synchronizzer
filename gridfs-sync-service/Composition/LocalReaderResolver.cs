@@ -3,15 +3,19 @@
 using GridFSSyncService.Components;
 using GridFSSyncService.Implementation;
 
+using Microsoft.Extensions.Logging;
+
 namespace GridFSSyncService.Composition
 {
     internal sealed class LocalReaderResolver : ILocalReaderResolver
     {
         private readonly IMetricsWriter _metricsWriter;
+        private readonly ILogger<TracingObjectSource> _objectSourceLogger;
 
-        public LocalReaderResolver(IMetricsWriter metricsWriter)
+        public LocalReaderResolver(IMetricsWriter metricsWriter, ILogger<TracingObjectSource> objectSourceLogger)
         {
             _metricsWriter = metricsWriter;
+            _objectSourceLogger = objectSourceLogger;
         }
 
         public ILocalReader Resolve(string address)
@@ -20,13 +24,12 @@ namespace GridFSSyncService.Composition
             {
                 var context = FilesystemUtils.CreateContext(uri);
                 return new LocalReader(
-                    new CountingObjectSource(
-                        new FilesystemObjectSource(context),
-                        _metricsWriter,
+                    Count(
+                        Trace(
+                            new FilesystemObjectSource(context)),
                         "local.fs"),
-                    new CountingObjectReader(
+                    Count(
                         new FilesystemObjectReader(context),
-                        _metricsWriter,
                         "fs"));
             }
 
@@ -35,21 +38,29 @@ namespace GridFSSyncService.Composition
                 const int Retries = 4;
                 var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
-                    new CountingObjectSource(
+                    Count(
                         new RetryingObjectSource(
-                            new GridFSObjectSource(context),
+                            Trace(
+                                new GridFSObjectSource(context)),
                             Retries),
-                        _metricsWriter,
                         "local.gridfs"),
-                    new CountingObjectReader(
+                    Count(
                         new RetryingObjectReader(
                             new GridFSObjectReader(context),
                             Retries),
-                        _metricsWriter,
                         "gridfs"));
             }
 
             throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
         }
+
+        private IObjectReader Count(IObjectReader reader, string key)
+            => new CountingObjectReader(reader, _metricsWriter, key);
+
+        private IObjectSource Count(IObjectSource source, string key)
+            => new CountingObjectSource(source, _metricsWriter, key);
+
+        private IObjectSource Trace(IObjectSource source)
+            => new TracingObjectSource(source, "local", _objectSourceLogger);
     }
 }

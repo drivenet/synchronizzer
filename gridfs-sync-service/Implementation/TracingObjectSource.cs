@@ -10,16 +10,19 @@ namespace GridFSSyncService.Implementation
     internal sealed class TracingObjectSource : IObjectSource
     {
         private readonly IObjectSource _inner;
+        private readonly string _scope;
         private readonly ILogger _logger;
 
-        public TracingObjectSource(IObjectSource inner, ILogger<TracingObjectSource> logger)
+        public TracingObjectSource(IObjectSource inner, string scope, ILogger<TracingObjectSource> logger)
         {
             _inner = inner;
+            _scope = scope;
             _logger = logger;
         }
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
+            using var scope = _logger.BeginScope("{Scope}", _scope);
             IReadOnlyCollection<ObjectInfo> result;
             _logger.LogDebug(Events.BeginGet, "Begin get \"{From}\".", fromName);
             try
