@@ -1,6 +1,4 @@
-﻿using System;
-
-using GridFSSyncService.Implementation;
+﻿using GridFSSyncService.Implementation;
 
 using Microsoft.Extensions.Logging;
 
@@ -11,42 +9,35 @@ namespace GridFSSyncService.Composition
         private readonly ILogger<TracingSynchronizer> _syncLogger;
         private readonly ILocalReaderResolver _localReaderResolver;
         private readonly IRemoteWriterResolver _remoteWriterResolver;
+        private readonly ISyncTimeHolderResolver _syncTimeHolderResolver;
 
-        public SynchronizerFactory(ILogger<TracingSynchronizer> syncLogger, ILocalReaderResolver localReaderResolver, IRemoteWriterResolver remoteWriterResolver)
+        public SynchronizerFactory(
+            ILogger<TracingSynchronizer> syncLogger,
+            ILocalReaderResolver localReaderResolver,
+            IRemoteWriterResolver remoteWriterResolver,
+            ISyncTimeHolderResolver syncTimeHolderResolver)
         {
             _syncLogger = syncLogger;
             _localReaderResolver = localReaderResolver;
             _remoteWriterResolver = remoteWriterResolver;
+            _syncTimeHolderResolver = syncTimeHolderResolver;
         }
 
-        public ISynchronizer Create(SyncJob job)
+        public ISynchronizer Create(SyncInfo info)
         {
-            if (job.Name is null)
-            {
-                throw new ArgumentNullException(nameof(job), "Missing job name.");
-            }
-
-            if (job.Local is null)
-            {
-                throw new ArgumentNullException(nameof(job), "Missing job local address.");
-            }
-
-            if (job.Remote is null)
-            {
-                throw new ArgumentNullException(nameof(job), "Missing job remote address.");
-            }
-
-            var localReader = _localReaderResolver.Resolve(job.Local);
-            var remoteWriter = _remoteWriterResolver.Resolve(job.Remote, job.Recycle);
-            var synchronizer = Create(job.Name, localReader, remoteWriter);
+            var localReader = _localReaderResolver.Resolve(info.Local);
+            var remoteWriter = _remoteWriterResolver.Resolve(info.Remote, info.Recycle);
+            var synchronizer = Create(info.Name, localReader, remoteWriter);
             return synchronizer;
         }
 
         private ISynchronizer Create(string name, ILocalReader localReader, IRemoteWriter remoteWriter)
-            => new RobustSynchronizer(
-                new TracingSynchronizer(
-                    new Synchronizer(localReader, remoteWriter),
-                    _syncLogger,
-                    name));
+            => new TimedSynchronizer(
+                new RobustSynchronizer(
+                    new TracingSynchronizer(
+                        new Synchronizer(localReader, remoteWriter),
+                        _syncLogger,
+                        name)),
+                _syncTimeHolderResolver.Resolve(name));
     }
 }

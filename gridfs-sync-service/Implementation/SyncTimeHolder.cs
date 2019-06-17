@@ -7,15 +7,20 @@ namespace GridFSSyncService.Implementation
 {
     internal sealed class SyncTimeHolder
     {
-        private TimeSpan _wait;
+        private static readonly TimeSpan MinimumInterval = TimeSpan.FromMinutes(7);
+        private static readonly TimeSpan MaximumInterval = TimeSpan.FromDays(1);
 
-        public static SyncTimeHolder Instance { get; } = new SyncTimeHolder();
+        private TimeSpan _wait;
 
         public void SetWait(TimeSpan wait)
         {
-            if (wait < TimeSpan.Zero)
+            if (wait < MinimumInterval)
             {
-                throw new ArgumentOutOfRangeException(nameof(wait), wait, "Negative wait.");
+                wait = MinimumInterval;
+            }
+            else if (wait > MaximumInterval)
+            {
+                wait = MaximumInterval;
             }
 
             _wait = wait;
@@ -23,14 +28,7 @@ namespace GridFSSyncService.Implementation
 
         public async Task Wait(CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var wait = _wait;
-            if (wait == TimeSpan.Zero)
-            {
-                return;
-            }
-
             var timer = Stopwatch.StartNew();
             try
             {
@@ -38,8 +36,7 @@ namespace GridFSSyncService.Implementation
             }
             finally
             {
-                wait -= timer.Elapsed;
-                _wait = wait > TimeSpan.Zero ? wait : TimeSpan.Zero;
+                SetWait(wait - timer.Elapsed);
             }
         }
     }

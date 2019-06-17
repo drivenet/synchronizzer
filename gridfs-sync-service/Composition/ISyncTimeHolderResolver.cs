@@ -2,8 +2,8 @@
 
 namespace GridFSSyncService.Composition
 {
-    internal interface ISynchronizerFactory
+    internal interface ISyncTimeHolderResolver
     {
-        ISynchronizer Create(SyncInfo info);
+        SyncTimeHolder Resolve(string name);
     }
 }

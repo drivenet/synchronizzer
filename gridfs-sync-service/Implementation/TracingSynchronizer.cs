@@ -21,7 +21,7 @@ namespace GridFSSyncService.Implementation
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
-            using (_logger.BeginScope("synchronize \"{Name}\"", _name))
+            using (_logger.BeginScope("synchronize \"{Name}\", session \"{Id:N}\"", _name, Guid.NewGuid()))
             {
                 _logger.LogInformation(Events.Begin, "Begin synchronization.");
                 try

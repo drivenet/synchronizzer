@@ -25,9 +25,10 @@ namespace GridFSSyncService.Composition
             services.AddSingleton<Components.IMetricsReader>(provider => provider.GetRequiredService<Components.MetricsContainer>());
             services.AddSingleton<Components.IMetricsWriter>(provider => provider.GetRequiredService<Components.MetricsContainer>());
             services.AddHostedService<Implementation.SyncService>();
-            services.AddSingleton(Implementation.SyncTimeHolder.Instance);
-            services.AddSingleton<Implementation.ISynchronizer, CompositeSynchronizer>();
-            services.AddSingleton<IEnumerable<Implementation.ISynchronizer>, SynchronizersResolver>();
+            services.AddSingleton<ISyncTimeHolderResolver>(SyncTimeHolderResolver.Instance);
+            services.AddSingleton<Implementation.ISynchronizer, JobManagingSynchronizer>();
+            services.AddSingleton<ISynchronizationJobFactory, SynchronizationJobFactory>();
+            services.AddSingleton<IEnumerable<SyncInfo>, SyncInfoResolver>();
             services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
             services.AddSingleton<ILocalReaderResolver, LocalReaderResolver>();
             services.AddSingleton<IRemoteWriterResolver, RemoteWriterResolver>();
