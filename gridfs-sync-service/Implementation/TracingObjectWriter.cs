@@ -22,14 +22,14 @@ namespace GridFSSyncService.Implementation
         {
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
-                _logger.LogDebug(Events.BeginDelete, "Begin delete.");
+                _logger.LogInformation(Events.BeginDelete, "Begin delete.");
                 try
                 {
                     await _inner.Delete(objectName, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.CancelledDelete, "Delete was cancelled.");
+                    _logger.LogWarning(Events.CancelledDelete, "Delete was cancelled.");
                     throw;
                 }
                 catch (Exception exception)
@@ -51,14 +51,14 @@ namespace GridFSSyncService.Implementation
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
-                _logger.LogDebug(Events.BeginUpload, "Begin upload.");
+                _logger.LogInformation(Events.BeginUpload, "Begin upload.");
                 try
                 {
                     await _inner.Upload(objectName, readOnlyInput, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.CancelledUpload, "Upload was cancelled.");
+                    _logger.LogWarning(Events.CancelledUpload, "Upload was cancelled.");
                     throw;
                 }
                 catch (Exception exception)
@@ -67,7 +67,7 @@ namespace GridFSSyncService.Implementation
                     throw;
                 }
 
-                _logger.LogDebug(Events.EndUpload, "End upload.");
+                _logger.LogInformation(Events.EndUpload, "End upload.");
             }
         }
 
