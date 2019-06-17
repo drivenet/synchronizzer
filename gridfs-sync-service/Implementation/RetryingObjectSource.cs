@@ -35,7 +35,7 @@ namespace GridFSSyncService.Implementation
                 {
                 }
 
-                await Task.Delay(4000, cancellationToken);
+                await Task.Delay(4001, cancellationToken);
             }
         }
     }
