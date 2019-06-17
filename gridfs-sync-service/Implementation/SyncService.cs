@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Hosting;
@@ -19,14 +18,7 @@ namespace GridFSSyncService.Implementation
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                try
-                {
-                    await _synchronizer.Synchronize(stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    break;
-                }
+                await _synchronizer.Synchronize(stoppingToken);
             }
         }
     }
