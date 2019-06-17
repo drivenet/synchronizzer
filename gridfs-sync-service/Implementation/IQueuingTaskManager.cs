@@ -8,6 +8,6 @@ namespace GridFSSyncService.Implementation
     {
         Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken);
 
-        Task WaitAll(object sender, CancellationToken cancellationToken);
+        Task WaitAll(object sender);
     }
 }

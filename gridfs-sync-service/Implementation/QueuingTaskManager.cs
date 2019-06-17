@@ -19,7 +19,7 @@ namespace GridFSSyncService.Implementation
 
         public async Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
-            await EnsureQueueSize(MaxQueueSize - 1, null, cancellationToken);
+            await EnsureQueueSize(MaxQueueSize - 1, cancellationToken);
             var task = Run(sender, action, cancellationToken);
             if (!_queue.TryAdd(task, sender))
             {
@@ -27,10 +27,22 @@ namespace GridFSSyncService.Implementation
             }
         }
 
-        public Task WaitAll(object sender, CancellationToken cancellationToken)
-            => EnsureQueueSize(0, sender, cancellationToken);
+        public async Task WaitAll(object sender)
+        {
+            var tasks = new List<Task>();
+            foreach (var pair in _queue)
+            {
+                if (pair.Value == sender
+                    && _queue.TryRemove(pair.Key, out _))
+                {
+                    tasks.Add(pair.Key);
+                }
+            }
 
-        private async Task EnsureQueueSize(int size, object? sender, CancellationToken cancellationToken)
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task EnsureQueueSize(int size, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var tcs = new TaskCompletionSource<bool>();
@@ -38,26 +50,31 @@ namespace GridFSSyncService.Implementation
             var tasks = new List<Task>();
             while (true)
             {
-                var queue = sender is object
-                    ? _queue.Where(pair => pair.Value == sender).Select(pair => pair.Key)
-                    : _queue.Keys;
-                tasks.AddRange(queue);
+                foreach (var pair in _queue)
+                {
+                    tasks.Add(pair.Key);
+                }
+
                 if (tasks.Count <= size)
                 {
                     break;
                 }
 
                 tasks.Add(tcs.Task);
-                var task = await Task.WhenAny(tasks);
-                try
+                await Task.WhenAny(tasks);
+                for (var i = 0; i < tasks.Count; i++)
                 {
-                    await task;
-                }
-                finally
-                {
-                    _queue.TryRemove(task, out _);
+                    var task = tasks[i];
+                    if (task.IsCompleted
+                        && _queue.TryRemove(task, out _))
+                    {
+                        continue;
+                    }
+
+                    tasks.RemoveAt(i--);
                 }
 
+                await Task.WhenAll(tasks);
                 tasks.Clear();
             }
         }

@@ -23,7 +23,7 @@ namespace GridFSSyncService.Implementation
 
         public async Task Flush(CancellationToken cancellationToken)
         {
-            await _taskManager.WaitAll(this, cancellationToken);
+            await _taskManager.WaitAll(this);
             await _inner.Flush(cancellationToken);
         }
 
