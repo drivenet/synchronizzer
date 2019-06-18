@@ -22,23 +22,23 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
-                _logger.LogInformation(Events.BeginDelete, "Begin delete.");
+                _logger.LogInformation(Events.BeginDelete, "Begin delete \"{ObjectName}\".", objectName);
                 try
                 {
                     await _inner.Delete(objectName, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning(Events.CancelledDelete, "Delete was cancelled.");
+                    _logger.LogWarning(Events.CancelledDelete, "Delete of \"{ObjectName}\" was cancelled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Delete failed.");
+                    _logger.LogWarning(exception, "Delete of \"{ObjectName}\" failed.", objectName);
                     throw;
                 }
 
-                _logger.LogDebug(Events.EndDelete, "End delete.");
+                _logger.LogDebug(Events.EndDelete, "End delete \"{ObjectName}\".", objectName);
             }
         }
 
@@ -48,23 +48,23 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
-                _logger.LogInformation(Events.BeginUpload, "Begin upload.");
+                _logger.LogInformation(Events.BeginUpload, "Begin upload \"{ObjectName}\".", objectName);
                 try
                 {
                     await _inner.Upload(objectName, readOnlyInput, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning(Events.CancelledUpload, "Upload was cancelled.");
+                    _logger.LogWarning(Events.CancelledUpload, "Upload of \"{ObjectName}\" was cancelled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Upload failed.");
+                    _logger.LogWarning(exception, "Upload of \"{ObjectName}\" failed.", objectName);
                     throw;
                 }
 
-                _logger.LogInformation(Events.EndUpload, "End upload.");
+                _logger.LogInformation(Events.EndUpload, "End upload \"{ObjectName}\".", objectName);
             }
         }
 

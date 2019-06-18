@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,25 +22,26 @@ namespace Synchronizzer.Implementation
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
-            using (_logger.BeginScope("synchronize \"{Name}\", session \"{Id:N}\"", _name, Guid.NewGuid()))
+            var id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            using (_logger.BeginScope("synchronize \"{JobName}\", session \"{JobId}\"", _name, id))
             {
-                _logger.LogInformation(Events.Begin, "Begin synchronization.");
+                _logger.LogInformation(Events.Begin, "Begin job \"{JobName}\", session \"{JobId}\".", _name, id);
                 try
                 {
                     await _inner.Synchronize(cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning("Synchronization was canceled.");
+                    _logger.LogWarning("Job \"{JobName}\" was canceled, session \"{JobId}\".", _name, id);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Synchronization failed.");
+                    _logger.LogError(exception, "Job \"{JobName}\" failed, session \"{JobId}\".", _name, id);
                     throw;
                 }
 
-                _logger.LogInformation(Events.End, "End synchronization.");
+                _logger.LogInformation(Events.End, "End job \"{JobName}\", session \"{JobId}\".", _name, id);
             }
         }
 

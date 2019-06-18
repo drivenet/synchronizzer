@@ -10,38 +10,40 @@ namespace Synchronizzer.Implementation
     internal sealed class TracingObjectSource : IObjectSource
     {
         private readonly IObjectSource _inner;
-        private readonly string _scope;
+        private readonly string _source;
         private readonly ILogger _logger;
 
-        public TracingObjectSource(IObjectSource inner, string scope, ILogger<TracingObjectSource> logger)
+        public TracingObjectSource(IObjectSource inner, string source, ILogger<TracingObjectSource> logger)
         {
             _inner = inner;
-            _scope = scope;
+            _source = source;
             _logger = logger;
         }
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
-            using var scope = _logger.BeginScope("{Scope}", _scope);
-            IReadOnlyCollection<ObjectInfo> result;
-            _logger.LogDebug(Events.BeginGet, "Begin get \"{From}\".", fromName);
-            try
+            using (_logger.BeginScope("{Source}", _source))
             {
-                result = await _inner.GetOrdered(fromName, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation(Events.CancelledGet, "Get was cancelled.");
-                throw;
-            }
-            catch (Exception exception)
-            {
-                _logger.LogWarning(exception, "Get failed.");
-                throw;
-            }
+                IReadOnlyCollection<ObjectInfo> result;
+                _logger.LogDebug(Events.BeginGet, "Begin get \"{From}\".", fromName);
+                try
+                {
+                    result = await _inner.GetOrdered(fromName, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation(Events.CancelledGet, "Get was cancelled.");
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Get failed.");
+                    throw;
+                }
 
-            _logger.LogDebug(Events.EndGet, "End get \"{From}\", count {Count}.", fromName, result.Count);
-            return result;
+                _logger.LogDebug(Events.EndGet, "End get \"{From}\", count {Count}.", fromName, result.Count);
+                return result;
+            }
         }
 
         private static class Events
