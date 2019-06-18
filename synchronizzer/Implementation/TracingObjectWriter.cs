@@ -48,8 +48,12 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
+                // Hack for proper logging
                 var length = readOnlyInput.Length;
-                _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {Length}.", objectName, length);
+                var objectLength = length >= int.MinValue && length <= int.MaxValue
+                    ? unchecked((int)length)
+                    : (object)length;
+                _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
                 try
                 {
                     await _inner.Upload(objectName, readOnlyInput, cancellationToken);
@@ -61,11 +65,11 @@ namespace Synchronizzer.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to upload \"{ObjectName}\", length {Length}.", objectName, length);
+                    _logger.LogWarning(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
                     throw;
                 }
 
-                _logger.LogInformation(Events.Uploaded, "Uploaded \"{ObjectName}\", length {Length}.", objectName, length);
+                _logger.LogInformation(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
             }
         }
 
