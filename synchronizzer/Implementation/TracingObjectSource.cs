@@ -34,16 +34,16 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.CancelledGet, "Get \"{From}\" was cancelled, elapsed {Elapsed}.", fromName, timer.Elapsed);
+                    _logger.LogInformation(Events.CancelledGet, "Get \"{From}\" was cancelled, elapsed {Elapsed}.", fromName, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to get \"{From}\", elapsed {Elapsed}.", fromName, timer.Elapsed);
+                    _logger.LogWarning(exception, "Failed to get \"{From}\", elapsed {Elapsed}.", fromName, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
 
-                _logger.LogDebug(Events.Got, "Got \"{From}\", count {Count}, elapsed {Elapsed}.", fromName, result.Count, timer.Elapsed);
+                _logger.LogDebug(Events.Got, "Got \"{From}\", count {Count}, elapsed {Elapsed}.", fromName, result.Count, timer.Elapsed.TotalMilliseconds);
                 return result;
             }
         }
