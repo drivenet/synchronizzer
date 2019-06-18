@@ -31,6 +31,7 @@ namespace Synchronizzer.Composition
             services.AddSingleton<ILocalReaderResolver, LocalReaderResolver>();
             services.AddSingleton<IRemoteWriterResolver, RemoteWriterResolver>();
             services.AddSingleton<IQueuingTaskManagerSelector, QueuingTaskManagerSelector>();
+            services.AddSingleton<Implementation.IQueuingSettings, QueuingSettings>();
         }
 
         public void Configure(IApplicationBuilder app)

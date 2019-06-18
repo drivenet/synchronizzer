@@ -7,13 +7,18 @@ namespace Synchronizzer.Composition
 {
     internal sealed class QueuingTaskManagerSelector : IQueuingTaskManagerSelector
     {
-        private static readonly Func<string, Lazy<IQueuingTaskManager>> ManagerFactory =
-            _ => new Lazy<IQueuingTaskManager>(() => new QueuingTaskManager());
+        private readonly Func<string, Lazy<IQueuingTaskManager>> _managerFactory;
 
         private readonly ConcurrentDictionary<string, Lazy<IQueuingTaskManager>> _managers =
             new ConcurrentDictionary<string, Lazy<IQueuingTaskManager>>();
 
+        public QueuingTaskManagerSelector(IQueuingSettings settings)
+        {
+            _managerFactory =
+                _ => new Lazy<IQueuingTaskManager>(() => new QueuingTaskManager(settings));
+        }
+
         public IQueuingTaskManager Select(string key)
-            => _managers.GetOrAdd(key, ManagerFactory).Value;
+            => _managers.GetOrAdd(key, _managerFactory).Value;
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,12 +13,16 @@ namespace Synchronizzer.Implementation
 
         private readonly ConcurrentDictionary<Task, object> _queue = new ConcurrentDictionary<Task, object>();
         private readonly ConditionalWeakTable<object, CancellationTokenSource> _cancel = new ConditionalWeakTable<object, CancellationTokenSource>();
+        private readonly IQueuingSettings _settings;
 
-        private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount / GoldenRatio);
+        public QueuingTaskManager(IQueuingSettings settings)
+        {
+            _settings = settings;
+        }
 
         public async Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
-            await EnsureQueueSize(MaxQueueSize - 1, cancellationToken);
+            await EnsureQueueSize(cancellationToken);
             var task = Run(sender, action, cancellationToken);
             if (!_queue.TryAdd(task, sender))
             {
@@ -42,11 +45,21 @@ namespace Synchronizzer.Implementation
             await Task.WhenAll(tasks);
         }
 
-        private async Task EnsureQueueSize(int size, CancellationToken cancellationToken)
+        private async Task EnsureQueueSize(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var tcs = new TaskCompletionSource<bool>();
             using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
+            int limit = _settings.MaxParallelism;
+            if (limit == 0)
+            {
+                limit = (int)Math.Floor(Environment.ProcessorCount / GoldenRatio);
+            }
+            else
+            {
+                --limit;
+            }
+
             var tasks = new List<Task>();
             while (true)
             {
@@ -55,7 +68,7 @@ namespace Synchronizzer.Implementation
                     tasks.Add(pair.Key);
                 }
 
-                if (tasks.Count <= size)
+                if (tasks.Count <= limit)
                 {
                     break;
                 }
