@@ -26,7 +26,7 @@ namespace Synchronizzer.Implementation
             var filter = fromName is object
                 ? Builders.Filter.Gt<string>(info => info.Filename, fromName)
                 : Builders.Filter.Empty;
-            const int BatchSize = 65536;
+            const int BatchSize = 8192;
             var options = new GridFSFindOptions<BsonValue>
             {
                 Sort = FilenameSort,
