@@ -5,11 +5,13 @@
     <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
     <RootNamespace>Synchronizzer</RootNamespace>
     <Product>GridFS sync service</Product>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8618;CS8625</WarningsAsErrors>
     <NoWarn>CA2007</NoWarn>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>
