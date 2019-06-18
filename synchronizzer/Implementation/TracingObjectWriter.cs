@@ -22,23 +22,23 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
-                _logger.LogInformation(Events.BeginDelete, "Begin delete \"{ObjectName}\".", objectName);
+                _logger.LogDebug(Events.Delete, "Delete \"{ObjectName}\".", objectName);
                 try
                 {
                     await _inner.Delete(objectName, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning(Events.CancelledDelete, "Delete of \"{ObjectName}\" was cancelled.", objectName);
+                    _logger.LogWarning(Events.DeleteCancelled, "Delete of \"{ObjectName}\" was cancelled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Delete of \"{ObjectName}\" failed.", objectName);
+                    _logger.LogWarning(exception, "Failed to delete \"{ObjectName}\".", objectName);
                     throw;
                 }
 
-                _logger.LogDebug(Events.EndDelete, "End delete \"{ObjectName}\".", objectName);
+                _logger.LogInformation(Events.Deleted, "Deleted \"{ObjectName}\".", objectName);
             }
         }
 
@@ -48,34 +48,35 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
-                _logger.LogInformation(Events.BeginUpload, "Begin upload \"{ObjectName}\".", objectName);
+                var length = readOnlyInput.Length;
+                _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {Length}.", objectName, length);
                 try
                 {
                     await _inner.Upload(objectName, readOnlyInput, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning(Events.CancelledUpload, "Upload of \"{ObjectName}\" was cancelled.", objectName);
+                    _logger.LogWarning(Events.UploadCancelled, "Upload of \"{ObjectName}\" was cancelled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Upload of \"{ObjectName}\" failed.", objectName);
+                    _logger.LogWarning(exception, "Failed to upload \"{ObjectName}\", length {Length}.", objectName, length);
                     throw;
                 }
 
-                _logger.LogInformation(Events.EndUpload, "End upload \"{ObjectName}\".", objectName);
+                _logger.LogInformation(Events.Uploaded, "Uploaded \"{ObjectName}\", length {Length}.", objectName, length);
             }
         }
 
         private static class Events
         {
-            public static readonly EventId BeginUpload = new EventId(1, nameof(BeginUpload));
-            public static readonly EventId EndUpload = new EventId(2, nameof(EndUpload));
-            public static readonly EventId BeginDelete = new EventId(3, nameof(BeginDelete));
-            public static readonly EventId EndDelete = new EventId(4, nameof(EndDelete));
-            public static readonly EventId CancelledUpload = new EventId(5, nameof(CancelledUpload));
-            public static readonly EventId CancelledDelete = new EventId(6, nameof(CancelledDelete));
+            public static readonly EventId Upload = new EventId(1, nameof(Upload));
+            public static readonly EventId Uploaded = new EventId(2, nameof(Uploaded));
+            public static readonly EventId Delete = new EventId(3, nameof(Delete));
+            public static readonly EventId Deleted = new EventId(4, nameof(Deleted));
+            public static readonly EventId UploadCancelled = new EventId(5, nameof(UploadCancelled));
+            public static readonly EventId DeleteCancelled = new EventId(6, nameof(DeleteCancelled));
         }
     }
 }

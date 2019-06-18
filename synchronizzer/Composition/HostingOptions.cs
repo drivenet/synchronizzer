@@ -20,5 +20,7 @@
         }
 
         public bool ForceConsoleLogging { get; set; }
+
+        public bool DebugLogging { get; set; }
     }
 }

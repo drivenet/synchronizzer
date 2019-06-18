@@ -25,31 +25,31 @@ namespace Synchronizzer.Implementation
             using (_logger.BeginScope("{Source}", _source))
             {
                 IReadOnlyCollection<ObjectInfo> result;
-                _logger.LogDebug(Events.BeginGet, "Begin get \"{From}\".", fromName);
+                _logger.LogDebug(Events.Get, "Get \"{From}\".", fromName);
                 try
                 {
                     result = await _inner.GetOrdered(fromName, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.CancelledGet, "Get was cancelled.");
+                    _logger.LogInformation(Events.CancelledGet, "Get \"{From}\" was cancelled.", fromName);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Get failed.");
+                    _logger.LogWarning(exception, "Failed to get \"{From}\".", fromName);
                     throw;
                 }
 
-                _logger.LogDebug(Events.EndGet, "End get \"{From}\", count {Count}.", fromName, result.Count);
+                _logger.LogDebug(Events.Got, "Got \"{From}\", count {Count}.", fromName, result.Count);
                 return result;
             }
         }
 
         private static class Events
         {
-            public static readonly EventId BeginGet = new EventId(1, nameof(BeginGet));
-            public static readonly EventId EndGet = new EventId(2, nameof(EndGet));
+            public static readonly EventId Get = new EventId(1, nameof(Get));
+            public static readonly EventId Got = new EventId(2, nameof(Got));
             public static readonly EventId CancelledGet = new EventId(3, nameof(CancelledGet));
         }
     }

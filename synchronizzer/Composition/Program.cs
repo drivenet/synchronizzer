@@ -68,10 +68,10 @@ namespace Synchronizzer.Composition
                 });
             }
 
-            static bool Filter(string category, LogLevel level)
+            bool Filter(string category, LogLevel level)
                 => level >= LogLevel.Warning
-                    || level == LogLevel.Trace
-                    || !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase);
+                    || ((level >= LogLevel.Information || hostingOptions.DebugLogging)
+                        && !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase));
         }
 
         private static void ConfigureConfiguration(IConfigurationBuilder configurationBuilder, string configPath)
