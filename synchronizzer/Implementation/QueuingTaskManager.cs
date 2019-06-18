@@ -15,7 +15,7 @@ namespace Synchronizzer.Implementation
         private readonly ConcurrentDictionary<Task, object> _queue = new ConcurrentDictionary<Task, object>();
         private readonly ConditionalWeakTable<object, CancellationTokenSource> _cancel = new ConditionalWeakTable<object, CancellationTokenSource>();
 
-        private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount * GoldenRatio);
+        private static int MaxQueueSize => (int)Math.Ceiling(Environment.ProcessorCount / GoldenRatio);
 
         public async Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken)
         {
