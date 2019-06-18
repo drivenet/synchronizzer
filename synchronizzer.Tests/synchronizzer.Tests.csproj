@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\gridfs-sync-service\gridfs-sync-service.csproj" />
+    <ProjectReference Include="..\synchronizzer\synchronizzer.csproj" />
   </ItemGroup>
 </Project>
