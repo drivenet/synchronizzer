@@ -1,6 +1,6 @@
 @echo off
-rmdir /s /q packages\linux-x64\gridfs-sync-service
-mkdir packages\linux-x64\gridfs-sync-service
-dotnet publish gridfs-sync-service --output ..\packages\linux-x64\gridfs-sync-service -c Release -r linux-x64 --self-contained false
-rmdir /s /q packages\linux-x64\gridfs-sync-service\refs
-del packages\linux-x64\gridfs-sync-service\gridfs-sync-service packages\linux-x64\gridfs-sync-service\web.config packages\linux-x64\gridfs-sync-service\*.deps.json
+rmdir /s /q packages\linux-x64\synchronizzer
+mkdir packages\linux-x64\synchronizzer
+dotnet publish synchronizzer --output ..\packages\linux-x64\synchronizzer -c Release -r linux-x64 --self-contained false
+rmdir /s /q packages\linux-x64\synchronizzer\refs
+del packages\linux-x64\synchronizzer\synchronizzer packages\linux-x64\synchronizzer\web.config packages\linux-x64\synchronizzer\*.deps.json
