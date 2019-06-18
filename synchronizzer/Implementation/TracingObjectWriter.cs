@@ -48,11 +48,7 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
-                // Hack for proper logging
-                var length = readOnlyInput.Length;
-                var objectLength = length >= int.MinValue && length <= int.MaxValue
-                    ? unchecked((int)length)
-                    : (object)length;
+                var objectLength = readOnlyInput.Length;
                 _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
                 try
                 {
