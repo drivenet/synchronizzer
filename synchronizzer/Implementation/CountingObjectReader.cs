@@ -42,7 +42,7 @@ namespace Synchronizzer.Implementation
             }
 
             _writer.Add(_prefix + "reads", 1);
-            _writer.Add(_prefix + "read_length", result.Length);
+            _writer.Add(_prefix + "reads_length", result.Length);
             return result;
         }
     }
