@@ -10,7 +10,7 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class ObjectInfos : IEnumerable<ObjectInfo>
     {
-        private const int MaxListLength = 8192;
+        private const int MaxListLength = 65536;
         private static readonly IComparer<ObjectInfo> NameOnlyComparer = new ObjectInfoNameComparer();
 
         private List<ObjectInfo>? _infos = new List<ObjectInfo>();
