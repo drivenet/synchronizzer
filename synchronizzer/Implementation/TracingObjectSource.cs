@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +25,7 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("{Source}", _source))
             {
+                var timer = Stopwatch.StartNew();
                 IReadOnlyCollection<ObjectInfo> result;
                 _logger.LogDebug(Events.Get, "Get \"{From}\".", fromName);
                 try
@@ -32,16 +34,16 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.CancelledGet, "Get \"{From}\" was cancelled.", fromName);
+                    _logger.LogInformation(Events.CancelledGet, "Get \"{From}\" was cancelled, elapsed {Elapsed}.", fromName, timer.Elapsed);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to get \"{From}\".", fromName);
+                    _logger.LogWarning(exception, "Failed to get \"{From}\", elapsed {Elapsed}.", fromName, timer.Elapsed);
                     throw;
                 }
 
-                _logger.LogDebug(Events.Got, "Got \"{From}\", count {Count}.", fromName, result.Count);
+                _logger.LogDebug(Events.Got, "Got \"{From}\", count {Count}, elapsed {Elapsed}.", fromName, result.Count, timer.Elapsed);
                 return result;
             }
         }
