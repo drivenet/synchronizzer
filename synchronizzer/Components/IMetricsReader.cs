@@ -1,4 +1,4 @@
-﻿namespace GridFSSyncService.Components
+﻿namespace Synchronizzer.Components
 {
     internal interface IMetricsReader
     {

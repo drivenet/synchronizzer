@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class SyncInfoResolver : IEnumerable<SyncInfo>
     {

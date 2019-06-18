@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver.GridFS;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class GridFSContext
     {

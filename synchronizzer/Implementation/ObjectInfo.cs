@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class ObjectInfo : IComparable<ObjectInfo>
     {

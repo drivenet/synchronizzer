@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
 
-namespace GridFSSyncService.Middleware
+namespace Synchronizzer.Middleware
 {
     internal sealed class VersionMiddleware
     {

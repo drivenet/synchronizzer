@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class TracingObjectSource : IObjectSource
     {

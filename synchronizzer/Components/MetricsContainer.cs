@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace GridFSSyncService.Components
+namespace Synchronizzer.Components
 {
     internal sealed class MetricsContainer : IMetricsReader, IMetricsWriter
     {

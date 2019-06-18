@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GridFSSyncService.Implementation;
+using Synchronizzer.Implementation;
 
-namespace GridFSSyncService.Tests.Implementation
+namespace Synchronizzer.Tests.Implementation
 {
     internal sealed class ObjectWriterMock : IObjectWriter
     {

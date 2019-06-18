@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class RobustObjectWriter : IObjectWriter
     {

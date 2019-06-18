@@ -8,7 +8,7 @@ using MongoDB.Driver.GridFS;
 
 using Builders = MongoDB.Driver.Builders<MongoDB.Driver.GridFS.GridFSFileInfo<MongoDB.Bson.BsonValue>>;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class GridFSObjectSource : IObjectSource
     {

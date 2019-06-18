@@ -2,7 +2,7 @@
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal static class GridFSUtils
     {

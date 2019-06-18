@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class SynchronizationJobFactory : ISynchronizationJobFactory
     {

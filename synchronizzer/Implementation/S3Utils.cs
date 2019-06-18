@@ -5,7 +5,7 @@ using Amazon.S3;
 
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal static class S3Utils
     {

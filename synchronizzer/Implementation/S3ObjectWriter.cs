@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Amazon.S3.Model;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class S3ObjectWriter : IObjectWriter
     {

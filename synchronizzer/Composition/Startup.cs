@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class Startup
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal class FilesystemContext
     {

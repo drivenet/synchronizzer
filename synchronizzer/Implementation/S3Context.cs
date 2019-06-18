@@ -2,7 +2,7 @@
 
 using Amazon.S3;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal class S3Context
     {

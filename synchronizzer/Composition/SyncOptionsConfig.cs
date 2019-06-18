@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class SyncOptionsConfig : IPostConfigureOptions<SyncOptions>
     {

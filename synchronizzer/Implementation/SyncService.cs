@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.Hosting;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class SyncService : BackgroundService
     {

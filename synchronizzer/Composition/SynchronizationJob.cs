@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class SynchronizationJob : IDisposable
     {

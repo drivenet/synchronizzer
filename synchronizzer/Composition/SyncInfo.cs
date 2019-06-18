@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class SyncInfo : IEquatable<SyncInfo>
     {

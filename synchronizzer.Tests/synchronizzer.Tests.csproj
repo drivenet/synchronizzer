@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
-    <RootNamespace>GridFSSyncService.Tests</RootNamespace>
+    <RootNamespace>Synchronizzer.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>

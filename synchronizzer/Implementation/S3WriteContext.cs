@@ -1,6 +1,6 @@
 ﻿using Amazon.S3;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class S3WriteContext : S3Context
     {

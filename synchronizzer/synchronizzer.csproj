@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
-    <RootNamespace>GridFSSyncService</RootNamespace>
+    <RootNamespace>Synchronizzer</RootNamespace>
     <Product>GridFS sync service</Product>
     <Version>0.0.1</Version>
     <LangVersion>8.0</LangVersion>

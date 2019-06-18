@@ -1,11 +1,11 @@
 ﻿using System;
 
-using GridFSSyncService.Components;
-using GridFSSyncService.Implementation;
+using Synchronizzer.Components;
+using Synchronizzer.Implementation;
 
 using Microsoft.Extensions.Logging;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class LocalReaderResolver : ILocalReaderResolver
     {

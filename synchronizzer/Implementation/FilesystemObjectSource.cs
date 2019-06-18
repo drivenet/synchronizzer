@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using static System.FormattableString;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class FilesystemObjectSource : IObjectSource
     {

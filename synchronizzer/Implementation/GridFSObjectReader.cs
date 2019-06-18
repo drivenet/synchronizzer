@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using MongoDB.Driver.GridFS;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class GridFSObjectReader : IObjectReader
     {

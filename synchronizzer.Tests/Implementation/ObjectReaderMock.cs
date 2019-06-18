@@ -4,9 +4,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GridFSSyncService.Implementation;
+using Synchronizzer.Implementation;
 
-namespace GridFSSyncService.Tests.Implementation
+namespace Synchronizzer.Tests.Implementation
 {
     internal sealed class ObjectReaderMock : IObjectReader
     {

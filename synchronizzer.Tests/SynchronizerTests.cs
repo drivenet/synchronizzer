@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-using GridFSSyncService.Implementation;
-using GridFSSyncService.Tests.Implementation;
+using Synchronizzer.Implementation;
+using Synchronizzer.Tests.Implementation;
 
 using Xunit;
 
-namespace GridFSSyncService.Tests
+namespace Synchronizzer.Tests
 {
     public sealed class SynchronizerTests
     {

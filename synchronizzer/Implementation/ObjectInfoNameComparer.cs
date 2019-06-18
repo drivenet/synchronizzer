@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal sealed class ObjectInfoNameComparer : IComparer<ObjectInfo>
     {

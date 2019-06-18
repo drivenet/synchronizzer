@@ -1,6 +1,6 @@
-﻿using GridFSSyncService.Implementation;
+﻿using Synchronizzer.Implementation;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal interface ISynchronizerFactory
     {

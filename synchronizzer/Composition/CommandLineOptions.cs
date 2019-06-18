@@ -1,4 +1,4 @@
-﻿namespace GridFSSyncService.Composition
+﻿namespace Synchronizzer.Composition
 {
     internal sealed class CommandLineOptions
     {

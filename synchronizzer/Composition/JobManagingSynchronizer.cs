@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GridFSSyncService.Implementation;
+using Synchronizzer.Implementation;
 
-namespace GridFSSyncService.Composition
+namespace Synchronizzer.Composition
 {
     internal sealed class JobManagingSynchronizer : ISynchronizer, IDisposable
     {

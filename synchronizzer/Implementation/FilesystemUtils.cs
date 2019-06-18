@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GridFSSyncService.Implementation
+namespace Synchronizzer.Implementation
 {
     internal static class FilesystemUtils
     {

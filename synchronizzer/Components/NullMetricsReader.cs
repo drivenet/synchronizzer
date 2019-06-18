@@ -1,4 +1,4 @@
-﻿namespace GridFSSyncService.Components
+﻿namespace Synchronizzer.Components
 {
     internal sealed class NullMetricsReader : IMetricsReader
     {
