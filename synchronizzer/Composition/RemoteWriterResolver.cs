@@ -1,9 +1,9 @@
 ﻿using System;
 
+using Microsoft.Extensions.Logging;
+
 using Synchronizzer.Components;
 using Synchronizzer.Implementation;
-
-using Microsoft.Extensions.Logging;
 
 namespace Synchronizzer.Composition
 {

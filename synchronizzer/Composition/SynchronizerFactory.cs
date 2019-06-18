@@ -1,6 +1,6 @@
-﻿using Synchronizzer.Implementation;
+﻿using Microsoft.Extensions.Logging;
 
-using Microsoft.Extensions.Logging;
+using Synchronizzer.Implementation;
 
 namespace Synchronizzer.Composition
 {
