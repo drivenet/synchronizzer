@@ -1,11 +1,11 @@
 [Unit]
-Description=GridFS sync service
+Description=Synchronizzer
 
 [Service]
-SyslogIdentifier=gridfs-sync
+SyslogIdentifier=synchronizzer
 WorkingDirectory=<%=@package_dir%>
 Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
-ExecStart=/usr/bin/dotnet <%=@package_dir%>/gridfs-sync-service.dll --config <%=@config_file%> --hostingconfig <%=@hosting_file%>
+ExecStart=/usr/bin/dotnet <%=@package_dir%>/synchronizzer.dll --config <%=@config_file%> --hostingconfig <%=@hosting_file%>
 ExecReload=/bin/kill -INT $MAINPID
 ProtectSystem=full
 ProtectHome=true

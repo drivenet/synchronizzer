@@ -56,7 +56,7 @@ namespace Synchronizzer.Composition
             var hasJournalD = Tmds.Systemd.Journal.IsSupported;
             if (hasJournalD)
             {
-                loggingBuilder.AddJournal(options => options.SyslogIdentifier = "gridfs-sync-service");
+                loggingBuilder.AddJournal(options => options.SyslogIdentifier = "synchronizzer");
             }
 
             if (!hasJournalD || hostingOptions.ForceConsoleLogging)
