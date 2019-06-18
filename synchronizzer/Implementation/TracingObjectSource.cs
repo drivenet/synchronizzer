@@ -43,7 +43,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogDebug(Events.Got, "Got \"{From}\", count {Count}, elapsed {Elapsed}.", fromName, result.Count, timer.Elapsed.TotalMilliseconds);
+                _logger.LogInformation(Events.Got, "Got \"{From}\", count {Count}, elapsed {Elapsed}.", fromName, result.Count, timer.Elapsed.TotalMilliseconds);
                 return result;
             }
         }
