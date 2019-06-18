@@ -36,15 +36,23 @@ namespace Synchronizzer.Implementation
             }
 
             var newInfos = await source.GetOrdered(LastName, cancellationToken);
+            var index = 0;
             foreach (var info in newInfos)
             {
                 if (info.CompareTo(lastInfo) <= 0)
                 {
-                    throw new InvalidDataException(FormattableString.Invariant($"Current object info {info} is not sorted wrt {lastInfo}."));
+                    var infosString = string.Join("\n", _infos);
+                    var newInfosString = string.Join("\n", newInfos.Take(index));
+                    throw new InvalidDataException(
+                        FormattableString.Invariant(
+                            $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {source}.")
+                        + "\nNew infos (partial):\n" + newInfosString
+                        + "\nCurrent infos:\n" + infosString);
                 }
 
                 _infos.Add(info);
                 lastInfo = info;
+                ++index;
             }
 
             var count = _infos.Count;
