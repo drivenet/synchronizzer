@@ -29,7 +29,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning(Events.DeleteCancelled, "Delete of \"{ObjectName}\" was cancelled.", objectName);
+                    _logger.LogInformation(Events.DeleteCancelled, "Delete of \"{ObjectName}\" was cancelled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
@@ -38,7 +38,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogInformation(Events.Deleted, "Deleted \"{ObjectName}\".", objectName);
+                _logger.LogDebug(Events.Deleted, "Deleted \"{ObjectName}\".", objectName);
             }
         }
 
@@ -56,7 +56,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning(Events.UploadCancelled, "Upload of \"{ObjectName}\" was cancelled.", objectName);
+                    _logger.LogInformation(Events.UploadCancelled, "Upload of \"{ObjectName}\" was cancelled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
@@ -65,7 +65,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogInformation(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
+                _logger.LogDebug(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
             }
         }
 
