@@ -1,4 +1,4 @@
-gridfs-sync-service
+synchronizzer
 =================
 
-This is a cross-platform GridFS synchronization service.
+This is a cross-platform synchronization service.
