@@ -86,7 +86,7 @@ namespace Synchronizzer.Implementation
 
         public bool HasObject(ObjectInfo objectInfo)
         {
-            if (_infos == null)
+            if (_infos is null)
             {
                 return false;
             }
@@ -97,7 +97,7 @@ namespace Synchronizzer.Implementation
 
         public bool HasObjectByName(ObjectInfo objectInfo)
         {
-            if (_infos == null)
+            if (_infos is null)
             {
                 return false;
             }

@@ -20,7 +20,7 @@ namespace Synchronizzer.Composition
         public void PostConfigure(string name, SyncOptions options)
         {
             var jobs = options.Jobs;
-            if (jobs == null)
+            if (jobs is null)
             {
                 return;
             }
