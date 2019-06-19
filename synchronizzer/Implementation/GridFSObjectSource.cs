@@ -17,6 +17,10 @@ namespace Synchronizzer.Implementation
                 .Ascending(info => info.Filename)
                 .Ascending(info => info.UploadDateTime);
 
+        private static readonly SortDefinition<GridFSFileInfo<BsonValue>> NewestSort
+            = Builders.Sort
+                .Descending(info => info.UploadDateTime);
+
         private readonly GridFSContext _context;
 
         public GridFSObjectSource(GridFSContext context)
@@ -61,7 +65,7 @@ namespace Synchronizzer.Implementation
                 var singleFilter = Builders.Filter.Eq(info => info.Filename, result[lastIndex].Name);
                 var singleOptions = new GridFSFindOptions<BsonValue>
                 {
-                    Sort = FilenameSort,
+                    Sort = NewestSort,
                     Limit = 1,
                 };
                 using (var infos = await _context.Bucket.FindAsync(singleFilter, singleOptions, cancellationToken))
