@@ -18,6 +18,6 @@ namespace Synchronizzer.Implementation
 
         public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken) => _source.GetOrdered(fromName, cancellationToken);
 
-        public Task<Stream> Read(string objectName, CancellationToken cancellationToken) => _reader.Read(objectName, cancellationToken);
+        public Task<Stream?> Read(string objectName, CancellationToken cancellationToken) => _reader.Read(objectName, cancellationToken);
     }
 }

@@ -15,7 +15,19 @@ namespace Synchronizzer.Implementation
             _context = context;
         }
 
-        public async Task<Stream> Read(string objectName, CancellationToken cancellationToken)
-            => await _context.Bucket.OpenDownloadStreamByNameAsync(objectName, new GridFSDownloadByNameOptions { Seekable = true }, cancellationToken);
+        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await _context.Bucket.OpenDownloadStreamByNameAsync(
+                    objectName,
+                    new GridFSDownloadByNameOptions { Seekable = true },
+                    cancellationToken);
+            }
+            catch (GridFSFileNotFoundException)
+            {
+                return null;
+            }
+        }
     }
 }

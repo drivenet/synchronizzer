@@ -16,7 +16,7 @@ namespace Synchronizzer.Implementation
             _retries = retries;
         }
 
-        public async Task<Stream> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
         {
             var retries = _retries;
             while (true)

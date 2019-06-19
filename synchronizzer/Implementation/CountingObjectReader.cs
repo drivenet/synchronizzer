@@ -24,9 +24,9 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task<Stream> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
         {
-            Stream result;
+            Stream? result;
             try
             {
                 result = await _inner.Read(objectName, cancellationToken);
@@ -42,7 +42,11 @@ namespace Synchronizzer.Implementation
             }
 
             _writer.Add(_prefix + "reads", 1);
-            _writer.Add(_prefix + "reads_length", result.Length);
+            if (result is object)
+            {
+                _writer.Add(_prefix + "reads_length", result.Length);
+            }
+
             return result;
         }
     }

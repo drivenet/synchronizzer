@@ -6,6 +6,6 @@ namespace Synchronizzer.Implementation
 {
     internal interface IObjectReader
     {
-        Task<Stream> Read(string objectName, CancellationToken cancellationToken);
+        Task<Stream?> Read(string objectName, CancellationToken cancellationToken);
     }
 }

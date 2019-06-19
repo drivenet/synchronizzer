@@ -15,7 +15,7 @@ namespace Synchronizzer.Implementation
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously -- opening local file is synchronous
-        public async Task<Stream> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (Path.DirectorySeparatorChar != '/')
@@ -29,8 +29,18 @@ namespace Synchronizzer.Implementation
                 throw new ArgumentOutOfRangeException(nameof(path), path, FormattableString.Invariant($"The object name \"{objectName}\" produces an insecure path \"{path}\""));
             }
 
-            Stream stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
-            return stream;
+            try
+            {
+                return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return null;
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
         }
     }
 }
