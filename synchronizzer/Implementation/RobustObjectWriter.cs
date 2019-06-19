@@ -25,9 +25,10 @@ namespace Synchronizzer.Implementation
                 throw;
             }
 #pragma warning disable CA1031 // Do not catch general exception types -- failing to delete something is not considered a real problem
-            catch
+            catch (Exception exception)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
+                Console.Error.WriteLine("Unexpected RobustObjectWriter.Delete exception:\n" + exception);
             }
         }
 
@@ -47,9 +48,10 @@ namespace Synchronizzer.Implementation
                 throw;
             }
 #pragma warning disable CA1031 // Do not catch general exception types -- it's better to continue synchronizing instead of failing completely
-            catch
+            catch (Exception exception)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
+                Console.Error.WriteLine("Unexpected RobustObjectWriter.Upload exception:\n" + exception);
             }
         }
     }
