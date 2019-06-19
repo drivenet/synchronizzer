@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,10 +18,6 @@ namespace Synchronizzer.Implementation
                 .Ascending(info => info.Filename)
                 .Ascending(info => info.UploadDateTime);
 
-        private static readonly SortDefinition<GridFSFileInfo<BsonValue>> NewestSort
-            = Builders.Sort
-                .Descending(info => info.UploadDateTime);
-
         private readonly GridFSContext _context;
 
         public GridFSObjectSource(GridFSContext context)
@@ -33,50 +30,33 @@ namespace Synchronizzer.Implementation
             var filter = fromName is object
                 ? Builders.Filter.Gt<string>(info => info.Filename, fromName)
                 : Builders.Filter.Empty;
-            const int BatchSize = 8192;
+            const int Limit = 8192;
             var options = new GridFSFindOptions<BsonValue>
             {
                 Sort = FilenameSort,
-                BatchSize = BatchSize,
-                Limit = BatchSize,
+                BatchSize = (Limit / 2) + 1,
             };
-            var result = new List<ObjectInfo>(BatchSize);
+            var result = new List<ObjectInfo>(Limit);
             using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
             {
                 await infos.ForEachAsync(
-                    info =>
+                    (info, cancel) =>
                     {
+                        var objectInfo = new ObjectInfo(info.Filename, info.Length);
                         var lastIndex = result.Count - 1;
                         if (lastIndex >= 0
-                            && result[lastIndex].Name == info.Filename)
+                            && result[lastIndex].Name == objectInfo.Name)
                         {
                             result.RemoveAt(lastIndex);
                         }
+                        else if (lastIndex == Limit - 1)
+                        {
+                            cancel.Cancel();
+                        }
 
-                        result.Add(new ObjectInfo(info.Filename, info.Length));
+                        result.Add(objectInfo);
                     },
                     cancellationToken);
-            }
-
-            var lastIndex = result.Count;
-            if (lastIndex == BatchSize)
-            {
-                --lastIndex;
-                var singleFilter = Builders.Filter.Eq(info => info.Filename, result[lastIndex].Name);
-                var singleOptions = new GridFSFindOptions<BsonValue>
-                {
-                    Sort = NewestSort,
-                    Limit = 1,
-                };
-                using (var infos = await _context.Bucket.FindAsync(singleFilter, singleOptions, cancellationToken))
-                {
-                    result.RemoveAt(lastIndex);
-                    GridFSFileInfo<BsonValue>? info = await infos.SingleOrDefaultAsync(cancellationToken);
-                    if (info is object)
-                    {
-                        result.Add(new ObjectInfo(info.Filename, info.Length));
-                    }
-                }
             }
 
             return result;
