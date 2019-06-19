@@ -55,31 +55,31 @@ namespace Synchronizzer.Implementation
             }
 
             query.TryGetValue("class", out var storageClassString);
-            S3StorageClass storageClass;
-            switch (storageClassString)
+            var storageClass = ParseStorageClass(storageClassString);
+            var client = new AmazonS3Client(credentials, config);
+            return new S3WriteContext(client, bucketName, storageClass);
+        }
+
+        private static S3StorageClass ParseStorageClass(string? storageClass)
+        {
+            switch (storageClass)
             {
                 case nameof(S3StorageClass.Standard):
-                    storageClass = S3StorageClass.Standard;
-                    break;
+                    return S3StorageClass.Standard;
 
                 case nameof(S3StorageClass.StandardInfrequentAccess):
-                    storageClass = S3StorageClass.StandardInfrequentAccess;
-                    break;
+                    return S3StorageClass.StandardInfrequentAccess;
 
                 case nameof(S3StorageClass.ReducedRedundancy):
-                    storageClass = S3StorageClass.ReducedRedundancy;
-                    break;
+                    return S3StorageClass.ReducedRedundancy;
 
                 case null:
                 case "":
                     throw new ArgumentException("Unspecified storage class.", nameof(storageClass));
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(storageClass), storageClassString, "Unknown storage class.");
+                    throw new ArgumentOutOfRangeException(nameof(storageClass), storageClass, "Unknown storage class.");
             }
-
-            var client = new AmazonS3Client(credentials, config);
-            return new S3WriteContext(client, bucketName, storageClass);
         }
     }
 }
