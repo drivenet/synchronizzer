@@ -13,14 +13,22 @@ namespace Synchronizzer.Implementation
         private const int MaxListLength = 65536;
         private static readonly IComparer<ObjectInfo> NameOnlyComparer = new ObjectInfoNameComparer();
 
+        private readonly IObjectSource _source;
+
+        private Task<IReadOnlyCollection<ObjectInfo>>? _nextTask;
         private List<ObjectInfo>? _infos = new List<ObjectInfo>();
         private int _skip;
+
+        public ObjectInfos(IObjectSource source)
+        {
+            _source = source;
+        }
 
         public string? LastName { get; private set; }
 
         public bool IsLive => _infos is object;
 
-        public async Task Populate(IObjectSource source, CancellationToken cancellationToken)
+        public async Task Populate(CancellationToken cancellationToken)
         {
             if (_infos is null)
             {
@@ -35,14 +43,16 @@ namespace Synchronizzer.Implementation
                 return;
             }
 
-            var newInfos = await source.GetOrdered(LastName, cancellationToken);
+            var task = Interlocked.Exchange(ref _nextTask, null)
+                 ?? _source.GetOrdered(LastName, cancellationToken);
+            var newInfos = await task;
             var index = 0;
             foreach (var info in newInfos)
             {
                 if (info.CompareTo(lastInfo) <= 0)
                 {
                     throw new InvalidDataException(FormattableString.Invariant(
-                        $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {source}."));
+                        $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {_source}."));
                 }
 
                 _infos.Add(info);
@@ -59,6 +69,7 @@ namespace Synchronizzer.Implementation
             }
 
             LastName = _infos[count - 1].Name;
+            _nextTask = _source.GetOrdered(LastName, cancellationToken);
         }
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_infos ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();

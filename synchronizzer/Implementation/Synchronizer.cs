@@ -16,17 +16,18 @@ namespace Synchronizzer.Implementation
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
-            var localInfos = new ObjectInfos();
-            var remoteInfos = new ObjectInfos();
+            var localInfos = new ObjectInfos(_localReader);
+            var remoteInfos = new ObjectInfos(_remoteWriter);
             try
             {
                 while (remoteInfos.IsLive || localInfos.IsLive)
                 {
                     await Task.WhenAll(
-                        localInfos.Populate(_localReader, cancellationToken),
-                        remoteInfos.Populate(_remoteWriter, cancellationToken));
-                    await SynchronizeLocal(localInfos, remoteInfos, cancellationToken);
-                    await SynchronizeRemote(localInfos, remoteInfos, cancellationToken);
+                        localInfos.Populate(cancellationToken),
+                        remoteInfos.Populate(cancellationToken));
+                    await Task.WhenAll(
+                        SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
+                        SynchronizeRemote(localInfos, remoteInfos, cancellationToken));
                 }
             }
             finally
