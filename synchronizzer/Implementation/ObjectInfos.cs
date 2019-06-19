@@ -41,13 +41,8 @@ namespace Synchronizzer.Implementation
             {
                 if (info.CompareTo(lastInfo) <= 0)
                 {
-                    var infosString = string.Join("\n", _infos);
-                    var newInfosString = string.Join("\n", newInfos.Take(index));
-                    throw new InvalidDataException(
-                        FormattableString.Invariant(
-                            $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {source}.")
-                        + "\nNew infos (partial):\n" + newInfosString
-                        + "\nCurrent infos:\n" + infosString);
+                    throw new InvalidDataException(FormattableString.Invariant(
+                        $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {source}."));
                 }
 
                 _infos.Add(info);
