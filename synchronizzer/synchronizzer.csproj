@@ -5,7 +5,7 @@
     <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
     <RootNamespace>Synchronizzer</RootNamespace>
     <Product>GridFS sync service</Product>
-    <Version>0.6.1</Version>
+    <Version>0.6.2</Version>
     <LangVersion>8.0</LangVersion>
     <NullableContextOptions>enable</NullableContextOptions>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8618;CS8625</WarningsAsErrors>
