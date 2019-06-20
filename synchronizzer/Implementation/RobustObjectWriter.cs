@@ -25,7 +25,7 @@ namespace Synchronizzer.Implementation
                 throw;
             }
 #pragma warning disable CA1031 // Do not catch general exception types -- failing to delete something is not considered a real problem
-            catch (Exception exception)
+            catch
 #pragma warning restore CA1031 // Do not catch general exception types
             {
             }
@@ -47,7 +47,7 @@ namespace Synchronizzer.Implementation
                 throw;
             }
 #pragma warning disable CA1031 // Do not catch general exception types -- it's better to continue synchronizing instead of failing completely
-            catch (Exception exception)
+            catch
 #pragma warning restore CA1031 // Do not catch general exception types
             {
             }

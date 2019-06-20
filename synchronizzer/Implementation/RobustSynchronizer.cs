@@ -24,7 +24,7 @@ namespace Synchronizzer.Implementation
                 throw;
             }
 #pragma warning disable CA1031 // Do not catch general exception types -- required for robust operation
-            catch (Exception exception)
+            catch
             {
             }
 #pragma warning restore CA1031 // Do not catch general exception types
