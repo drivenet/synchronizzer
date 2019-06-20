@@ -28,7 +28,6 @@ namespace Synchronizzer.Implementation
             catch (Exception exception)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                Console.Error.WriteLine("Unexpected RobustObjectWriter.Delete exception:\n" + exception);
             }
         }
 
@@ -51,7 +50,6 @@ namespace Synchronizzer.Implementation
             catch (Exception exception)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                Console.Error.WriteLine("Unexpected RobustObjectWriter.Upload exception:\n" + exception);
             }
         }
     }
