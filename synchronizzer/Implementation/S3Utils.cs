@@ -38,6 +38,7 @@ namespace Synchronizzer.Implementation
             var config = new AmazonS3Config
             {
                 ForcePathStyle = true,
+                DisableLogging = true,
             };
             var regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(host);
             if (regionEndpoint.DisplayName != "Unknown")
