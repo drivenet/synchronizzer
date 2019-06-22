@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Amazon.S3;
 using Amazon.S3.Model;
 
 namespace Synchronizzer.Implementation
@@ -49,10 +50,23 @@ namespace Synchronizzer.Implementation
                     StorageClass = _recycleContext.StorageClass,
                 };
 
-                await _recycleContext.S3.CopyObjectAsync(copyRequest, cancellationToken);
+                try
+                {
+                    await _recycleContext.S3.CopyObjectAsync(copyRequest, cancellationToken);
+                }
+                catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return;
+                }
             }
 
-            await _context.S3.DeleteObjectAsync(deleteRequest, cancellationToken);
+            try
+            {
+                await _context.S3.DeleteObjectAsync(deleteRequest, cancellationToken);
+            }
+            catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+            }
         }
 
         public Task Flush(CancellationToken cancellationToken) => Task.CompletedTask;
