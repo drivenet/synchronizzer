@@ -53,11 +53,11 @@ namespace Synchronizzer.Composition
                         "local.gridfs"),
                     Count(
                         Robust(
-                            Trace(
-                                new BufferingObjectReader(
-                                    new RetryingObjectReader(
-                                        new GridFSObjectReader(context),
-                                        Retries)))),
+                            new RetryingObjectReader(
+                                Trace(
+                                    new BufferingObjectReader(
+                                        new GridFSObjectReader(context))),
+                                Retries)),
                         "gridfs"));
             }
 
