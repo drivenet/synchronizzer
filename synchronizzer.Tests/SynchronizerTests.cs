@@ -90,9 +90,12 @@ namespace Synchronizzer.Tests
             var synchronizer = new Synchronizer(localReader, remoteWriter);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 
-            var deleted = remoteInfos.Select(info => info.Name).ToHashSet();
+            var deleted = remoteInfos
+                .Where(info => !info.IsHidden)
+                .Select(info => info.Name)
+                .ToHashSet();
             var uploaded = localInfos
-                .Where(info => !deleted.Contains(info.Name))
+                .Where(info => !info.IsHidden && !deleted.Contains(info.Name))
                 .Select(info => (info.Name, reader.GetStream(info.Name)))
                 .ToHashSet();
             deleted.ExceptWith(localInfos.Select(info => info.Name));
@@ -106,7 +109,10 @@ namespace Synchronizzer.Tests
             var rng2 = new Random(seed + 1);
             for (var i = 0; i < count; i++)
             {
-                yield return new ObjectInfo(rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture), rng1.Next(), false);
+                yield return new ObjectInfo(
+                    rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture),
+                    rng1.Next(),
+                    rng1.NextDouble() < 0.1);
             }
         }
     }
