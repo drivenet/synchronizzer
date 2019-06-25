@@ -124,9 +124,16 @@ namespace Synchronizzer.Implementation
                 InputStream = readOnlyInput,
                 StorageClass = _context.StorageClass,
             };
-            await Task.WhenAll(
-                _context.S3.PutObjectAsync(request, cancellationToken),
-                lockTask);
+            try
+            {
+                await _context.S3.PutObjectAsync(request, cancellationToken);
+            }
+            catch (OperationCanceledException exception) when (exception.InnerException is IOException)
+            {
+                throw exception.InnerException;
+            }
+
+            await lockTask;
         }
 
         private static void CheckObjectName(string objectName)
