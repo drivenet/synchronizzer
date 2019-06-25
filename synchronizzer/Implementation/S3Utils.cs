@@ -39,6 +39,8 @@ namespace Synchronizzer.Implementation
             {
                 ForcePathStyle = true,
                 DisableLogging = true,
+                Timeout = TimeSpan.FromSeconds(47),
+                ReadWriteTimeout = TimeSpan.FromSeconds(137),
             };
             var regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(host);
             if (regionEndpoint.DisplayName != "Unknown")
