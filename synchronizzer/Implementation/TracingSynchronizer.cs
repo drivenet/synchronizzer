@@ -30,9 +30,9 @@ namespace Synchronizzer.Implementation
                 {
                     await _inner.Synchronize(cancellationToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
-                    _logger.LogWarning("Job \"{JobName}\" was canceled, session \"{JobId}\".", _name, id);
+                    _logger.LogWarning("Job \"{JobName}\" was canceled, session \"{JobId}\": {Message}", _name, id, exception.Message);
                     throw;
                 }
                 catch (Exception exception)
