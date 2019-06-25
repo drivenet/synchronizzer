@@ -27,7 +27,7 @@ namespace Synchronizzer.Implementation
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation(Events.LockCancelled, "Locking was cancelled.");
+                _logger.LogInformation(Events.LockCanceled, "Locking was canceled.");
                 throw;
             }
             catch (Exception exception)
@@ -50,7 +50,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.DeleteCancelled, "Delete of \"{ObjectName}\" was cancelled.", objectName);
+                    _logger.LogInformation(Events.DeleteCanceled, "Delete of \"{ObjectName}\" was canceled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
@@ -77,7 +77,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.UploadCancelled, "Upload of \"{ObjectName}\" was cancelled.", objectName);
+                    _logger.LogInformation(Events.UploadCanceled, "Upload of \"{ObjectName}\" was canceled.", objectName);
                     throw;
                 }
                 catch (Exception exception)
@@ -96,11 +96,11 @@ namespace Synchronizzer.Implementation
             public static readonly EventId Uploaded = new EventId(2, nameof(Uploaded));
             public static readonly EventId Delete = new EventId(3, nameof(Delete));
             public static readonly EventId Deleted = new EventId(4, nameof(Deleted));
-            public static readonly EventId UploadCancelled = new EventId(5, nameof(UploadCancelled));
-            public static readonly EventId DeleteCancelled = new EventId(6, nameof(DeleteCancelled));
+            public static readonly EventId UploadCanceled = new EventId(5, nameof(UploadCanceled));
+            public static readonly EventId DeleteCanceled = new EventId(6, nameof(DeleteCanceled));
             public static readonly EventId Lock = new EventId(7, nameof(Lock));
             public static readonly EventId Locked = new EventId(8, nameof(Locked));
-            public static readonly EventId LockCancelled = new EventId(9, nameof(LockCancelled));
+            public static readonly EventId LockCanceled = new EventId(9, nameof(LockCanceled));
         }
     }
 }

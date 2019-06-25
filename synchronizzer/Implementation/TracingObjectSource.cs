@@ -34,7 +34,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogInformation(Events.CancelledGet, "Get \"{From}\" was cancelled, elapsed {Elapsed}.", fromName, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogInformation(Events.GetCanceled, "Get \"{From}\" was canceled, elapsed {Elapsed}.", fromName, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
                 catch (Exception exception)
@@ -52,7 +52,7 @@ namespace Synchronizzer.Implementation
         {
             public static readonly EventId Get = new EventId(1, nameof(Get));
             public static readonly EventId Got = new EventId(2, nameof(Got));
-            public static readonly EventId CancelledGet = new EventId(3, nameof(CancelledGet));
+            public static readonly EventId GetCanceled = new EventId(3, nameof(GetCanceled));
         }
     }
 }
