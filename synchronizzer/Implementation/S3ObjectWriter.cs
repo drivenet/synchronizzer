@@ -198,7 +198,7 @@ namespace Synchronizzer.Implementation
         {
             var nowTask = GetUtcTime(cancellationToken);
             var tasks = new List<Task>();
-            var lockLifetime = TimeSpan.FromMinutes(5);
+            var lockLifetime = TimeSpan.FromMinutes(3);
             var listRequest = new ListObjectsV2Request
             {
                 BucketName = _context.BucketName,
