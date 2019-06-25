@@ -11,11 +11,16 @@ namespace Synchronizzer.Composition
     {
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
+        private readonly ILogger<TracingObjectReader> _objectReaderLogger;
 
-        public LocalReaderResolver(IMetricsWriter metricsWriter, ILogger<TracingObjectSource> objectSourceLogger)
+        public LocalReaderResolver(
+            IMetricsWriter metricsWriter,
+            ILogger<TracingObjectSource> objectSourceLogger,
+            ILogger<TracingObjectReader> objectReaderLogger)
         {
             _metricsWriter = metricsWriter;
             _objectSourceLogger = objectSourceLogger;
+            _objectReaderLogger = objectReaderLogger;
         }
 
         public ILocalReader Resolve(string address)
@@ -29,7 +34,9 @@ namespace Synchronizzer.Composition
                             new FilesystemObjectSource(context)),
                         "local.fs"),
                     Count(
-                        new FilesystemObjectReader(context),
+                        Robust(
+                            Trace(
+                                new FilesystemObjectReader(context))),
                         "fs"));
             }
 
@@ -45,9 +52,12 @@ namespace Synchronizzer.Composition
                             Retries),
                         "local.gridfs"),
                     Count(
-                        new RetryingObjectReader(
-                            new GridFSObjectReader(context),
-                            Retries),
+                        Robust(
+                            Trace(
+                                new BufferingObjectReader(
+                                    new RetryingObjectReader(
+                                        new GridFSObjectReader(context),
+                                        Retries)))),
                         "gridfs"));
             }
 
@@ -59,6 +69,12 @@ namespace Synchronizzer.Composition
 
         private IObjectSource Count(IObjectSource source, string key)
             => new CountingObjectSource(source, _metricsWriter, key);
+
+        private IObjectReader Robust(IObjectReader reader)
+            => new RobustObjectReader(reader);
+
+        private IObjectReader Trace(IObjectReader reader)
+            => new TracingObjectReader(reader, _objectReaderLogger);
 
         private IObjectSource Trace(IObjectSource source)
             => new TracingObjectSource(source, "local", _objectSourceLogger);
