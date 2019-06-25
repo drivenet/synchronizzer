@@ -124,14 +124,7 @@ namespace Synchronizzer.Implementation
                 InputStream = readOnlyInput,
                 StorageClass = _context.StorageClass,
             };
-            try
-            {
-                await _context.S3.PutObjectAsync(request, cancellationToken);
-            }
-            catch (OperationCanceledException exception) when (exception.InnerException is IOException)
-            {
-                throw exception.InnerException;
-            }
+            await _context.S3.PutObjectAsync(request, cancellationToken);
 
             await lockTask;
         }
