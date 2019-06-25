@@ -45,7 +45,7 @@ namespace Synchronizzer.Composition
                 }
             }
 
-            await Task.Delay(337, cancellationToken);
+            await Task.Delay(1337, cancellationToken);
 
             foreach (var info in infoSet)
             {
