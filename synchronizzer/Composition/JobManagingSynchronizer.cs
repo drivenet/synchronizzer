@@ -31,23 +31,33 @@ namespace Synchronizzer.Composition
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var infoSet = _infos.ToHashSet();
+            HashSet<SyncInfo> infos;
+            try
+            {
+                var task = Task.Delay(1337, cancellationToken);
+                infos = _infos.ToHashSet();
+                await task;
+            }
+            catch (OperationCanceledException)
+            {
+                infos = new HashSet<SyncInfo>();
+            }
+
             foreach (var pair in _jobs)
             {
                 if (pair.Value.Value.IsCompleted)
                 {
                     await CompleteJob(pair.Key, cancel: false);
                 }
-                else if (!infoSet.Contains(pair.Key))
+                else if (!infos.Contains(pair.Key))
                 {
                     await CompleteJob(pair.Key, cancel: true);
                 }
             }
 
-            await Task.Delay(1337, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var info in infoSet)
+            foreach (var info in infos)
             {
                 _jobs.GetOrAdd(info, TaskFactory);
             }
