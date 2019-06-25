@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Synchronizzer.Implementation
                 s3Object =>
                 {
                     var objectName = s3Object.Key.TrimEnd('/');
-                    var isHidden = false;
+                    var isHidden = objectName.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase);
                     return new ObjectInfo(objectName, s3Object.Size, isHidden);
                 }));
             return result;

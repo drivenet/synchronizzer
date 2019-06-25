@@ -39,6 +39,8 @@ namespace Synchronizzer.Tests.Implementation
             return Task.CompletedTask;
         }
 
+        public Task Lock(CancellationToken cancellationToken) => Task.CompletedTask;
+
         public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

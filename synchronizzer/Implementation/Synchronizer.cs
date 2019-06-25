@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
@@ -24,7 +25,8 @@ namespace Synchronizzer.Implementation
                 {
                     await Task.WhenAll(
                         localInfos.Populate(cancellationToken),
-                        remoteInfos.Populate(cancellationToken));
+                        remoteInfos.Populate(cancellationToken),
+                        _remoteWriter.Lock(cancellationToken));
                     await Task.WhenAll(
                         SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
                         SynchronizeRemote(localInfos, remoteInfos, cancellationToken));

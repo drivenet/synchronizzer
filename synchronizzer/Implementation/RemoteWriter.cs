@@ -22,6 +22,8 @@ namespace Synchronizzer.Implementation
 
         public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken) => _source.GetOrdered(fromName, cancellationToken);
 
+        public Task Lock(CancellationToken cancellationToken) => _writer.Lock(cancellationToken);
+
         public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken) => _writer.Upload(objectName, readOnlyInput, cancellationToken);
     }
 }

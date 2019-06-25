@@ -31,6 +31,24 @@ namespace Synchronizzer.Implementation
             }
         }
 
+        public async Task Lock(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _inner.Lock(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types -- failing to try to lock something is considered non-critical
+            catch (Exception exception)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                throw new OperationCanceledException("Treating exception as failure to acquire lock: " + exception.Message, exception);
+            }
+        }
+
         public Task Flush(CancellationToken cancellationToken)
         {
             return _inner.Flush(cancellationToken);

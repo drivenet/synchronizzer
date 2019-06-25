@@ -62,6 +62,26 @@ namespace Synchronizzer.Implementation
             _writer.Add(_prefix + "flushes", 1);
         }
 
+        public async Task Lock(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _inner.Lock(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                _writer.Add(_prefix + "lock_skips", 1);
+                throw;
+            }
+            catch
+            {
+                _writer.Add(_prefix + "lock_errors", 1);
+                throw;
+            }
+
+            _writer.Add(_prefix + "locks", 1);
+        }
+
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
             long length;

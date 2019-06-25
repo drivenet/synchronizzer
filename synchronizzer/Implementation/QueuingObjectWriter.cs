@@ -15,6 +15,9 @@ namespace Synchronizzer.Implementation
             _taskManager = taskManager;
         }
 
+        public Task Lock(CancellationToken cancellationToken)
+            => _inner.Lock(cancellationToken);
+
         public Task Delete(string objectName, CancellationToken cancellationToken)
             => _taskManager.Enqueue(
                 this,
@@ -23,8 +26,14 @@ namespace Synchronizzer.Implementation
 
         public async Task Flush(CancellationToken cancellationToken)
         {
-            await _taskManager.WaitAll(this);
-            await _inner.Flush(cancellationToken);
+            try
+            {
+                await _taskManager.WaitAll(this);
+            }
+            finally
+            {
+                await _inner.Flush(cancellationToken);
+            }
         }
 
         public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
