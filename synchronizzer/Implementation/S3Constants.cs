@@ -2,6 +2,6 @@
 {
     internal static class S3Constants
     {
-        public const string LockPrefix = ".synchronizzer/";
+        public const string LockPrefix = "$.synchronizzer/";
     }
 }
