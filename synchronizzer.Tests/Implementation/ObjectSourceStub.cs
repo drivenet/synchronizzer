@@ -51,7 +51,7 @@ namespace Synchronizzer.Tests.Implementation
             int index;
             if (fromName is object)
             {
-                index = _list.BinarySearch(new ObjectInfo(fromName, 0), ObjectInfoNameComparer.Instance);
+                index = _list.BinarySearch(new ObjectInfo(fromName, 0, false), ObjectInfoNameComparer.Instance);
                 if (index < 0)
                 {
                     index = ~index;

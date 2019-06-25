@@ -6,7 +6,7 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class ObjectInfo : IComparable<ObjectInfo>
     {
-        public ObjectInfo(string name, long size)
+        public ObjectInfo(string name, long size, bool isHidden)
         {
             if (name.Length == 0)
             {
@@ -20,11 +20,14 @@ namespace Synchronizzer.Implementation
 
             Name = name.Normalize(NormalizationForm.FormC);
             Size = size;
+            IsHidden = isHidden;
         }
 
         public string Name { get; }
 
         public long Size { get; }
+
+        public bool IsHidden { get; }
 
         public int CompareTo(ObjectInfo other)
         {
@@ -33,17 +36,22 @@ namespace Synchronizzer.Implementation
                 return 1;
             }
 
-            var nameResult = string.CompareOrdinal(Name, other.Name);
-            if (nameResult == 0)
+            var result = string.CompareOrdinal(Name, other.Name);
+            if (result == 0)
             {
-                nameResult = Size.CompareTo(other.Size);
+                result = Size.CompareTo(other.Size);
+
+                if (result == 0)
+                {
+                    result = IsHidden.CompareTo(other.IsHidden);
+                }
             }
 
-            return nameResult;
+            return result;
         }
 
         public override int GetHashCode() => Name.GetHashCode(StringComparison.Ordinal);
 
-        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1}", Name, Size);
+        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1}{2}", Name, Size, IsHidden ? ", hidden" : null);
     }
 }

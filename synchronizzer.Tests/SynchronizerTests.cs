@@ -106,7 +106,7 @@ namespace Synchronizzer.Tests
             var rng2 = new Random(seed + 1);
             for (var i = 0; i < count; i++)
             {
-                yield return new ObjectInfo(rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture), rng1.Next());
+                yield return new ObjectInfo(rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture), rng1.Next(), false);
             }
         }
     }

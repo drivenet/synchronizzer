@@ -47,7 +47,8 @@ namespace Synchronizzer.Implementation
                     break;
                 }
 
-                if (!remoteInfos.HasObject(objectInfo))
+                if (!objectInfo.IsHidden
+                    && !remoteInfos.HasObject(objectInfo))
                 {
 #pragma warning disable CA2000 // Dispose objects before losing scope -- expected to be disposed by Upload
                     var input = await _localReader.Read(name, cancellationToken);
@@ -81,7 +82,8 @@ namespace Synchronizzer.Implementation
                     break;
                 }
 
-                if (!localInfos.HasObjectByName(objectInfo))
+                if (!objectInfo.IsHidden
+                    && !localInfos.HasObjectByName(objectInfo))
                 {
                     await _remoteWriter.Delete(name, cancellationToken);
                 }

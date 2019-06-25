@@ -42,7 +42,7 @@ namespace Synchronizzer.Implementation
                 await infos.ForEachAsync(
                     (info, cancel) =>
                     {
-                        var objectInfo = new ObjectInfo(info.Filename, info.Length);
+                        var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
                         var lastIndex = result.Count - 1;
                         if (lastIndex >= 0
                             && result[lastIndex].Name == objectInfo.Name)

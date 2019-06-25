@@ -27,7 +27,12 @@ namespace Synchronizzer.Implementation
             var s3Objects = response.S3Objects;
             var result = new List<ObjectInfo>(s3Objects.Count);
             result.AddRange(s3Objects.Select(
-                s3Object => new ObjectInfo(s3Object.Key.TrimEnd('/'), s3Object.Size)));
+                s3Object =>
+                {
+                    var objectName = s3Object.Key.TrimEnd('/');
+                    var isHidden = false;
+                    return new ObjectInfo(objectName, s3Object.Size, isHidden);
+                }));
             return result;
         }
     }
