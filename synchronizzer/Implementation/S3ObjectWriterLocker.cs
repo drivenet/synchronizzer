@@ -97,6 +97,8 @@ namespace Synchronizzer.Implementation
             await Task.WhenAll(tasks);
         }
 
+        public override string ToString() => FormattableString.Invariant($"S3Locker(\"{_lockName}\")");
+
         private async Task<DateTime> GetUtcTime(CancellationToken cancellationToken)
         {
             var key = S3Constants.LockPrefix + _lockName + ".time";
