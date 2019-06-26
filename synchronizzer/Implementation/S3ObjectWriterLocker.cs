@@ -51,7 +51,6 @@ namespace Synchronizzer.Implementation
             }
         }
 
-
         public async Task Clear(CancellationToken cancellationToken)
         {
             var deleteObjectRequest = new DeleteObjectRequest
