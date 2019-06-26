@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Synchronizzer.Composition
+﻿namespace Synchronizzer.Composition
 {
     internal sealed class SyncJob
     {
