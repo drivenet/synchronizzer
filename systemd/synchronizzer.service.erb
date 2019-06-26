@@ -10,7 +10,8 @@ ExecReload=/bin/kill -INT $MAINPID
 ExecStop=/bin/kill $MAINPID
 ExecStop=/usr/bin/tail --pid $MAINPID -f /dev/null
 TimeoutStopSec=47
-SuccessExitStatus=1 # Work around ASP.NET Core 2.x host terminating with exit code 1 on SIGTERM
+# Work around ASP.NET Core 2.x host terminating with exit code 1 on SIGTERM
+SuccessExitStatus=1
 Nice=10
 ProtectSystem=full
 ProtectHome=true
