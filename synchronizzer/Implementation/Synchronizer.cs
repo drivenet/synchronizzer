@@ -47,6 +47,7 @@ namespace Synchronizzer.Implementation
                     break;
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!objectInfo.IsHidden
                     && !remoteInfos.HasObject(objectInfo))
                 {
@@ -82,6 +83,7 @@ namespace Synchronizzer.Implementation
                     break;
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!objectInfo.IsHidden
                     && !localInfos.HasObjectByName(objectInfo))
                 {
