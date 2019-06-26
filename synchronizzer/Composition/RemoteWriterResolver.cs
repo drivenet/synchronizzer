@@ -67,7 +67,8 @@ namespace Synchronizzer.Composition
                                 "s3"),
                             _objectLogger)),
                     taskManager),
-                new S3ObjectWriterLocker(context));
+                new LockingObjectWriterLocker(
+                    new S3ObjectWriterLocker(context)));
         }
     }
 }

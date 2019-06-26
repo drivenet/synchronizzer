@@ -10,45 +10,17 @@ using Amazon.S3.Model;
 
 namespace Synchronizzer.Implementation
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable -- _lock does not need disposal because wait handle is never allocated
     internal sealed class S3ObjectWriterLocker : IObjectWriterLocker
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         private const string LockExtension = ".lock";
-        private static readonly TimeSpan LockInterval = TimeSpan.FromSeconds(17);
+        private static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(7);
 
-        private readonly Stopwatch _timer = new Stopwatch();
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly string _lockName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         private readonly S3WriteContext _context;
 
         public S3ObjectWriterLocker(S3WriteContext context)
         {
             _context = context;
-        }
-
-        public async Task Lock(CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _lock.WaitAsync(cancellationToken);
-                if (!_timer.IsRunning
-                    || _timer.Elapsed > LockInterval)
-                {
-                    await LockCore(cancellationToken);
-                    _timer.Restart();
-                }
-            }
-            finally
-            {
-                try
-                {
-                    _lock.Release();
-                }
-                catch (SemaphoreFullException)
-                {
-                }
-            }
         }
 
         public async Task Clear(CancellationToken cancellationToken)
@@ -61,7 +33,7 @@ namespace Synchronizzer.Implementation
             await _context.S3.DeleteObjectAsync(deleteObjectRequest/*, cancellationToken*/ /* No cancellation token to clean up lock properly */);
         }
 
-        private async Task LockCore(CancellationToken cancellationToken)
+        public async Task Lock(CancellationToken cancellationToken)
         {
             var nowTask = GetUtcTime(cancellationToken);
             var tasks = new List<Task>();
@@ -96,7 +68,7 @@ namespace Synchronizzer.Implementation
                         var comparison = string.CompareOrdinal(keyData, _lockName);
                         if (comparison < 0)
                         {
-                            throw new OperationCanceledException(FormattableString.Invariant($"The lock \"{_lockName}\" was overriden by \"{keyData}\" ({lockTime:o})."));
+                            throw new OperationCanceledException(FormattableString.Invariant($"The lock \"{_lockName}\" was overriden by \"{keyData}\" (time: {lockTime:o}, threshold {threshold:o})."));
                         }
 
                         if (comparison == 0)
@@ -156,7 +128,7 @@ namespace Synchronizzer.Implementation
                         lastModified = (await _context.S3.GetObjectMetadataAsync(getMetadataRequest, cancellationToken)).LastModified;
                         break;
                     }
-                    catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound && timer.Elapsed < LockInterval)
+                    catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound && timer.Elapsed < LockTimeout)
                     {
                     }
                 }
