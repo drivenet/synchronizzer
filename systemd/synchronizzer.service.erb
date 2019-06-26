@@ -7,6 +7,10 @@ WorkingDirectory=<%=@package_dir%>
 Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
 ExecStart=/usr/bin/dotnet <%=@package_dir%>/synchronizzer.dll --config <%=@config_file%> --hostingconfig <%=@hosting_file%>
 ExecReload=/bin/kill -INT $MAINPID
+ExecStop=/bin/kill $MAINPID
+ExecStop=/usr/bin/tail --pid $MAINPID -f /dev/null
+TimeoutStopSec=47
+SuccessExitStatus=1 # Work around ASP.NET Core 2.x host terminating with exit code 1 on SIGTERM
 Nice=10
 ProtectSystem=full
 ProtectHome=true
