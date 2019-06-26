@@ -35,7 +35,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to read \"{ObjectName}\".", objectName);
+                    _logger.LogError(exception, "Failed to read \"{ObjectName}\".", objectName);
                     throw;
                 }
 
