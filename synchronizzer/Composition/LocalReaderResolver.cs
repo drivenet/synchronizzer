@@ -55,8 +55,9 @@ namespace Synchronizzer.Composition
                         Robust(
                             Trace(
                                 new RetryingObjectReader(
-                                    new BufferingObjectReader(
-                                        new GridFSObjectReader(context)),
+                                    new GridFSFilteringObjectReader(
+                                        new BufferingObjectReader(
+                                            new GridFSObjectReader(context))),
                                     Retries))),
                         "gridfs"));
             }
