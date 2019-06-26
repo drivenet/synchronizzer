@@ -66,7 +66,8 @@ namespace Synchronizzer.Composition
                                 _metricsWriter,
                                 "s3"),
                             _objectLogger)),
-                    taskManager));
+                    taskManager),
+                new S3ObjectWriterLocker(context));
         }
     }
 }

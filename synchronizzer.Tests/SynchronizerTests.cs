@@ -86,7 +86,8 @@ namespace Synchronizzer.Tests
             var remoteSource = new ObjectSourceStub(remoteInfos);
             var writer = new ObjectWriterMock();
             var localReader = new LocalReader(localSource, reader);
-            var remoteWriter = new RemoteWriter(remoteSource, writer);
+            var locker = new ObjectWriterLockerStub();
+            var remoteWriter = new RemoteWriter(remoteSource, writer, locker);
             var synchronizer = new Synchronizer(localReader, remoteWriter);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 

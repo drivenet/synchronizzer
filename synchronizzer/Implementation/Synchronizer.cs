@@ -25,8 +25,7 @@ namespace Synchronizzer.Implementation
                 {
                     await Task.WhenAll(
                         localInfos.Populate(cancellationToken),
-                        remoteInfos.Populate(cancellationToken),
-                        _remoteWriter.Lock(cancellationToken));
+                        remoteInfos.Populate(cancellationToken));
                     await Task.WhenAll(
                         SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
                         SynchronizeRemote(localInfos, remoteInfos, cancellationToken));

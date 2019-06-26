@@ -15,9 +15,6 @@ namespace Synchronizzer.Implementation
             _taskManager = taskManager;
         }
 
-        public Task Lock(CancellationToken cancellationToken)
-            => _inner.Lock(cancellationToken);
-
         public Task Delete(string objectName, CancellationToken cancellationToken)
             => _taskManager.Enqueue(
                 this,

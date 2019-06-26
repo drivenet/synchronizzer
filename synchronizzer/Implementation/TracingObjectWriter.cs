@@ -18,27 +18,6 @@ namespace Synchronizzer.Implementation
             _logger = logger;
         }
 
-        public async Task Lock(CancellationToken cancellationToken)
-        {
-            _logger.LogDebug(Events.Lock, "Lock.");
-            try
-            {
-                await _inner.Lock(cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation(Events.LockCanceled, "Locking was canceled.");
-                throw;
-            }
-            catch (Exception exception)
-            {
-                _logger.LogWarning(exception, "Failed to lock.");
-                throw;
-            }
-
-            _logger.LogDebug(Events.Locked, "Locked.");
-        }
-
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
@@ -98,9 +77,6 @@ namespace Synchronizzer.Implementation
             public static readonly EventId Deleted = new EventId(4, nameof(Deleted));
             public static readonly EventId UploadCanceled = new EventId(5, nameof(UploadCanceled));
             public static readonly EventId DeleteCanceled = new EventId(6, nameof(DeleteCanceled));
-            public static readonly EventId Lock = new EventId(7, nameof(Lock));
-            public static readonly EventId Locked = new EventId(8, nameof(Locked));
-            public static readonly EventId LockCanceled = new EventId(9, nameof(LockCanceled));
         }
     }
 }
