@@ -13,17 +13,20 @@ namespace Synchronizzer.Composition
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
+        private readonly ILogger<TracingObjectWriterLocker> _lockerLogger;
 
         public RemoteWriterResolver(
             IQueuingTaskManagerSelector taskManagerSelector,
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectWriter> objectLogger,
-            ILogger<TracingObjectSource> objectSourceLogger)
+            ILogger<TracingObjectSource> objectSourceLogger,
+            ILogger<TracingObjectWriterLocker> lockerLogger)
         {
             _taskManagerSelector = taskManagerSelector;
             _metricsWriter = metricsWriter;
             _objectLogger = objectLogger;
             _objectSourceLogger = objectSourceLogger;
+            _lockerLogger = lockerLogger;
         }
 
         public IRemoteWriter Resolve(string address, string? recycleAddress)
@@ -68,7 +71,9 @@ namespace Synchronizzer.Composition
                             _objectLogger)),
                     taskManager),
                 new LockingObjectWriterLocker(
-                    new S3ObjectWriterLocker(context)));
+                    new TracingObjectWriterLocker(
+                        new S3ObjectWriterLocker(context),
+                        _lockerLogger)));
         }
     }
 }

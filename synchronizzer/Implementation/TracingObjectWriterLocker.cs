@@ -1,0 +1,48 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
+namespace Synchronizzer.Implementation
+{
+    internal sealed class TracingObjectWriterLocker : IObjectWriterLocker
+    {
+        private readonly IObjectWriterLocker _inner;
+        private readonly ILogger _logger;
+
+        public TracingObjectWriterLocker(IObjectWriterLocker inner, ILogger<TracingObjectWriterLocker> logger)
+        {
+            _inner = inner;
+            _logger = logger;
+        }
+
+        public Task Clear(CancellationToken cancellationToken)
+        {
+            return _inner.Clear(cancellationToken);
+        }
+
+        public async Task Lock(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation(Events.Locking, "Locking with {Locker}.", _inner);
+            try
+            {
+                await _inner.Lock(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation(Events.LockCanceled, "Locking with {Locker} was canceled.", _inner);
+                throw;
+            }
+
+            _logger.LogInformation(Events.Locked, "Locked with {Locker}.", _inner);
+        }
+
+        private static class Events
+        {
+            public static readonly EventId Locking = new EventId(1, nameof(Locking));
+            public static readonly EventId Locked = new EventId(2, nameof(Locked));
+            public static readonly EventId LockCanceled = new EventId(3, nameof(LockCanceled));
+        }
+    }
+}
