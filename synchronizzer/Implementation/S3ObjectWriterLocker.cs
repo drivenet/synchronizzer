@@ -65,20 +65,17 @@ namespace Synchronizzer.Implementation
                     else if (key.EndsWith(LockExtension, StringComparison.OrdinalIgnoreCase))
                     {
                         var keyData = key.Substring(S3Constants.LockPrefix.Length, key.Length - LockExtension.Length - S3Constants.LockPrefix.Length);
-                        var comparison = string.CompareOrdinal(keyData, _lockName);
-                        if (comparison < 0)
-                        {
-                            throw new OperationCanceledException(FormattableString.Invariant($"The lock \"{_lockName}\" was overriden by \"{keyData}\" (time: {lockTime:o}, threshold {threshold:o})."));
-                        }
-
-                        if (comparison == 0)
+                        if (keyData == _lockName)
                         {
                             locked = true;
                             break;
                         }
+
+                        throw new OperationCanceledException(FormattableString.Invariant(
+                            $"The lock \"{_lockName}\" was overriden by \"{keyData}\" (time: {lockTime:o}, threshold: {threshold:o})."));
                     }
 
-                    listRequest.StartAfter = s3Object.Key;
+                    listRequest.StartAfter = key;
                 }
 
                 if (locked || !listResponse.IsTruncated)
