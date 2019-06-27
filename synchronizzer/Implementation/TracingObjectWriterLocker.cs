@@ -29,9 +29,14 @@ namespace Synchronizzer.Implementation
             {
                 await _inner.Lock(cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException exception)
             {
-                _logger.LogInformation(Events.LockCanceled, "Locking with {Locker} was canceled.", _inner);
+                _logger.LogInformation(
+                    Events.LockCanceled,
+                    exception,
+                    "Locking with {Locker} was canceled (direct: {IsDirect}).",
+                    _inner,
+                    cancellationToken.IsCancellationRequested);
                 throw;
             }
 

@@ -28,9 +28,14 @@ namespace Synchronizzer.Implementation
                 {
                     stream = await _inner.Read(objectName, cancellationToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(Events.ReadCanceled, "Read of \"{ObjectName}\" was canceled.", objectName);
+                    _logger.LogInformation(
+                        Events.ReadCanceled,
+                        exception,
+                        "Read of \"{ObjectName}\" was canceled (direct: {IsDirect}).",
+                        objectName,
+                        cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)

@@ -27,9 +27,14 @@ namespace Synchronizzer.Implementation
                 {
                     await _inner.Delete(objectName, cancellationToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(Events.DeleteCanceled, "Delete of \"{ObjectName}\" was canceled.", objectName);
+                    _logger.LogInformation(
+                        Events.DeleteCanceled,
+                        exception,
+                        "Delete of \"{ObjectName}\" was canceled (direct: {IsDirect}).",
+                        objectName,
+                        cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)
@@ -54,9 +59,14 @@ namespace Synchronizzer.Implementation
                 {
                     await _inner.Upload(objectName, readOnlyInput, cancellationToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(Events.UploadCanceled, "Upload of \"{ObjectName}\" was canceled.", objectName);
+                    _logger.LogInformation(
+                        Events.UploadCanceled,
+                        exception,
+                        "Upload of \"{ObjectName}\" was canceled (direct: {IsDirect}).",
+                        objectName,
+                        cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)

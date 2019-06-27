@@ -32,9 +32,15 @@ namespace Synchronizzer.Implementation
                 {
                     result = await _inner.GetOrdered(fromName, cancellationToken);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(Events.GetCanceled, "Get \"{From}\" was canceled, elapsed {Elapsed}.", fromName, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogInformation(
+                        Events.GetCanceled,
+                        exception,
+                        "Get \"{From}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
+                        fromName,
+                        timer.Elapsed.TotalMilliseconds,
+                        cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)

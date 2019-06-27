@@ -32,7 +32,12 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException exception)
                 {
-                    _logger.LogWarning("Job \"{JobName}\" was canceled, session \"{JobId}\": {Reason}", _name, id, exception.Message);
+                    _logger.LogWarning(
+                        "Job \"{JobName}\" was canceled, session \"{JobId}\" (direct: {IsDirect}): {Reason}",
+                        _name,
+                        id,
+                        cancellationToken.IsCancellationRequested,
+                        exception.Message);
                     throw;
                 }
                 catch (Exception exception)
