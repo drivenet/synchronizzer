@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,13 +14,19 @@ namespace Synchronizzer.Implementation
         private const string LockExtension = ".lock";
         private static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(7);
 
-        private readonly string _lockName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         private readonly S3WriteContext _context;
+        private readonly string _lockName;
         private bool _isLocked;
 
-        public S3ObjectWriterLocker(S3WriteContext context)
+        public S3ObjectWriterLocker(S3WriteContext context, string lockName)
         {
+            if (string.IsNullOrEmpty(lockName))
+            {
+                throw new ArgumentException("Invalid lock name.", nameof(lockName));
+            }
+
             _context = context;
+            _lockName = lockName;
         }
 
         public async Task Clear(CancellationToken cancellationToken)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Microsoft.Extensions.Logging;
 
@@ -53,6 +54,7 @@ namespace Synchronizzer.Composition
             }
 
             var taskManager = _taskManagerSelector.Select("s3|" + context.S3.Config.DetermineServiceURL());
+            var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
             return new RemoteWriter(
                 new CountingObjectSource(
                     new TracingObjectSource(
@@ -72,7 +74,7 @@ namespace Synchronizzer.Composition
                     taskManager),
                 new LockingObjectWriterLocker(
                     new TracingObjectWriterLocker(
-                        new S3ObjectWriterLocker(context),
+                        new S3ObjectWriterLocker(context, lockName),
                         _lockerLogger)));
         }
     }
