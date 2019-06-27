@@ -76,6 +76,8 @@ namespace Synchronizzer.Implementation
                         var message = _isLocked
                             ? FormattableString.Invariant($"The lock \"{_lockName}\" was overriden by \"{keyData}\" (time: {lockTime:o}, threshold: {threshold:o}).")
                             : FormattableString.Invariant($"The lock \"{_lockName}\" is prevented by \"{keyData}\" (time: {lockTime:o}, threshold: {threshold:o}).");
+
+                        _isLocked = false;
                         throw new OperationCanceledException(message);
                     }
 
