@@ -17,6 +17,7 @@ namespace Synchronizzer.Implementation
 
         private readonly string _lockName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         private readonly S3WriteContext _context;
+        private bool _isLocked;
 
         public S3ObjectWriterLocker(S3WriteContext context)
         {
@@ -25,6 +26,7 @@ namespace Synchronizzer.Implementation
 
         public async Task Clear(CancellationToken cancellationToken)
         {
+            _isLocked = false;
             var deleteObjectRequest = new DeleteObjectRequest
             {
                 BucketName = _context.BucketName,
@@ -71,8 +73,10 @@ namespace Synchronizzer.Implementation
                             break;
                         }
 
-                        throw new OperationCanceledException(FormattableString.Invariant(
-                            $"The lock \"{_lockName}\" was overriden by \"{keyData}\" (time: {lockTime:o}, threshold: {threshold:o})."));
+                        var message = _isLocked
+                            ? FormattableString.Invariant($"The lock \"{_lockName}\" was overriden by \"{keyData}\" (time: {lockTime:o}, threshold: {threshold:o}).")
+                            : FormattableString.Invariant($"The lock \"{_lockName}\" is prevented by \"{keyData}\" (time: {lockTime:o}, threshold: {threshold:o}).");
+                        throw new OperationCanceledException(message);
                     }
 
                     listRequest.StartAfter = key;
@@ -92,6 +96,7 @@ namespace Synchronizzer.Implementation
             var putTask = _context.S3.PutObjectAsync(request, cancellationToken);
             tasks.Add(putTask);
             await Task.WhenAll(tasks);
+            _isLocked = true;
         }
 
         public override string ToString() => FormattableString.Invariant($"S3Locker(\"{_lockName}\")");
