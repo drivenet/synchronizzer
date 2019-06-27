@@ -85,7 +85,7 @@ namespace Synchronizzer.Composition
             options.AddServerHeader = false;
             options.Limits.MaxRequestBodySize = 0;
             options.Limits.MaxRequestHeadersTotalSize = 4096;
-            options.Limits.MaxConcurrentConnections = 10;
+            options.Limits.MaxConcurrentConnections = 16;
         }
 
         private static void ConfigureNetworking()
