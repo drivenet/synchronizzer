@@ -112,6 +112,11 @@ namespace Synchronizzer.Implementation
             return index >= 0;
         }
 
+        public override string ToString()
+            => IsLive
+                ? FormattableString.Invariant($"(Count={_infos?.Count};Skip={_skip};LastName={LastName})")
+                : "(Completed)";
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         private static InvalidOperationException CreateCompletedException() => new InvalidOperationException("Object infos are marked as completed.");

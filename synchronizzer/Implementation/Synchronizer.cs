@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
@@ -20,14 +21,25 @@ namespace Synchronizzer.Implementation
             var remoteInfos = new ObjectInfos(_remoteWriter);
             try
             {
-                while (remoteInfos.IsLive || localInfos.IsLive)
+                while (true)
                 {
                     await Task.WhenAll(
                         localInfos.Populate(cancellationToken),
                         remoteInfos.Populate(cancellationToken));
-                    await Task.WhenAll(
+                    var hasProgress = await Task.WhenAll(
                         SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
                         SynchronizeRemote(localInfos, remoteInfos, cancellationToken));
+
+                    if (!remoteInfos.IsLive && !localInfos.IsLive)
+                    {
+                        break;
+                    }
+
+                    if (!hasProgress[0] && !hasProgress[1])
+                    {
+                        throw new InvalidProgramException(
+                            FormattableString.Invariant($"No progress for iteration.\nLocal: {localInfos}\nRemote: {remoteInfos}\n"));
+                    }
                 }
             }
             finally
@@ -36,8 +48,9 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        private async Task SynchronizeLocal(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<bool> SynchronizeLocal(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
         {
+            var hasProgress = false;
             foreach (var objectInfo in localInfos)
             {
                 var name = objectInfo.Name;
@@ -69,11 +82,15 @@ namespace Synchronizzer.Implementation
                 }
 
                 localInfos.Skip();
+                hasProgress = true;
             }
+
+            return hasProgress;
         }
 
-        private async Task SynchronizeRemote(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<bool> SynchronizeRemote(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
         {
+            var hasProgress = false;
             foreach (var objectInfo in remoteInfos)
             {
                 var name = objectInfo.Name;
@@ -91,7 +108,10 @@ namespace Synchronizzer.Implementation
                 }
 
                 remoteInfos.Skip();
+                hasProgress = true;
             }
+
+            return hasProgress;
         }
     }
 }
