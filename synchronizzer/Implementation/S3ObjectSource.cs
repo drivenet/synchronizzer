@@ -24,7 +24,7 @@ namespace Synchronizzer.Implementation
                 BucketName = _context.BucketName,
                 StartAfter = fromName,
             };
-            var response = await _context.S3.ListObjectsV2Async(request, cancellationToken);
+            var response = await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
             var s3Objects = response.S3Objects;
             var result = new List<ObjectInfo>(s3Objects.Count);
             result.AddRange(s3Objects.Select(

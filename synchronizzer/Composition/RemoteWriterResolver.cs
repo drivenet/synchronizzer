@@ -53,7 +53,7 @@ namespace Synchronizzer.Composition
                 recycleContext = null;
             }
 
-            var taskManager = _taskManagerSelector.Select("s3|" + context.S3.Config.DetermineServiceURL());
+            var taskManager = _taskManagerSelector.Select("s3|" + context.S3.ServiceUrl);
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
             return new RemoteWriter(
                 new CountingObjectSource(

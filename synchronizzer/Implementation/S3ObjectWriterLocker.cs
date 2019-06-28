@@ -37,7 +37,9 @@ namespace Synchronizzer.Implementation
                 BucketName = _context.BucketName,
                 Key = S3Constants.LockPrefix + _lockName + LockExtension,
             };
-            await _context.S3.DeleteObjectAsync(deleteObjectRequest/*, cancellationToken*/ /* No cancellation token to clean up lock properly */);
+            await _context.S3.Invoke(
+                (s3, token) => s3.DeleteObjectAsync(deleteObjectRequest/*, token*/ /* No cancellation token to clean up lock properly */),
+                cancellationToken);
         }
 
         public async Task Lock(CancellationToken cancellationToken)
@@ -52,7 +54,7 @@ namespace Synchronizzer.Implementation
             };
             while (true)
             {
-                var listResponse = await _context.S3.ListObjectsV2Async(listRequest, cancellationToken);
+                var listResponse = await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(listRequest, token), cancellationToken);
                 var threshold = (await nowTask) - lockLifetime;
                 var locked = false;
                 foreach (var s3Object in listResponse.S3Objects)
@@ -66,7 +68,7 @@ namespace Synchronizzer.Implementation
                             BucketName = _context.BucketName,
                             Key = key,
                         };
-                        var deleteTask = _context.S3.DeleteObjectAsync(deleteObjectRequest, cancellationToken);
+                        var deleteTask = _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteObjectRequest, token), cancellationToken);
                         tasks.Add(deleteTask);
                     }
                     else if (key.EndsWith(LockExtension, StringComparison.OrdinalIgnoreCase))
@@ -100,7 +102,7 @@ namespace Synchronizzer.Implementation
                 BucketName = _context.BucketName,
                 Key = S3Constants.LockPrefix + _lockName + LockExtension,
             };
-            var putTask = _context.S3.PutObjectAsync(request, cancellationToken);
+            var putTask = _context.S3.Invoke((s3, token) => s3.PutObjectAsync(request, token), cancellationToken);
             tasks.Add(putTask);
             await Task.WhenAll(tasks);
             _isLocked = true;
@@ -129,14 +131,14 @@ namespace Synchronizzer.Implementation
 
             try
             {
-                await _context.S3.PutObjectAsync(putRequest, cancellationToken);
+                await _context.S3.Invoke((s3, token) => s3.PutObjectAsync(putRequest, token), cancellationToken);
                 DateTime lastModified;
                 var timer = Stopwatch.StartNew();
                 while (true)
                 {
                     try
                     {
-                        lastModified = (await _context.S3.GetObjectMetadataAsync(getMetadataRequest, cancellationToken)).LastModified;
+                        lastModified = (await _context.S3.Invoke((s3, token) => s3.GetObjectMetadataAsync(getMetadataRequest, token), cancellationToken)).LastModified;
                         break;
                     }
                     catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound && timer.Elapsed < LockTimeout)
@@ -150,7 +152,7 @@ namespace Synchronizzer.Implementation
             {
                 try
                 {
-                    await _context.S3.DeleteObjectAsync(deleteRequest, cancellationToken);
+                    await _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteRequest, token), cancellationToken);
                 }
                 catch (AmazonS3Exception)
                 {

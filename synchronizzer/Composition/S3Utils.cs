@@ -5,7 +5,9 @@ using Amazon.S3;
 
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace Synchronizzer.Implementation
+using Synchronizzer.Implementation;
+
+namespace Synchronizzer.Composition
 {
     internal static class S3Utils
     {
@@ -60,7 +62,8 @@ namespace Synchronizzer.Implementation
             query.TryGetValue("class", out var storageClassString);
             var storageClass = ParseStorageClass(storageClassString);
             var client = new AmazonS3Client(credentials, config);
-            return new S3WriteContext(client, bucketName, storageClass);
+            var s3 = new DefaultS3Mediator(client);
+            return new S3WriteContext(s3, bucketName, storageClass);
         }
 
         private static S3StorageClass ParseStorageClass(string? storageClass)

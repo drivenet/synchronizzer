@@ -18,8 +18,8 @@ namespace Synchronizzer.Implementation
             _context = context;
             if (recycleContext is object)
             {
-                var url = new Uri(context.S3.Config.DetermineServiceURL(), UriKind.Absolute);
-                var recycleUrl = new Uri(recycleContext.S3.Config.DetermineServiceURL(), UriKind.Absolute);
+                var url = new Uri(context.S3.ServiceUrl, UriKind.Absolute);
+                var recycleUrl = new Uri(recycleContext.S3.ServiceUrl, UriKind.Absolute);
                 if (Uri.Compare(url, recycleUrl, UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.SafeUnescaped, StringComparison.Ordinal) != 0)
                 {
                     throw new ArgumentOutOfRangeException(
@@ -52,7 +52,7 @@ namespace Synchronizzer.Implementation
 
                 try
                 {
-                    await _recycleContext.S3.CopyObjectAsync(copyRequest, cancellationToken);
+                    await _recycleContext.S3.Invoke((s3, token) => s3.CopyObjectAsync(copyRequest, token), cancellationToken);
                 }
                 catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
@@ -60,7 +60,7 @@ namespace Synchronizzer.Implementation
                 }
             }
 
-            await _context.S3.DeleteObjectAsync(deleteRequest, cancellationToken);
+            await _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteRequest, token), cancellationToken);
         }
 
         public Task Flush(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -74,7 +74,7 @@ namespace Synchronizzer.Implementation
                 InputStream = readOnlyInput,
                 StorageClass = _context.StorageClass,
             };
-            await _context.S3.PutObjectAsync(request, cancellationToken);
+            await _context.S3.Invoke((s3, token) => s3.PutObjectAsync(request, token), cancellationToken);
         }
     }
 }
