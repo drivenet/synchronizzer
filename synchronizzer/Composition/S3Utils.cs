@@ -62,7 +62,8 @@ namespace Synchronizzer.Composition
             query.TryGetValue("class", out var storageClassString);
             var storageClass = ParseStorageClass(storageClassString);
             var client = new AmazonS3Client(credentials, config);
-            var s3 = new DefaultS3Mediator(client);
+            var s3 = new CancelationHandlingS3Mediator(
+                new DefaultS3Mediator(client));
             return new S3WriteContext(s3, bucketName, storageClass);
         }
 
