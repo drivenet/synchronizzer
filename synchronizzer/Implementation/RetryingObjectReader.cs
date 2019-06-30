@@ -35,7 +35,7 @@ namespace Synchronizzer.Implementation
                 {
                 }
 
-                await Task.Delay(4000, cancellationToken);
+                await Task.Delay(1511, cancellationToken);
             }
         }
     }

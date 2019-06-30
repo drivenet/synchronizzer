@@ -34,7 +34,7 @@ namespace Synchronizzer.Composition
             HashSet<SyncInfo> infos;
             try
             {
-                var task = Task.Delay(1337, cancellationToken);
+                var task = Task.Delay(997, cancellationToken);
                 infos = _infos.ToHashSet();
                 await task;
             }
