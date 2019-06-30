@@ -47,7 +47,7 @@ namespace Synchronizzer.Implementation
             return getTask.Result;
         }
 
-        public Task Lock(CancellationToken cancellationToken) => _locker.Lock(cancellationToken);
+        public Task TryLock(CancellationToken cancellationToken) => _locker.Lock(cancellationToken);
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
@@ -64,8 +64,5 @@ namespace Synchronizzer.Implementation
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Cannot use object name that is prefixed with locks.");
             }
         }
-
-        public Task TryLock(CancellationToken cancellationToken)
-            => _locker.Lock(cancellationToken);
     }
 }
