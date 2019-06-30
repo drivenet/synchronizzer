@@ -47,7 +47,19 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogInformation(Events.Read, "Read \"{ObjectName}\", elapsed {Elapsed}, stream {Stream}.", objectName, timer.Elapsed.TotalMilliseconds, stream);
+                long? length;
+                try
+                {
+                    length = stream?.Length;
+                }
+#pragma warning disable CA1031 // Do not catch general exception types -- required for robust diagnostics
+                catch
+#pragma warning restore CA1031 // Do not catch general exception types
+                {
+                    length = null;
+                }
+
+                _logger.LogInformation(Events.Read, "Read \"{ObjectName}\", elapsed {Elapsed}, length {Length}.", objectName, timer.Elapsed.TotalMilliseconds, length);
             }
 
             return stream;
