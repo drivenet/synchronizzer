@@ -59,7 +59,7 @@ namespace Synchronizzer.Implementation
                     length = null;
                 }
 
-                _logger.LogInformation(Events.Read, "Read \"{ObjectName}\", length {Length}, elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds, length);
+                _logger.LogDebug(Events.Read, "Read \"{ObjectName}\", length {Length}, elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds, length);
             }
 
             return stream;

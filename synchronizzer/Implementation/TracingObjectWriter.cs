@@ -46,7 +46,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogInformation(Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
+                _logger.LogDebug(Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -80,7 +80,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogInformation(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
+                _logger.LogDebug(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
             }
         }
 
