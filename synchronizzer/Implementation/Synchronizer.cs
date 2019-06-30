@@ -95,20 +95,10 @@ namespace Synchronizzer.Implementation
 
         private async Task Upload(string name, CancellationToken cancellationToken)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope -- expected to be disposed by Upload
-            var input = await _localReader.Read(name, cancellationToken);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+            using var input = await _localReader.Read(name, cancellationToken);
             if (input is object)
             {
-                try
-                {
-                    await _remoteWriter.Upload(name, input, cancellationToken);
-                }
-                catch
-                {
-                    input.Dispose();
-                    throw;
-                }
+                await _remoteWriter.Upload(name, input, cancellationToken);
             }
         }
 

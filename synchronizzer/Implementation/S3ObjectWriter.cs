@@ -70,6 +70,7 @@ namespace Synchronizzer.Implementation
                 BucketName = _context.BucketName,
                 Key = objectName,
                 InputStream = readOnlyInput,
+                AutoCloseStream = false,
                 StorageClass = _context.StorageClass,
             };
             await _context.S3.Invoke((s3, token) => s3.PutObjectAsync(request, token), cancellationToken);
