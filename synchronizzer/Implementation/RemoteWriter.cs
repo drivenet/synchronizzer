@@ -12,12 +12,15 @@ namespace Synchronizzer.Implementation
         private readonly IObjectWriter _writer;
         private readonly IObjectWriterLocker _locker;
 
-        public RemoteWriter(IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker)
+        public RemoteWriter(string address, IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker)
         {
+            Address = address;
             _source = source;
             _writer = writer;
             _locker = locker;
         }
+
+        public string Address { get; }
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
@@ -25,18 +28,6 @@ namespace Synchronizzer.Implementation
             await Task.WhenAll(
                 _locker.Lock(cancellationToken),
                 _writer.Delete(objectName, cancellationToken));
-        }
-
-        public async Task Flush(CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _writer.Flush(cancellationToken);
-            }
-            finally
-            {
-                await _locker.Clear(cancellationToken);
-            }
         }
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
@@ -48,6 +39,13 @@ namespace Synchronizzer.Implementation
         }
 
         public Task TryLock(CancellationToken cancellationToken) => _locker.Lock(cancellationToken);
+
+        public async Task Unlock()
+        {
+            var unlockTimeout = TimeSpan.FromSeconds(13);
+            using var cts = new CancellationTokenSource(unlockTimeout);
+            await _locker.Clear(cts.Token);
+        }
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {

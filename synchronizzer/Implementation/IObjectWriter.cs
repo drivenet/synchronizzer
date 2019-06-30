@@ -9,7 +9,5 @@ namespace Synchronizzer.Implementation
         Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken);
 
         Task Delete(string objectName, CancellationToken cancellationToken);
-
-        Task Flush(CancellationToken cancellationToken);
     }
 }

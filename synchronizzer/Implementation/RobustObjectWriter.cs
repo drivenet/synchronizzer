@@ -31,11 +31,6 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public Task Flush(CancellationToken cancellationToken)
-        {
-            return _inner.Flush(cancellationToken);
-        }
-
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
             try

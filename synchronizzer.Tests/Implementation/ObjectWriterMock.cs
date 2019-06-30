@@ -13,7 +13,6 @@ namespace Synchronizzer.Tests.Implementation
     {
         private readonly Dictionary<string, Stream> _uploaded = new Dictionary<string, Stream>();
         private readonly HashSet<string> _deleted = new HashSet<string>();
-        private bool _isDirty;
 
         public Task Delete(string objectName, CancellationToken cancellationToken)
         {
@@ -28,18 +27,8 @@ namespace Synchronizzer.Tests.Implementation
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Object was already deleted.");
             }
 
-            _isDirty = true;
             return Task.CompletedTask;
         }
-
-        public Task Flush(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _isDirty = false;
-            return Task.CompletedTask;
-        }
-
-        public Task Lock(CancellationToken cancellationToken) => Task.CompletedTask;
 
         public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
@@ -54,28 +43,17 @@ namespace Synchronizzer.Tests.Implementation
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Object was already uploaded.");
             }
 
-            _isDirty = true;
             return Task.CompletedTask;
         }
 
         public IReadOnlyCollection<(string Name, Stream Input)> GetUploads()
         {
-            EnsureClean();
             return _uploaded.Select(pair => (pair.Key, pair.Value)).ToList();
         }
 
         public IReadOnlyCollection<string> GetDeletes()
         {
-            EnsureClean();
             return _deleted.ToList();
-        }
-
-        private void EnsureClean()
-        {
-            if (_isDirty)
-            {
-                throw new InvalidOperationException("Dirty object writer, flush first.");
-            }
         }
     }
 }

@@ -87,8 +87,9 @@ namespace Synchronizzer.Tests
             var writer = new ObjectWriterMock();
             var localReader = new LocalReader(localSource, reader);
             var locker = new ObjectWriterLockerStub();
-            var remoteWriter = new RemoteWriter(remoteSource, writer, locker);
-            var synchronizer = new Synchronizer(localReader, remoteWriter);
+            var remoteWriter = new RemoteWriter("", remoteSource, writer, locker);
+            var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
+            var synchronizer = new Synchronizer(localReader, remoteWriter, taskManager);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 
             var deleted = remoteInfos

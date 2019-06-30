@@ -10,20 +10,17 @@ namespace Synchronizzer.Composition
 {
     internal sealed class RemoteWriterResolver : IRemoteWriterResolver
     {
-        private readonly IQueuingTaskManagerSelector _taskManagerSelector;
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectWriterLocker> _lockerLogger;
 
         public RemoteWriterResolver(
-            IQueuingTaskManagerSelector taskManagerSelector,
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectWriter> objectLogger,
             ILogger<TracingObjectSource> objectSourceLogger,
             ILogger<TracingObjectWriterLocker> lockerLogger)
         {
-            _taskManagerSelector = taskManagerSelector;
             _metricsWriter = metricsWriter;
             _objectLogger = objectLogger;
             _objectSourceLogger = objectSourceLogger;
@@ -53,9 +50,10 @@ namespace Synchronizzer.Composition
                 recycleContext = null;
             }
 
-            var taskManager = _taskManagerSelector.Select("s3|" + context.S3.ServiceUrl);
+            var remoteAddress = context.S3.ServiceUrl;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
             return new RemoteWriter(
+                remoteAddress,
                 new CountingObjectSource(
                     new TracingObjectSource(
                         new S3ObjectSource(context),
@@ -63,15 +61,13 @@ namespace Synchronizzer.Composition
                         _objectSourceLogger),
                     _metricsWriter,
                     "remote.s3"),
-                new QueuingObjectWriter(
-                    new RobustObjectWriter(
-                        new TracingObjectWriter(
-                            new CountingObjectWriter(
-                                new S3ObjectWriter(context, recycleContext),
-                                _metricsWriter,
-                                "s3"),
-                            _objectLogger)),
-                    taskManager),
+                new RobustObjectWriter(
+                    new TracingObjectWriter(
+                        new CountingObjectWriter(
+                            new S3ObjectWriter(context, recycleContext),
+                            _metricsWriter,
+                            "s3"),
+                        _objectLogger)),
                 new LockingObjectWriterLocker(
                     new TracingObjectWriterLocker(
                         new S3ObjectWriterLocker(context, lockName),

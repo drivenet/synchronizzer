@@ -43,25 +43,6 @@ namespace Synchronizzer.Implementation
             _writer.Add(_prefix + "deletes", 1);
         }
 
-        public async Task Flush(CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _inner.Flush(cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                _writer.Add(_prefix + "flush_errors", 1);
-                throw;
-            }
-
-            _writer.Add(_prefix + "flushes", 1);
-        }
-
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
             long length;

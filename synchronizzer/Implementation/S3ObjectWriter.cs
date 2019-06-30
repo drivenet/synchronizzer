@@ -63,8 +63,6 @@ namespace Synchronizzer.Implementation
             await _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteRequest, token), cancellationToken);
         }
 
-        public Task Flush(CancellationToken cancellationToken) => Task.CompletedTask;
-
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
             var request = new PutObjectRequest

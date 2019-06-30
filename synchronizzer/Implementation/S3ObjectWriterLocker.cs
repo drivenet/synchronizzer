@@ -38,7 +38,7 @@ namespace Synchronizzer.Implementation
                 Key = S3Constants.LockPrefix + _lockName + LockExtension,
             };
             await _context.S3.Invoke(
-                (s3, token) => s3.DeleteObjectAsync(deleteObjectRequest/*, token*/ /* No cancellation token to clean up lock properly */),
+                (s3, token) => s3.DeleteObjectAsync(deleteObjectRequest, token),
                 cancellationToken);
         }
 

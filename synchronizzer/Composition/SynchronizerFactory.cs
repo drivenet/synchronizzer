@@ -9,17 +9,20 @@ namespace Synchronizzer.Composition
         private readonly ILogger<TracingSynchronizer> _syncLogger;
         private readonly ILocalReaderResolver _localReaderResolver;
         private readonly IRemoteWriterResolver _remoteWriterResolver;
+        private readonly IQueuingTaskManagerSelector _taskManagerSelector;
         private readonly ISyncTimeHolderResolver _syncTimeHolderResolver;
 
         public SynchronizerFactory(
             ILogger<TracingSynchronizer> syncLogger,
             ILocalReaderResolver localReaderResolver,
             IRemoteWriterResolver remoteWriterResolver,
+            IQueuingTaskManagerSelector taskManagerSelector,
             ISyncTimeHolderResolver syncTimeHolderResolver)
         {
             _syncLogger = syncLogger;
             _localReaderResolver = localReaderResolver;
             _remoteWriterResolver = remoteWriterResolver;
+            _taskManagerSelector = taskManagerSelector;
             _syncTimeHolderResolver = syncTimeHolderResolver;
         }
 
@@ -27,15 +30,16 @@ namespace Synchronizzer.Composition
         {
             var localReader = _localReaderResolver.Resolve(info.Local);
             var remoteWriter = _remoteWriterResolver.Resolve(info.Remote, info.Recycle);
-            var synchronizer = Create(info.Name, localReader, remoteWriter);
+            var taskManager = _taskManagerSelector.Select(remoteWriter.Address);
+            var synchronizer = Create(info.Name, localReader, remoteWriter, taskManager);
             return synchronizer;
         }
 
-        private ISynchronizer Create(string name, ILocalReader localReader, IRemoteWriter remoteWriter)
+        private ISynchronizer Create(string name, ILocalReader localReader, IRemoteWriter remoteWriter, IQueuingTaskManager taskManager)
             => new TimedSynchronizer(
                 new RobustSynchronizer(
                     new TracingSynchronizer(
-                        new Synchronizer(localReader, remoteWriter),
+                        new Synchronizer(localReader, remoteWriter, taskManager),
                         _syncLogger,
                         name)),
                 _syncTimeHolderResolver.Resolve(name));

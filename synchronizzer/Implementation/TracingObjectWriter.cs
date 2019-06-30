@@ -50,8 +50,6 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public Task Flush(CancellationToken cancellationToken) => _inner.Flush(cancellationToken);
-
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
