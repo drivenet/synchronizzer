@@ -64,5 +64,8 @@ namespace Synchronizzer.Implementation
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Cannot use object name that is prefixed with locks.");
             }
         }
+
+        public Task TryLock(CancellationToken cancellationToken)
+            => _locker.Lock(cancellationToken);
     }
 }

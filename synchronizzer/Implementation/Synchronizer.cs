@@ -17,6 +17,7 @@ namespace Synchronizzer.Implementation
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
+            await _remoteWriter.TryLock(cancellationToken);
             var localInfos = new ObjectInfos(_localReader);
             var remoteInfos = new ObjectInfos(_remoteWriter);
             try
