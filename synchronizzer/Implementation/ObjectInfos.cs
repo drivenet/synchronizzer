@@ -19,9 +19,10 @@ namespace Synchronizzer.Implementation
         private List<ObjectInfo>? _infos = new List<ObjectInfo>();
         private int _skip;
 
-        public ObjectInfos(IObjectSource source)
+        public ObjectInfos(IObjectSource source, string? lastName)
         {
             _source = source;
+            LastName = lastName;
         }
 
         public string? LastName { get; private set; }
