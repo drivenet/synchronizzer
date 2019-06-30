@@ -17,10 +17,7 @@ namespace Synchronizzer.Implementation
             _logger = logger;
         }
 
-        public Task Clear(CancellationToken cancellationToken)
-        {
-            return _inner.Clear(cancellationToken);
-        }
+        public Task Clear(CancellationToken cancellationToken) => _inner.Clear(cancellationToken);
 
         public async Task Lock(CancellationToken cancellationToken)
         {
