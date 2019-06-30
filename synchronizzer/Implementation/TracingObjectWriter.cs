@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
+                var timer = Stopwatch.StartNew();
                 _logger.LogDebug(Events.Delete, "Delete \"{ObjectName}\".", objectName);
                 try
                 {
@@ -39,11 +41,11 @@ namespace Synchronizzer.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to delete \"{ObjectName}\".", objectName);
+                    _logger.LogWarning(exception, "Failed to delete \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
 
-                _logger.LogDebug(Events.Deleted, "Deleted \"{ObjectName}\".", objectName);
+                _logger.LogInformation(Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -53,6 +55,7 @@ namespace Synchronizzer.Implementation
         {
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
+                var timer = Stopwatch.StartNew();
                 var objectLength = readOnlyInput.Length;
                 _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
                 try
@@ -71,11 +74,11 @@ namespace Synchronizzer.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
+                    _logger.LogWarning(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
 
-                _logger.LogDebug(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
+                _logger.LogInformation(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
             }
         }
 

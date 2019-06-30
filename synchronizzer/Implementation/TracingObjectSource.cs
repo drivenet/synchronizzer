@@ -27,7 +27,7 @@ namespace Synchronizzer.Implementation
             {
                 var timer = Stopwatch.StartNew();
                 IReadOnlyCollection<ObjectInfo> result;
-                _logger.LogInformation(Events.Get, "Get \"{From}\".", fromName);
+                _logger.LogDebug(Events.Get, "Get \"{From}\".", fromName);
                 try
                 {
                     result = await _inner.GetOrdered(fromName, cancellationToken);
