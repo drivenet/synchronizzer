@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace Synchronizzer.Implementation
             Stream? stream;
             using (_logger.BeginScope("read \"{ObjectName}\"", objectName))
             {
+                var timer = Stopwatch.StartNew();
                 _logger.LogDebug(Events.Reading, "Reading \"{ObjectName}\".", objectName);
                 try
                 {
@@ -33,18 +35,19 @@ namespace Synchronizzer.Implementation
                     _logger.LogInformation(
                         Events.ReadCanceled,
                         exception,
-                        "Read of \"{ObjectName}\" was canceled (direct: {IsDirect}).",
+                        "Read of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                         objectName,
+                        timer.Elapsed.TotalMilliseconds,
                         cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Failed to read \"{ObjectName}\".", objectName);
+                    _logger.LogError(exception, "Failed to read \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
 
-                _logger.LogDebug(Events.Read, "Read \"{ObjectName}\", stream {Stream}.", objectName, stream);
+                _logger.LogInformation(Events.Read, "Read \"{ObjectName}\", elapsed {Elapsed}, stream {Stream}.", objectName, timer.Elapsed.TotalMilliseconds, stream);
             }
 
             return stream;

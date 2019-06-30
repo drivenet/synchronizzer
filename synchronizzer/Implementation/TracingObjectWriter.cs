@@ -34,8 +34,9 @@ namespace Synchronizzer.Implementation
                     _logger.LogInformation(
                         Events.DeleteCanceled,
                         exception,
-                        "Delete of \"{ObjectName}\" was canceled (direct: {IsDirect}).",
+                        "Delete of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                         objectName,
+                        timer.Elapsed.TotalMilliseconds,
                         cancellationToken.IsCancellationRequested);
                     throw;
                 }
@@ -67,8 +68,9 @@ namespace Synchronizzer.Implementation
                     _logger.LogInformation(
                         Events.UploadCanceled,
                         exception,
-                        "Upload of \"{ObjectName}\" was canceled (direct: {IsDirect}).",
+                        "Upload of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                         objectName,
+                        timer.Elapsed.TotalMilliseconds,
                         cancellationToken.IsCancellationRequested);
                     throw;
                 }
