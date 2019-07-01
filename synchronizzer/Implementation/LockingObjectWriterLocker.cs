@@ -9,7 +9,7 @@ namespace Synchronizzer.Implementation
     internal sealed class LockingObjectWriterLocker : IObjectWriterLocker
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
-        private static readonly TimeSpan LockInterval = TimeSpan.FromSeconds(17);
+        private static readonly TimeSpan LockInterval = TimeSpan.FromSeconds(47);
 
         private readonly Stopwatch _timer = new Stopwatch();
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);

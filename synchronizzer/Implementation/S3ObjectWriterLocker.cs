@@ -12,7 +12,7 @@ namespace Synchronizzer.Implementation
     internal sealed class S3ObjectWriterLocker : IObjectWriterLocker
     {
         private const string LockExtension = ".lock";
-        private static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(7);
+        private static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(151);
 
         private readonly S3WriteContext _context;
         private readonly string _lockName;
