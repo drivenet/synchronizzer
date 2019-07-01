@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,9 +23,9 @@ namespace Synchronizzer.Implementation
             {
                 await _inner.Invoke(action, cancellationToken);
             }
-            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && exception.InnerException is IOException)
+            catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
             {
-                throw exception.InnerException;
+                throw new TimeoutException("Operation timed out.", exception);
             }
         }
 
@@ -36,9 +35,9 @@ namespace Synchronizzer.Implementation
             {
                 return await _inner.Invoke(action, cancellationToken);
             }
-            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && exception.InnerException is IOException)
+            catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
             {
-                throw exception.InnerException;
+                throw new TimeoutException("Operation timed out.", exception);
             }
         }
     }
