@@ -22,8 +22,20 @@ namespace Synchronizzer.Implementation
         {
             await _timeHolder.Wait(cancellationToken);
             var timer = Stopwatch.StartNew();
-            await _inner.Synchronize(cancellationToken);
-            _timeHolder.SetWait(Interval - timer.Elapsed);
+            try
+            {
+                await _inner.Synchronize(cancellationToken);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                UpdateInterval(timer.Elapsed);
+                throw;
+            }
+
+            UpdateInterval(timer.Elapsed);
         }
+
+        private void UpdateInterval(TimeSpan elapsed)
+            => _timeHolder.SetWait(Interval - elapsed);
     }
 }
