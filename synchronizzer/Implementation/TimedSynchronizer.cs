@@ -7,7 +7,7 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class TimedSynchronizer : ISynchronizer
     {
-        private static readonly TimeSpan Interval = TimeSpan.FromHours(7);
+        private static readonly TimeSpan Interval = TimeSpan.FromHours(21);
 
         private readonly ISynchronizer _inner;
         private readonly SyncTimeHolder _timeHolder;
