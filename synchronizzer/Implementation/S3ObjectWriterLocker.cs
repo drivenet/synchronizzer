@@ -14,11 +14,11 @@ namespace Synchronizzer.Implementation
         private const string LockExtension = ".lock";
         private static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(151);
 
-        private readonly S3WriteContext _context;
+        private readonly S3Context _context;
         private readonly string _lockName;
         private bool _isLocked;
 
-        public S3ObjectWriterLocker(S3WriteContext context, string lockName)
+        public S3ObjectWriterLocker(S3Context context, string lockName)
         {
             if (string.IsNullOrEmpty(lockName))
             {
