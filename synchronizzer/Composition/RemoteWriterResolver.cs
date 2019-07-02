@@ -69,9 +69,11 @@ namespace Synchronizzer.Composition
                             "s3"),
                         _objectLogger)),
                 new LockingObjectWriterLocker(
-                    new TracingObjectWriterLocker(
-                        new S3ObjectWriterLocker(context, lockName),
-                        _lockerLogger)));
+                    new CachingObjectWriterLocker(
+                        new RetryingObjectWriterLocker(
+                            new TracingObjectWriterLocker(
+                                new S3ObjectWriterLocker(context, lockName),
+                                _lockerLogger)))));
         }
     }
 }
