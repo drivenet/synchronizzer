@@ -42,9 +42,9 @@ namespace Synchronizzer.Composition
                 .Get<HostingOptions>() ?? new HostingOptions();
 
         private static IWebHost BuildWebHost(HostingOptions hostingOptions, string configPath)
-            => WebHostBuilderExtensions.UseStartup<Startup>(new WebHostBuilder()
+            => new WebHostBuilder()
                 .ConfigureLogging(loggingBuilder => ConfigureLogging(loggingBuilder, hostingOptions))
-                .ConfigureAppConfiguration(configurationBuilder => ConfigureConfiguration(configurationBuilder, configPath)))
+                .ConfigureAppConfiguration(configurationBuilder => ConfigureConfiguration(configurationBuilder, configPath))
                 .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions.Listen)
                 .UseKestrel(options => ConfigureKestrel(options))
                 .UseStartup<Startup>()
