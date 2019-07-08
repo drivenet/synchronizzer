@@ -29,6 +29,9 @@ namespace Synchronizzer.Implementation
                 {
                     throw;
                 }
+                catch (TimeoutException)
+                {
+                }
 #pragma warning disable CA1031 // Do not catch general exception types -- dumb retry mechanism
                 catch when (retries-- > 0)
 #pragma warning restore CA1031 // Do not catch general exception types
