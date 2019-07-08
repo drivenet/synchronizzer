@@ -52,6 +52,7 @@ namespace Synchronizzer.Composition
 
             var remoteAddress = context.S3.ServiceUrl;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
+            const byte LockRetries = 4;
             return new RemoteWriter(
                 remoteAddress,
                 new CountingObjectSource(
@@ -73,7 +74,8 @@ namespace Synchronizzer.Composition
                         new RetryingObjectWriterLocker(
                             new TracingObjectWriterLocker(
                                 new S3ObjectWriterLocker(context, lockName),
-                                _lockerLogger)))));
+                                _lockerLogger),
+                            LockRetries))));
         }
     }
 }

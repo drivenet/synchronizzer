@@ -7,14 +7,17 @@ namespace Synchronizzer.Implementation
     internal sealed class RetryingObjectWriterLocker : IObjectWriterLocker
     {
         private readonly IObjectWriterLocker _inner;
+        private readonly byte _retries;
 
-        public RetryingObjectWriterLocker(IObjectWriterLocker inner)
+        public RetryingObjectWriterLocker(IObjectWriterLocker inner, byte retries)
         {
             _inner = inner;
+            _retries = retries;
         }
 
         public async Task Clear(CancellationToken cancellationToken)
         {
+            var retries = _retries;
             while (true)
             {
                 try
@@ -25,6 +28,11 @@ namespace Synchronizzer.Implementation
                 catch (TimeoutException)
                 {
                 }
+#pragma warning disable CA1031 // Do not catch general exception types -- dumb retry mechanism
+                catch when (retries-- > 0)
+#pragma warning restore CA1031 // Do not catch general exception types
+                {
+                }
 
                 await Task.Delay(1511, cancellationToken);
             }
@@ -32,6 +40,7 @@ namespace Synchronizzer.Implementation
 
         public async Task Lock(CancellationToken cancellationToken)
         {
+            var retries = _retries;
             while (true)
             {
                 try
@@ -40,6 +49,11 @@ namespace Synchronizzer.Implementation
                     break;
                 }
                 catch (TimeoutException)
+                {
+                }
+#pragma warning disable CA1031 // Do not catch general exception types -- dumb retry mechanism
+                catch when (retries-- > 0)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                 }
 
