@@ -42,14 +42,14 @@ namespace Synchronizzer.Composition
 
             if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
             {
-                const int Retries = 4;
+                const byte GridFSRetries = 4;
                 var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
                     Count(
                         new RetryingObjectSource(
                             Trace(
                                 new GridFSObjectSource(context)),
-                            Retries),
+                            GridFSRetries),
                         "local.gridfs"),
                     Count(
                         Robust(
@@ -58,7 +58,7 @@ namespace Synchronizzer.Composition
                                     new GridFSFilteringObjectReader(
                                         new BufferingObjectReader(
                                             new GridFSObjectReader(context))),
-                                    Retries))),
+                                    GridFSRetries))),
                         "gridfs"));
             }
 
