@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +19,10 @@ namespace Synchronizzer.Implementation
             try
             {
                 return await _inner.Read(objectName, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
 #pragma warning disable CA1031 // Do not catch general exception types -- failing to read file just skips it
             catch
