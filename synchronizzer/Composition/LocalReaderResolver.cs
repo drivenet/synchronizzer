@@ -45,21 +45,21 @@ namespace Synchronizzer.Composition
                 const byte GridFSRetries = 4;
                 var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
-                    Count(
-                        new RetryingObjectSource(
-                            Trace(
-                                new GridFSObjectSource(context)),
-                            GridFSRetries),
-                        "local.gridfs"),
-                    Count(
-                        Robust(
-                            Trace(
+                    new RetryingObjectSource(
+                        Trace(
+                            Count(
+                                new GridFSObjectSource(context),
+                                "local.gridfs")),
+                        GridFSRetries),
+                    Robust(
+                        Trace(
+                            Count(
                                 new RetryingObjectReader(
                                     new GridFSFilteringObjectReader(
                                         new BufferingObjectReader(
                                             new GridFSObjectReader(context))),
-                                    GridFSRetries))),
-                        "gridfs"));
+                                    GridFSRetries),
+                                "gridfs"))));
             }
 
             throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
