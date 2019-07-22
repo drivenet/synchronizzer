@@ -42,7 +42,7 @@ namespace Synchronizzer.Composition
 
             if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
             {
-                const byte GridFSRetries = 4;
+                const byte GridFSRetries = 10;
                 var context = GridFSUtils.CreateContext(address);
                 return new LocalReader(
                     new RetryingObjectSource(

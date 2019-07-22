@@ -52,7 +52,7 @@ namespace Synchronizzer.Composition
 
             var remoteAddress = context.S3.ServiceUrl;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
-            const byte S3Retries = 4;
+            const byte S3Retries = 30;
             return new RemoteWriter(
                 remoteAddress,
                 new RetryingObjectSource(
