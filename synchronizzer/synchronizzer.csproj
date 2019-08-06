@@ -7,7 +7,7 @@
     <Product>GridFS sync service</Product>
     <Version>0.10.7</Version>
     <LangVersion>8.0</LangVersion>
-    <NullableContextOptions>enable</NullableContextOptions>
+    <Nullable>enable</Nullable>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8618;CS8625</WarningsAsErrors>
     <NoWarn>CA2007;IDE0057</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
