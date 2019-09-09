@@ -5,7 +5,7 @@
     <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
     <RootNamespace>Synchronizzer</RootNamespace>
     <Product>GridFS sync service</Product>
-    <Version>0.10.7</Version>
+    <Version>0.10.8</Version>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8618;CS8625</WarningsAsErrors>
@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.102.15" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.104.23" />
     <PackageReference Include="Microsoft.AspNetCore.Buffering" Version="0.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
@@ -24,8 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
-    <PackageReference Include="mongodb.driver.gridfs" Version="2.8.1" />
-    <PackageReference Include="Tmds.Systemd.Logging" Version="0.6.3" />
+    <PackageReference Include="mongodb.driver.gridfs" Version="2.9.1" />
+    <PackageReference Include="Tmds.Systemd.Logging" Version="0.7.0" />
   </ItemGroup>
 
   <ItemGroup>
