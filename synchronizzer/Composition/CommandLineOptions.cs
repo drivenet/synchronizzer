@@ -8,14 +8,14 @@
 
         public string Config
         {
-            get => string.IsNullOrWhiteSpace(_config) ? "appsettings.json" : _config;
-            set => _config = value;
+            get => _config ?? "appsettings.json";
+            set => _config = string.IsNullOrWhiteSpace(value) ? null : value;
         }
 
         public string HostingConfig
         {
-            get => string.IsNullOrWhiteSpace(_hostingConfig) ? "hostingsettings.json" : _hostingConfig;
-            set => _hostingConfig = value;
+            get => _hostingConfig ?? "hostingsettings.json";
+            set => _hostingConfig = string.IsNullOrWhiteSpace(value) ? null : value;
         }
     }
 }
