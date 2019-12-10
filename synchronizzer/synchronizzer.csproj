@@ -5,7 +5,7 @@
     <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
     <RootNamespace>Synchronizzer</RootNamespace>
     <Product>GridFS sync service</Product>
-    <Version>0.10.10</Version>
+    <Version>0.10.11</Version>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>CA2007;IDE0057</NoWarn>
@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.106.6" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.109.1" />
     <PackageReference Include="Microsoft.AspNetCore.Buffering" Version="0.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
