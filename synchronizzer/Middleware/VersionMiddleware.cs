@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -8,7 +10,7 @@ namespace Synchronizzer.Middleware
 {
     internal sealed class VersionMiddleware
     {
-        private static readonly string VersionString = Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+        private static readonly ReadOnlyMemory<byte> VersionBytes = Encoding.ASCII.GetBytes(Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "?").AsMemory();
 
         private readonly RequestDelegate _next;
 
@@ -19,19 +21,21 @@ namespace Synchronizzer.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            if (!context.Request.Path.HasValue)
+            if (context.Request.Path.HasValue)
             {
-                if (context.Request.Method != "GET")
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                    return;
-                }
-
-                await context.Response.WriteAsync(VersionString);
+                await _next(context);
                 return;
             }
 
-            await _next(context);
+            if (context.Request.Method != "GET")
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                return;
+            }
+
+            var response = context.Response;
+            response.ContentLength = VersionBytes.Length;
+            await response.Body.WriteAsync(VersionBytes);
         }
     }
 }

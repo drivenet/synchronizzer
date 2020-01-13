@@ -36,8 +36,6 @@ namespace Synchronizzer.Composition
 
         public void Configure(IApplicationBuilder app)
         {
-            // Used to prevent chunked responses that may be harder to parse with non-compliant HTTP clients (like Zabbix)
-            app.UseResponseBuffering();
             app.Map("/metrics", builder => builder.UseMiddleware<Middleware.MetricsReportingMiddleware>());
             app.Map("/version", builder => builder.UseMiddleware<Middleware.VersionMiddleware>());
         }

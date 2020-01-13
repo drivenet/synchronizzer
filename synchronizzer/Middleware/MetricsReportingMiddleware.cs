@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -10,37 +11,30 @@ namespace Synchronizzer.Middleware
     {
         private static readonly char[] PathChars = new[] { '/' };
 
-        private readonly RequestDelegate _next;
-
         private readonly Components.IMetricsReader _metricsReader;
 
+#pragma warning disable CA1801 // Remove unused parameter -- required for middleware
         public MetricsReportingMiddleware(RequestDelegate next, Components.IMetricsReader metricsReader)
+#pragma warning restore CA1801 // Remove unused parameter
         {
-            _next = next;
             _metricsReader = metricsReader;
         }
 
         public async Task Invoke(HttpContext context)
         {
+            if (context.Request.Method != "GET")
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                return;
+            }
+
             var metricName = context.Request.Path.Value.TrimStart(PathChars);
             var metricValue = _metricsReader.GetValue(metricName);
-            string metricString;
-            if (metricValue != null)
-            {
-                if (context.Request.Method != "GET")
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-                    return;
-                }
-
-                metricString = ((double)metricValue).ToString(CultureInfo.InvariantCulture);
-            }
-            else
-            {
-                metricString = "0";
-            }
-
-            await context.Response.WriteAsync(metricString);
+            var metricString = (metricValue ?? 0).ToString(CultureInfo.InvariantCulture);
+            var bytes = Encoding.UTF8.GetBytes(metricString);
+            var response = context.Response;
+            response.ContentLength = bytes.Length;
+            await response.Body.WriteAsync(bytes, 0, bytes.Length);
         }
     }
 }
