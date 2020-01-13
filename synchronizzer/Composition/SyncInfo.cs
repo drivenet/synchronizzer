@@ -29,7 +29,7 @@ namespace Synchronizzer.Composition
             && Remote == other.Remote
             && Recycle == other.Recycle;
 
-        public override bool Equals(object obj) => Equals(obj as SyncInfo);
+        public override bool Equals(object? obj) => Equals(obj as SyncInfo);
 
         public override int GetHashCode() => Name.GetHashCode(StringComparison.Ordinal);
 

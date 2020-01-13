@@ -2,7 +2,7 @@
   <Import Project="..\shared\Minimal.props" />
 
   <PropertyGroup>
-    <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
+    <TargetFramework>$(NewApplicationTargetFramework)</TargetFramework>
     <RootNamespace>Synchronizzer.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <LangVersion>8.0</LangVersion>
