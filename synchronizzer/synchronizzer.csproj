@@ -8,7 +8,7 @@
     <Version>0.11.4</Version>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA2007;IDE0057</NoWarn>
+    <NoWarn>$(NoWarn);CA2007</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
   </PropertyGroup>
