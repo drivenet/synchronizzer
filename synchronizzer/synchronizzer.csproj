@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFramework>$(NewApplicationTargetFramework)</TargetFramework>
     <RootNamespace>Synchronizzer</RootNamespace>
-    <Version>0.11.5</Version>
+    <Version>0.11.6</Version>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CA2007</NoWarn>
