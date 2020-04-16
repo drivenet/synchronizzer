@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>$(NewApplicationTargetFramework)</TargetFramework>
-    <RootNamespace>Synchronizzer.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
@@ -17,6 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\synchronizzer\synchronizzer.csproj" />
+    <ProjectReference Include="..\Synchronizzer\Synchronizzer.csproj" />
   </ItemGroup>
 </Project>

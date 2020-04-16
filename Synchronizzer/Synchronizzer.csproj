@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>$(NewApplicationTargetFramework)</TargetFramework>
-    <RootNamespace>Synchronizzer</RootNamespace>
+    <AssemblyName>synchronizzer</AssemblyName>
     <Version>0.11.6</Version>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
