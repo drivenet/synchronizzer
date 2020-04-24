@@ -5,31 +5,42 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Tmds.Systemd;
 
 namespace Synchronizzer.Composition
 {
     public static class Program
     {
-#pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays
-        public static async Task Main(string?[]? args)
-#pragma warning restore SA1011 // Closing square brackets should be spaced correctly
+        public static async Task Main(string[] args)
         {
             ConfigureNetworking();
             var commandLineOptions = GetCommandLineOptions(args);
-            while (true)
+            var appConfiguration = LoadAppConfiguration(commandLineOptions.Config);
+            var hostingConfigPath = commandLineOptions.HostingConfig;
+            do
             {
-                var hostingOptions = GetHostingOptions(commandLineOptions.HostingConfig);
-                using (var host = BuildWebHost(hostingOptions, commandLineOptions.Config))
-                {
-                    await host.RunAsync();
-                }
+                await RunHost(appConfiguration, hostingConfigPath);
             }
+            while (ServiceManager.IsRunningAsService);
         }
 
-#pragma warning disable SA1011 // Closing square brackets should be spaced correctly -- StyleCop fails to handle nullable arrays
-        private static CommandLineOptions GetCommandLineOptions(string?[]? args)
-#pragma warning restore SA1011 // Closing square brackets should be spaced correctly
+        private static async Task RunHost(IConfiguration appConfiguration, string hostingConfigPath)
+        {
+            var hostingOptions = GetHostingOptions(hostingConfigPath);
+            using var host = BuildWebHost(hostingOptions, appConfiguration);
+            await host.RunAsync();
+        }
+
+        private static IConfiguration LoadAppConfiguration(string configPath)
+            => new ConfigurationBuilder()
+                .AddJsonFile(configPath, optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables("GSS_")
+                .Build();
+
+        private static CommandLineOptions GetCommandLineOptions(string?[] args)
             => new ConfigurationBuilder()
                 .AddCommandLine(args)
                 .Build()
@@ -41,19 +52,19 @@ namespace Synchronizzer.Composition
                 .Build()
                 .Get<HostingOptions>() ?? new HostingOptions();
 
-        private static IWebHost BuildWebHost(HostingOptions hostingOptions, string configPath)
+        private static IWebHost BuildWebHost(HostingOptions hostingOptions, IConfiguration appConfiguration)
             => new WebHostBuilder()
                 .ConfigureLogging(loggingBuilder => ConfigureLogging(loggingBuilder, hostingOptions))
-                .ConfigureAppConfiguration(configurationBuilder => ConfigureConfiguration(configurationBuilder, configPath))
                 .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions.Listen)
                 .UseKestrel(options => ConfigureKestrel(options))
+                .ConfigureServices(services => services.AddSingleton(appConfiguration))
                 .UseStartup<Startup>()
                 .Build();
 
         private static void ConfigureLogging(ILoggingBuilder loggingBuilder, HostingOptions hostingOptions)
         {
             loggingBuilder.AddFilter(Filter);
-            var hasJournalD = Tmds.Systemd.Journal.IsSupported;
+            var hasJournalD = Journal.IsSupported;
             if (hasJournalD)
             {
                 loggingBuilder.AddJournal(options => options.SyslogIdentifier = "synchronizzer");
@@ -74,12 +85,6 @@ namespace Synchronizzer.Composition
                         && !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase));
         }
 
-        private static void ConfigureConfiguration(IConfigurationBuilder configurationBuilder, string configPath)
-        {
-            configurationBuilder.AddJsonFile(configPath, optional: false, reloadOnChange: true);
-            configurationBuilder.AddEnvironmentVariables("GSS_");
-        }
-
         private static void ConfigureKestrel(KestrelServerOptions options)
         {
             options.AddServerHeader = false;
@@ -92,7 +97,6 @@ namespace Synchronizzer.Composition
         {
             ServicePointManager.DefaultConnectionLimit = 1000;
             ServicePointManager.CheckCertificateRevocationList = true;
-            ServicePointManager.Expect100Continue = false;
             ServicePointManager.DnsRefreshTimeout = 3000;
             ServicePointManager.EnableDnsRoundRobin = true;
             ServicePointManager.ReusePort = true;
