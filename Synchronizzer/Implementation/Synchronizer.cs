@@ -53,7 +53,6 @@ namespace Synchronizzer.Implementation
                 await Task.WhenAll(
                     localInfos.Populate(cancellationToken),
                     remoteInfos.Populate(cancellationToken));
-                _logger.LogInformation(Events.Populated, "Populated infos.");
                 var counts = await Task.WhenAll(
                     SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
                     SynchronizeRemote(localInfos, remoteInfos, cancellationToken));
@@ -177,7 +176,7 @@ namespace Synchronizzer.Implementation
         private static class Events
         {
             public static readonly EventId Populating = new EventId(1, nameof(Populating));
-            public static readonly EventId Populated = new EventId(2, nameof(Populated));
+            /*public static readonly EventId Populated = new EventId(2, nameof(Populated));*/
             public static readonly EventId SynchronizingLocal = new EventId(3, nameof(SynchronizingLocal));
             public static readonly EventId SynchronizedLocal = new EventId(4, nameof(SynchronizedLocal));
             public static readonly EventId SynchronizeLocalFailed = new EventId(5, nameof(SynchronizeLocalFailed));
