@@ -7,6 +7,7 @@ namespace Synchronizzer.Composition
     internal sealed class SynchronizerFactory : ISynchronizerFactory
     {
         private readonly ILogger<TracingSynchronizer> _syncLogger;
+        private readonly ILogger<Synchronizer> _synchronizerLogger;
         private readonly ILocalReaderResolver _localReaderResolver;
         private readonly IRemoteWriterResolver _remoteWriterResolver;
         private readonly IQueuingTaskManagerSelector _taskManagerSelector;
@@ -14,12 +15,14 @@ namespace Synchronizzer.Composition
 
         public SynchronizerFactory(
             ILogger<TracingSynchronizer> syncLogger,
+            ILogger<Synchronizer> synchronizerLogger,
             ILocalReaderResolver localReaderResolver,
             IRemoteWriterResolver remoteWriterResolver,
             IQueuingTaskManagerSelector taskManagerSelector,
             ISyncTimeHolderResolver syncTimeHolderResolver)
         {
             _syncLogger = syncLogger;
+            _synchronizerLogger = synchronizerLogger;
             _localReaderResolver = localReaderResolver;
             _remoteWriterResolver = remoteWriterResolver;
             _taskManagerSelector = taskManagerSelector;
@@ -39,7 +42,7 @@ namespace Synchronizzer.Composition
             => new TimedSynchronizer(
                 new RobustSynchronizer(
                     new TracingSynchronizer(
-                        new Synchronizer(localReader, remoteWriter, taskManager),
+                        new Synchronizer(localReader, remoteWriter, taskManager, _synchronizerLogger),
                         _syncLogger,
                         name)),
                 _syncTimeHolderResolver.Resolve(name));

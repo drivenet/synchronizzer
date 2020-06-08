@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
 
 namespace Synchronizzer.Implementation
 {
@@ -9,12 +12,14 @@ namespace Synchronizzer.Implementation
         private readonly ILocalReader _localReader;
         private readonly IRemoteWriter _remoteWriter;
         private readonly IQueuingTaskManager _taskManager;
+        private readonly ILogger? _logger;
 
-        public Synchronizer(ILocalReader localReader, IRemoteWriter remoteWriter, IQueuingTaskManager taskManager)
+        public Synchronizer(ILocalReader localReader, IRemoteWriter remoteWriter, IQueuingTaskManager taskManager, ILogger<Synchronizer>? logger)
         {
             _localReader = localReader;
             _remoteWriter = remoteWriter;
             _taskManager = taskManager;
+            _logger = logger;
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)
@@ -44,10 +49,12 @@ namespace Synchronizzer.Implementation
             var remoteInfos = new ObjectInfos(_remoteWriter, lastName);
             while (true)
             {
+                _logger.LogInformation(Events.Populating, "Populating infos.");
                 await Task.WhenAll(
                     localInfos.Populate(cancellationToken),
                     remoteInfos.Populate(cancellationToken));
-                var hasProgress = await Task.WhenAll(
+                _logger.LogInformation(Events.Populated, "Populated infos.");
+                var counts = await Task.WhenAll(
                     SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
                     SynchronizeRemote(localInfos, remoteInfos, cancellationToken));
 
@@ -56,7 +63,7 @@ namespace Synchronizzer.Implementation
                     break;
                 }
 
-                if (!hasProgress[0] && !hasProgress[1])
+                if (counts[0] == 0 && counts[1] == 0)
                 {
                     throw new InvalidProgramException(
                         FormattableString.Invariant($"No progress for iteration.\nLocal: {localInfos}\nRemote: {remoteInfos}\n"));
@@ -64,9 +71,27 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        private async Task<bool> SynchronizeLocal(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<uint> SynchronizeLocal(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
         {
-            var hasProgress = false;
+            _logger?.LogInformation(Events.SynchronizingLocal, "Synchronizing local, last name: \"{LastName}\".", localInfos.LastName);
+            uint count;
+            try
+            {
+                count = await SynchronizeLocalCore(localInfos, remoteInfos, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                _logger?.LogWarning(Events.SynchronizeLocalFailed, exception, "Failed to synchronize local.");
+                throw;
+            }
+
+            _logger?.LogInformation(Events.SynchronizedLocal, "Synchronized local, count: {Count}, last name: \"{LastName}\".", count, localInfos.LastName);
+            return count;
+        }
+
+        private async Task<uint> SynchronizeLocalCore(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        {
+            var count = 0u;
             foreach (var objectInfo in localInfos)
             {
                 var name = objectInfo.Name;
@@ -87,10 +112,10 @@ namespace Synchronizzer.Implementation
                 }
 
                 localInfos.Skip();
-                hasProgress = true;
+                ++count;
             }
 
-            return hasProgress;
+            return count;
         }
 
         private async Task Upload(string name, CancellationToken cancellationToken)
@@ -102,9 +127,27 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        private async Task<bool> SynchronizeRemote(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<uint> SynchronizeRemote(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
         {
-            var hasProgress = false;
+            _logger?.LogDebug(Events.SynchronizingRemote, "Synchronizing remote, last name: \"{LastName}\".", remoteInfos.LastName);
+            uint count;
+            try
+            {
+                count = await SynchronizeRemoteCore(localInfos, remoteInfos, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                _logger?.LogWarning(Events.SynchronizeRemoteFailed, exception, "Failed to synchronize remote.");
+                throw;
+            }
+
+            _logger?.LogInformation(Events.SynchronizedRemote, "Synchronized remote, count: {Count}, last name: \"{LastName}\".", count, remoteInfos.LastName);
+            return count;
+        }
+
+        private async Task<uint> SynchronizeRemoteCore(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        {
+            var count = 0u;
             foreach (var objectInfo in remoteInfos)
             {
                 var name = objectInfo.Name;
@@ -125,10 +168,22 @@ namespace Synchronizzer.Implementation
                 }
 
                 remoteInfos.Skip();
-                hasProgress = true;
+                ++count;
             }
 
-            return hasProgress;
+            return count;
+        }
+
+        private static class Events
+        {
+            public static readonly EventId Populating = new EventId(1, nameof(Populating));
+            public static readonly EventId Populated = new EventId(2, nameof(Populated));
+            public static readonly EventId SynchronizingLocal = new EventId(3, nameof(SynchronizingLocal));
+            public static readonly EventId SynchronizedLocal = new EventId(4, nameof(SynchronizedLocal));
+            public static readonly EventId SynchronizeLocalFailed = new EventId(5, nameof(SynchronizeLocalFailed));
+            public static readonly EventId SynchronizingRemote = new EventId(6, nameof(SynchronizingRemote));
+            public static readonly EventId SynchronizedRemote = new EventId(7, nameof(SynchronizedRemote));
+            public static readonly EventId SynchronizeRemoteFailed = new EventId(8, nameof(SynchronizeRemoteFailed));
         }
     }
 }
