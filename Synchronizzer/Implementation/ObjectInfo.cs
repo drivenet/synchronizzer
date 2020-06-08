@@ -29,7 +29,7 @@ namespace Synchronizzer.Implementation
 
         public bool IsHidden { get; }
 
-        public int CompareTo(ObjectInfo other)
+        public int CompareTo(ObjectInfo? other)
         {
             if (other is null)
             {
