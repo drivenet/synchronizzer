@@ -13,8 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.110.56" />
-    <PackageReference Include="mongodb.driver.gridfs" Version="2.10.3" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.111.10" />
+    <PackageReference Include="mongodb.driver.gridfs" Version="2.10.4" />
     <PackageReference Include="Tmds.Systemd.Logging" Version="0.7.0" />
   </ItemGroup>
 
