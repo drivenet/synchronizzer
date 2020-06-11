@@ -25,7 +25,7 @@ namespace Synchronizzer.Implementation
             }
             catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
             {
-                throw new TimeoutException("Operation timed out.", exception);
+                throw new TimeoutException("S3 operation timed out.", exception);
             }
         }
     }
