@@ -10,8 +10,6 @@ namespace Synchronizzer.Implementation
     {
         string ServiceUrl { get; }
 
-        Task Invoke(Func<IAmazonS3, CancellationToken, Task> action, CancellationToken cancellationToken);
-
         Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken);
     }
 }
