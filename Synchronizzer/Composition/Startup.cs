@@ -34,7 +34,9 @@ namespace Synchronizzer.Composition
             services.AddSingleton<Implementation.IQueuingSettings, QueuingSettings>();
         }
 
+#pragma warning disable CA1822 // Mark members as static -- future-proofing
         public void Configure(IApplicationBuilder app)
+#pragma warning restore CA1822 // Mark members as static
         {
             app.Map("/metrics", builder => builder.UseMiddleware<Middleware.MetricsReportingMiddleware>());
             app.Map("/version", builder => builder.UseMiddleware<Middleware.VersionMiddleware>());

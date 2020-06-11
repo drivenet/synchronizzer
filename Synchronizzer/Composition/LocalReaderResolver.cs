@@ -65,14 +65,14 @@ namespace Synchronizzer.Composition
             throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
         }
 
+        private static IObjectReader Robust(IObjectReader reader)
+            => new RobustObjectReader(reader);
+
         private IObjectReader Count(IObjectReader reader, string key)
             => new CountingObjectReader(reader, _metricsWriter, key);
 
         private IObjectSource Count(IObjectSource source, string key)
             => new CountingObjectSource(source, _metricsWriter, key);
-
-        private IObjectReader Robust(IObjectReader reader)
-            => new RobustObjectReader(reader);
 
         private IObjectReader Trace(IObjectReader reader)
             => new TracingObjectReader(reader, _objectReaderLogger);
