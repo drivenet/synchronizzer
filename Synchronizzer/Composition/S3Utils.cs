@@ -42,7 +42,6 @@ namespace Synchronizzer.Composition
                 ForcePathStyle = true,
                 DisableLogging = true,
                 Timeout = TimeSpan.FromSeconds(47),
-                ReadWriteTimeout = TimeSpan.FromSeconds(127),
             };
             var regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(host);
             if (regionEndpoint.DisplayName != "Unknown")
@@ -63,7 +62,9 @@ namespace Synchronizzer.Composition
             var storageClass = ParseStorageClass(storageClassString);
             var client = new AmazonS3Client(credentials, config);
             var s3 = new CancelationHandlingS3Mediator(
-                new DefaultS3Mediator(client));
+                new TimeoutHandlingS3Mediator(
+                    new DefaultS3Mediator(client),
+                    TimeSpan.FromSeconds(127)));
             return new S3WriteContext(s3, bucketName, storageClass);
         }
 
