@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using Tmds.Systemd;
@@ -30,7 +30,7 @@ namespace Synchronizzer.Composition
         private static async Task RunHost(IConfiguration appConfiguration, string hostingConfigPath)
         {
             var hostingOptions = GetHostingOptions(hostingConfigPath);
-            using var host = BuildWebHost(hostingOptions, appConfiguration);
+            using var host = BuildHost(hostingOptions, appConfiguration);
             await host.RunAsync();
         }
 
@@ -52,13 +52,15 @@ namespace Synchronizzer.Composition
                 .Build()
                 .Get<HostingOptions>() ?? new HostingOptions();
 
-        private static IWebHost BuildWebHost(HostingOptions hostingOptions, IConfiguration appConfiguration)
-            => new WebHostBuilder()
+        private static IHost BuildHost(HostingOptions hostingOptions, IConfiguration appConfiguration)
+            => new HostBuilder()
+                .ConfigureWebHost(webHost => webHost
+                    .UseUrls(hostingOptions.Listen)
+                    .UseKestrel(options => ConfigureKestrel(options))
+                    .UseStartup<Startup>())
                 .ConfigureLogging(loggingBuilder => ConfigureLogging(loggingBuilder, hostingOptions))
-                .UseSetting(WebHostDefaults.ServerUrlsKey, hostingOptions.Listen)
-                .UseKestrel(options => ConfigureKestrel(options))
-                .ConfigureServices(services => services.AddSingleton(appConfiguration))
-                .UseStartup<Startup>()
+                .UseSystemd()
+                .ConfigureAppConfiguration(configBuilder => configBuilder.AddConfiguration(appConfiguration))
                 .Build();
 
         private static void ConfigureLogging(ILoggingBuilder loggingBuilder, HostingOptions hostingOptions)
