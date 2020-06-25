@@ -23,7 +23,7 @@ namespace Synchronizzer.Middleware
         {
             if (context.Request.Method != "GET")
             {
-                context.Response.StatusCode = StatusCodes.Status501NotImplemented;
+                context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
                 return;
             }
 
