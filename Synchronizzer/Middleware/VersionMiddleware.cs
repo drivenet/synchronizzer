@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +28,7 @@ namespace Synchronizzer.Middleware
 
             if (context.Request.Method != "GET")
             {
-                context.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                context.Response.StatusCode = StatusCodes.Status501NotImplemented;
                 return;
             }
 
