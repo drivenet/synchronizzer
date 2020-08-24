@@ -28,5 +28,17 @@ namespace Synchronizzer.Implementation
                 throw new TimeoutException("S3 operation timed out.", exception);
             }
         }
+
+        public async Task Cleanup(Func<IAmazonS3, Task> action)
+        {
+            try
+            {
+                await _inner.Cleanup(action);
+            }
+            catch (OperationCanceledException exception)
+            {
+                throw new TimeoutException("S3 cleanup operation timed out.", exception);
+            }
+        }
     }
 }

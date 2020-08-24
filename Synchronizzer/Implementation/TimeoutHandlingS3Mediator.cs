@@ -36,5 +36,8 @@ namespace Synchronizzer.Implementation
 
             return await _inner.Invoke(action, cancellationToken);
         }
+
+        public Task Cleanup(Func<IAmazonS3, Task> action)
+            => _inner.Cleanup(action);
     }
 }

@@ -152,7 +152,7 @@ namespace Synchronizzer.Implementation
             {
                 try
                 {
-                    await _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteRequest, token), cancellationToken);
+                    await _context.S3.Cleanup(s3 => s3.DeleteObjectAsync(deleteRequest));
                 }
                 catch (AmazonS3Exception)
                 {

@@ -19,5 +19,8 @@ namespace Synchronizzer.Implementation
 
         public Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken)
             => action(_s3, cancellationToken);
+
+        public Task Cleanup(Func<IAmazonS3, Task> action)
+            => action(_s3);
     }
 }
