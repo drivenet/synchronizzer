@@ -23,7 +23,7 @@ namespace Synchronizzer.Implementation
             _timeout = timeout;
         }
 
-        public string ServiceUrl => _inner.ServiceUrl;
+        public Uri ServiceUrl => _inner.ServiceUrl;
 
         public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken)
         {

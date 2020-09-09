@@ -33,7 +33,7 @@ namespace Synchronizzer.Middleware
             var bytes = Encoding.UTF8.GetBytes(metricString);
             var response = context.Response;
             response.ContentLength = bytes.Length;
-            await response.Body.WriteAsync(bytes, 0, bytes.Length);
+            await response.Body.WriteAsync(bytes);
         }
     }
 }

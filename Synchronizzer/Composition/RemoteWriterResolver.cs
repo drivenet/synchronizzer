@@ -50,7 +50,7 @@ namespace Synchronizzer.Composition
                 recycleContext = null;
             }
 
-            var remoteAddress = context.S3.ServiceUrl;
+            var remoteAddress = context.S3.ServiceUrl.AbsoluteUri;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
             const byte S3Retries = 30;
             return new RemoteWriter(

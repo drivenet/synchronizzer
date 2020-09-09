@@ -49,10 +49,11 @@ namespace Synchronizzer.Implementation
             var remoteInfos = new ObjectInfos(_remoteWriter, lastName);
             while (true)
             {
-                _logger.LogInformation(Events.Populating, "Populating infos.");
+                _logger?.LogDebug(Events.Populating, "Populating infos.");
                 await Task.WhenAll(
                     localInfos.Populate(cancellationToken),
                     remoteInfos.Populate(cancellationToken));
+                _logger?.LogDebug(Events.Populated, "Populated infos.");
                 var counts = await Task.WhenAll(
                     SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
                     SynchronizeRemote(localInfos, remoteInfos, cancellationToken));
@@ -72,7 +73,7 @@ namespace Synchronizzer.Implementation
 
         private async Task<uint> SynchronizeLocal(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
         {
-            _logger?.LogInformation(Events.SynchronizingLocal, "Synchronizing local, last name: \"{LastName}\".", localInfos.LastName);
+            _logger?.LogDebug(Events.SynchronizingLocal, "Synchronizing local, last name: \"{LastName}\".", localInfos.LastName);
             uint count;
             try
             {
@@ -176,7 +177,7 @@ namespace Synchronizzer.Implementation
         private static class Events
         {
             public static readonly EventId Populating = new EventId(1, nameof(Populating));
-            /*public static readonly EventId Populated = new EventId(2, nameof(Populated));*/
+            public static readonly EventId Populated = new EventId(2, nameof(Populated));
             public static readonly EventId SynchronizingLocal = new EventId(3, nameof(SynchronizingLocal));
             public static readonly EventId SynchronizedLocal = new EventId(4, nameof(SynchronizedLocal));
             public static readonly EventId SynchronizeLocalFailed = new EventId(5, nameof(SynchronizeLocalFailed));

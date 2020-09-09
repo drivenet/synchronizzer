@@ -8,7 +8,7 @@ namespace Synchronizzer.Implementation
 {
     internal interface IS3Mediator
     {
-        string ServiceUrl { get; }
+        Uri ServiceUrl { get; }
 
         Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken);
 

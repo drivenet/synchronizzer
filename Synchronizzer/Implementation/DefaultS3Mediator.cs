@@ -13,9 +13,10 @@ namespace Synchronizzer.Implementation
         public DefaultS3Mediator(IAmazonS3 s3)
         {
             _s3 = s3;
+            ServiceUrl = new Uri(_s3.Config.DetermineServiceURL(), UriKind.Absolute);
         }
 
-        public string ServiceUrl => _s3.Config.DetermineServiceURL();
+        public Uri ServiceUrl { get; }
 
         public Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken)
             => action(_s3, cancellationToken);

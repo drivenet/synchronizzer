@@ -18,8 +18,8 @@ namespace Synchronizzer.Implementation
             _context = context;
             if (recycleContext is object)
             {
-                var url = new Uri(context.S3.ServiceUrl, UriKind.Absolute);
-                var recycleUrl = new Uri(recycleContext.S3.ServiceUrl, UriKind.Absolute);
+                var url = context.S3.ServiceUrl;
+                var recycleUrl = recycleContext.S3.ServiceUrl;
                 if (Uri.Compare(url, recycleUrl, UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.SafeUnescaped, StringComparison.Ordinal) != 0)
                 {
                     throw new ArgumentOutOfRangeException(
