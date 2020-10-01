@@ -61,7 +61,7 @@ namespace Synchronizzer.Composition
             }
 
             var remoteAddress = context.S3.ServiceUrl.AbsoluteUri;
-            var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}/{Process.GetCurrentProcess().Id}/{Guid.NewGuid():N}");
+            var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Process.GetCurrentProcess().Id}_{Guid.NewGuid():N}");
             const byte S3Retries = 30;
             return new RemoteWriter(
                 remoteAddress,
@@ -98,7 +98,7 @@ namespace Synchronizzer.Composition
                 throw new NotImplementedException("Filesystem recycling is not supported.");
             }
 
-            var lockName = FormattableString.Invariant($"{Process.GetCurrentProcess().Id}-{Guid.NewGuid():N}");
+            var lockName = FormattableString.Invariant($"{Process.GetCurrentProcess().Id}_{Guid.NewGuid():N}");
             return new RemoteWriter(
                 address,
                 new TracingObjectSource(
