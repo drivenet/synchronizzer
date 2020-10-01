@@ -18,17 +18,8 @@ namespace Synchronizzer.Implementation
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            if (Path.DirectorySeparatorChar != '/')
-            {
-                objectName = objectName.Replace('/', Path.DirectorySeparatorChar);
-            }
-
-            var path = _context.FilePath + Path.DirectorySeparatorChar + objectName;
-            if (Path.GetFullPath(path) != path)
-            {
-                throw new ArgumentOutOfRangeException(nameof(path), path, FormattableString.Invariant($"The object name \"{objectName}\" produces an insecure path \"{path}\""));
-            }
-
+            var path = FilesystemUtils.PreparePath(objectName, _context);
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);

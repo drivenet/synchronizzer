@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Synchronizzer.Implementation
 {
@@ -17,6 +18,22 @@ namespace Synchronizzer.Implementation
             }
 
             return new FilesystemContext(uri.LocalPath);
+        }
+
+        public static string PreparePath(string objectName, FilesystemContext context)
+        {
+            if (Path.DirectorySeparatorChar != '/')
+            {
+                objectName = objectName.Replace('/', Path.DirectorySeparatorChar);
+            }
+
+            var path = context.FilePath + Path.DirectorySeparatorChar + objectName;
+            if (Path.GetFullPath(path) != path)
+            {
+                throw new ArgumentOutOfRangeException(nameof(path), path, FormattableString.Invariant($"The object name \"{objectName}\" produces an insecure path \"{path}\""));
+            }
+
+            return path;
         }
     }
 }
