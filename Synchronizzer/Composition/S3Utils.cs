@@ -63,7 +63,8 @@ namespace Synchronizzer.Composition
             var client = new AmazonS3Client(credentials, config);
             var s3 = new CancelationHandlingS3Mediator(
                 new TimeoutHandlingS3Mediator(
-                    new DefaultS3Mediator(client),
+                    new ExceptionHandlingS3Mediator(
+                        new DefaultS3Mediator(client)),
                     TimeSpan.FromSeconds(127)));
             return new S3WriteContext(s3, bucketName, storageClass);
         }
