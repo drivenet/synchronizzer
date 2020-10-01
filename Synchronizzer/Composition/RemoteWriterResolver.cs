@@ -93,9 +93,19 @@ namespace Synchronizzer.Composition
         private IRemoteWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri)
         {
             var context = FilesystemUtils.CreateContext(uri);
+            FilesystemContext? recycleContext;
             if (recycleAddress is object)
             {
-                throw new NotImplementedException("Filesystem recycling is not supported.");
+                if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(address), "Invalid S3 recycle address.");
+                }
+
+                recycleContext = FilesystemUtils.CreateContext(recycleUri);
+            }
+            else
+            {
+                recycleContext = null;
             }
 
             var lockName = FormattableString.Invariant($"{Process.GetCurrentProcess().Id}_{Guid.NewGuid():N}");
@@ -110,7 +120,7 @@ namespace Synchronizzer.Composition
                     _objectSourceLogger),
                 new TracingObjectWriter(
                     new CountingObjectWriter(
-                        new FilesystemObjectWriter(context),
+                        new FilesystemObjectWriter(context, recycleContext),
                         _metricsWriter,
                         "fs"),
                     _objectLogger),

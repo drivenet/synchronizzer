@@ -9,10 +9,12 @@ namespace Synchronizzer.Implementation
     internal sealed class FilesystemObjectWriter : IObjectWriter
     {
         private readonly FilesystemContext _context;
+        private readonly FilesystemContext? _recycleContext;
 
-        public FilesystemObjectWriter(FilesystemContext context)
+        public FilesystemObjectWriter(FilesystemContext context, FilesystemContext? recycleContext)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _recycleContext = recycleContext;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously -- deleting local file is synchronous
@@ -20,14 +22,34 @@ namespace Synchronizzer.Implementation
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var path = FilesystemUtils.PreparePath(objectName, _context);
+            var recyclePath = _recycleContext is object ? FilesystemUtils.PreparePath(objectName, _recycleContext) : null;
             cancellationToken.ThrowIfCancellationRequested();
-            try
+            if (recyclePath is object)
             {
-                File.Delete(path);
+                Directory.CreateDirectory(Path.GetDirectoryName(recyclePath));
+                try
+                {
+                    File.Move(path, recyclePath, true);
+                }
+                catch (FileNotFoundException)
+                {
+                    return;
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return;
+                }
             }
-            catch (DirectoryNotFoundException)
+            else
             {
-                return;
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return;
+                }
             }
 
             var root = Path.GetDirectoryName(FilesystemUtils.PreparePath("", _context));
