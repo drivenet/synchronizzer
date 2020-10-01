@@ -56,7 +56,8 @@ namespace Synchronizzer.Implementation
 
                     if (string.CompareOrdinal(name, fromName) > 0)
                     {
-                        var isHidden = (fileInfo.Attributes | FileAttributes.Hidden) != 0;
+                        var isHidden = (fileInfo.Attributes & FileAttributes.Hidden) != 0
+                            || name.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase);
                         yield return new ObjectInfo(name, fileInfo.Length, isHidden);
                     }
                 }
