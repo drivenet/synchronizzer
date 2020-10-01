@@ -29,54 +29,15 @@ namespace Synchronizzer.Composition
             {
                 if (uri.Scheme.Equals("s3", StringComparison.OrdinalIgnoreCase))
                 {
-                    var context = S3Utils.CreateContext(uri);
-                    return new LocalReader(
-                        Count(
-                            Trace(
-                                new S3ObjectSource(context)),
-                            "local.s3"),
-                        Count(
-                            Robust(
-                                Trace(
-                                    new S3ObjectReader(context))),
-                            "s3"));
+                    return CreateS3Reader(uri);
                 }
-                else
-                {
-                    var context = FilesystemUtils.CreateContext(uri);
-                    return new LocalReader(
-                        Count(
-                            Trace(
-                                new FilesystemObjectSource(context)),
-                            "local.fs"),
-                        Count(
-                            Robust(
-                                Trace(
-                                    new FilesystemObjectReader(context))),
-                            "fs"));
-                }
+
+                return CreateFilesystemReader(uri);
             }
 
             if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
             {
-                const byte GridFSRetries = 10;
-                var context = GridFSUtils.CreateContext(address);
-                return new LocalReader(
-                    new RetryingObjectSource(
-                        Trace(
-                            Count(
-                                new GridFSObjectSource(context),
-                                "local.gridfs")),
-                        GridFSRetries),
-                    Robust(
-                        Trace(
-                            Count(
-                                new RetryingObjectReader(
-                                    new GridFSFilteringObjectReader(
-                                        new BufferingObjectReader(
-                                            new GridFSObjectReader(context))),
-                                    GridFSRetries),
-                                "gridfs"))));
+                return CreateGridFSReader(address);
             }
 
             throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
@@ -84,6 +45,12 @@ namespace Synchronizzer.Composition
 
         private static IObjectReader Robust(IObjectReader reader)
             => new RobustObjectReader(reader);
+
+        private static IObjectReader Retry(IObjectReader reader, byte retries)
+            => new RetryingObjectReader(reader, retries);
+
+        private static IObjectSource Retry(IObjectSource source, byte retries)
+            => new RetryingObjectSource(source, retries);
 
         private IObjectReader Count(IObjectReader reader, string key)
             => new CountingObjectReader(reader, _metricsWriter, key);
@@ -96,5 +63,57 @@ namespace Synchronizzer.Composition
 
         private IObjectSource Trace(IObjectSource source)
             => new TracingObjectSource(source, "local", _objectSourceLogger);
+
+        private ILocalReader CreateFilesystemReader(Uri uri)
+        {
+            var context = FilesystemUtils.CreateContext(uri);
+            return new LocalReader(
+                Trace(
+                    Count(
+                        new FilesystemObjectSource(context),
+                        "local.fs")),
+                Robust(
+                    Trace(
+                        Count(
+                            new FilesystemObjectReader(context),
+                            "fs"))));
+        }
+
+        private ILocalReader CreateS3Reader(Uri uri)
+        {
+            var context = S3Utils.CreateContext(uri);
+            return new LocalReader(
+                Trace(
+                    Count(
+                        new S3ObjectSource(context),
+                        "local.s3")),
+                Robust(
+                    Trace(
+                        Count(
+                            new S3ObjectReader(context),
+                            "s3"))));
+        }
+
+        private ILocalReader CreateGridFSReader(string address)
+        {
+            const byte GridFSRetries = 10;
+            var context = GridFSUtils.CreateContext(address);
+            return new LocalReader(
+                Retry(
+                    Trace(
+                        Count(
+                            new GridFSObjectSource(context),
+                            "local.gridfs")),
+                    GridFSRetries),
+                Robust(
+                    Trace(
+                        Count(
+                            Retry(
+                                new GridFSFilteringObjectReader(
+                                    new BufferingObjectReader(
+                                        new GridFSObjectReader(context))),
+                                GridFSRetries),
+                            "gridfs"))));
+        }
     }
 }

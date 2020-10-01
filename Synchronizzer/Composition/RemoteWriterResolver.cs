@@ -42,6 +42,26 @@ namespace Synchronizzer.Composition
             return CreateFilesystemWriter(address, recycleAddress, uri);
         }
 
+        private static IObjectWriterLocker Lock(IObjectWriterLocker inner) => new LockingObjectWriterLocker(inner);
+
+        private static IObjectWriterLocker Cache(IObjectWriterLocker inner) => new CachingObjectWriterLocker(inner);
+
+        private static IObjectWriterLocker Retry(IObjectWriterLocker inner, byte retries) => new RetryingObjectWriterLocker(inner, retries);
+
+        private static IObjectWriter Robust(IObjectWriter inner) => new RobustObjectWriter(inner);
+
+        private static IObjectSource Retry(IObjectSource inner, byte retries) => new RetryingObjectSource(inner, retries);
+
+        private IObjectWriterLocker Trace(IObjectWriterLocker inner) => new TracingObjectWriterLocker(inner, _lockerLogger);
+
+        private IObjectWriter Count(IObjectWriter inner, string key) => new CountingObjectWriter(inner, _metricsWriter, key);
+
+        private IObjectWriter Trace(IObjectWriter inner) => new TracingObjectWriter(inner, _objectLogger);
+
+        private IObjectSource Count(IObjectSource inner, string key) => new CountingObjectSource(inner, _metricsWriter, key);
+
+        private IObjectSource Trace(IObjectSource inner, string source) => new TracingObjectSource(inner, source, _objectSourceLogger);
+
         private IRemoteWriter CreateS3Writer(string address, string? recycleAddress, Uri uri)
         {
             var context = S3Utils.CreateContext(uri);
@@ -65,28 +85,23 @@ namespace Synchronizzer.Composition
             const byte S3Retries = 30;
             return new RemoteWriter(
                 remoteAddress,
-                new RetryingObjectSource(
-                    new TracingObjectSource(
-                        new CountingObjectSource(
+                Retry(
+                    Trace(
+                        Count(
                             new S3ObjectSource(context),
-                            _metricsWriter,
                             "remote.s3"),
-                        "remote",
-                        _objectSourceLogger),
+                        "remote"),
                     S3Retries),
-                new RobustObjectWriter(
-                    new TracingObjectWriter(
-                        new CountingObjectWriter(
+                Robust(
+                    Trace(
+                        Count(
                             new S3ObjectWriter(context, recycleContext),
-                            _metricsWriter,
-                            "s3"),
-                        _objectLogger)),
-                new LockingObjectWriterLocker(
-                    new CachingObjectWriterLocker(
-                        new RetryingObjectWriterLocker(
-                            new TracingObjectWriterLocker(
-                                new S3ObjectWriterLocker(context, lockName),
-                                _lockerLogger),
+                            "s3"))),
+                Lock(
+                    Cache(
+                        Retry(
+                            Trace(
+                                new S3ObjectWriterLocker(context, lockName)),
                             S3Retries))));
         }
 
@@ -108,27 +123,25 @@ namespace Synchronizzer.Composition
                 recycleContext = null;
             }
 
+            const byte FilesystemRetries = 10;
             var lockName = FormattableString.Invariant($"{Process.GetCurrentProcess().Id}_{Guid.NewGuid():N}");
             return new RemoteWriter(
                 address,
-                new TracingObjectSource(
-                    new CountingObjectSource(
+                Trace(
+                    Count(
                         new FilesystemObjectSource(context),
-                        _metricsWriter,
                         "remote.fs"),
-                    "remote",
-                    _objectSourceLogger),
-                new TracingObjectWriter(
-                    new CountingObjectWriter(
+                    "remote"),
+                Trace(
+                    Count(
                         new FilesystemObjectWriter(context, recycleContext),
-                        _metricsWriter,
-                        "fs"),
-                    _objectLogger),
-                new LockingObjectWriterLocker(
-                    new CachingObjectWriterLocker(
-                        new TracingObjectWriterLocker(
-                            new FilesystemObjectWriterLocker(context, lockName),
-                            _lockerLogger))));
+                        "fs")),
+                Lock(
+                    Cache(
+                        Retry(
+                            Trace(
+                                new FilesystemObjectWriterLocker(context, lockName)),
+                            FilesystemRetries))));
         }
     }
 }
