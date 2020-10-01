@@ -27,7 +27,7 @@ namespace Synchronizzer.Composition
         {
             if (Uri.TryCreate(address, UriKind.Absolute, out var uri))
             {
-                if (uri.Scheme == "s3")
+                if (uri.Scheme.Equals("s3", StringComparison.OrdinalIgnoreCase))
                 {
                     var context = S3Utils.CreateContext(uri);
                     return new LocalReader(
