@@ -27,17 +27,34 @@ namespace Synchronizzer.Composition
         {
             if (Uri.TryCreate(address, UriKind.Absolute, out var uri))
             {
-                var context = FilesystemUtils.CreateContext(uri);
-                return new LocalReader(
-                    Count(
-                        Trace(
-                            new FilesystemObjectSource(context)),
-                        "local.fs"),
-                    Count(
-                        Robust(
+                if (uri.Scheme == "s3")
+                {
+                    var context = S3Utils.CreateContext(uri);
+                    return new LocalReader(
+                        Count(
                             Trace(
-                                new FilesystemObjectReader(context))),
-                        "fs"));
+                                new S3ObjectSource(context)),
+                            "local.s3"),
+                        Count(
+                            Robust(
+                                Trace(
+                                    new S3ObjectReader(context))),
+                            "s3"));
+                }
+                else
+                {
+                    var context = FilesystemUtils.CreateContext(uri);
+                    return new LocalReader(
+                        Count(
+                            Trace(
+                                new FilesystemObjectSource(context)),
+                            "local.fs"),
+                        Count(
+                            Robust(
+                                Trace(
+                                    new FilesystemObjectReader(context))),
+                            "fs"));
+                }
             }
 
             if (address.StartsWith("mongodb://", StringComparison.OrdinalIgnoreCase))
