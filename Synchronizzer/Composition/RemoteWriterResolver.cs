@@ -34,13 +34,23 @@ namespace Synchronizzer.Composition
                 throw new ArgumentOutOfRangeException(nameof(address), "Invalid remote address.");
             }
 
+            if (uri.Scheme.Equals("s3", StringComparison.OrdinalIgnoreCase))
+            {
+                return CreateS3Writer(address, recycleAddress, uri);
+            }
+
+            return CreateFilesystemWriter(address, recycleAddress, uri);
+        }
+
+        private IRemoteWriter CreateS3Writer(string address, string? recycleAddress, Uri uri)
+        {
             var context = S3Utils.CreateContext(uri);
             S3WriteContext? recycleContext;
             if (recycleAddress is object)
             {
                 if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(address), "Invalid remote recycle address.");
+                    throw new ArgumentOutOfRangeException(nameof(address), "Invalid S3 recycle address.");
                 }
 
                 recycleContext = S3Utils.CreateContext(recycleUri);
@@ -78,6 +88,37 @@ namespace Synchronizzer.Composition
                                 new S3ObjectWriterLocker(context, lockName),
                                 _lockerLogger),
                             S3Retries))));
+        }
+
+        private IRemoteWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri)
+        {
+            var context = FilesystemUtils.CreateContext(uri);
+            if (recycleAddress is object)
+            {
+                throw new NotImplementedException("Filesystem recycling is not supported.");
+            }
+
+            var lockName = FormattableString.Invariant($"{Process.GetCurrentProcess().Id}-{Guid.NewGuid():N}");
+            return new RemoteWriter(
+                address,
+                new TracingObjectSource(
+                    new CountingObjectSource(
+                        new FilesystemObjectSource(context),
+                        _metricsWriter,
+                        "remote.fs"),
+                    "remote",
+                    _objectSourceLogger),
+                new TracingObjectWriter(
+                    new CountingObjectWriter(
+                        new FilesystemObjectWriter(context),
+                        _metricsWriter,
+                        "fs"),
+                    _objectLogger),
+                new LockingObjectWriterLocker(
+                    new CachingObjectWriterLocker(
+                        new TracingObjectWriterLocker(
+                            new FilesystemObjectWriterLocker(context, lockName),
+                            _lockerLogger))));
         }
     }
 }
