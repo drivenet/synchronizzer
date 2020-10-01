@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Synchronizzer.Implementation
 {
-    internal class FilesystemContext
+    internal sealed class FilesystemContext
     {
         public FilesystemContext(string path)
         {
