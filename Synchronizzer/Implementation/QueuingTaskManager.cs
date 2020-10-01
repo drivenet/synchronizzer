@@ -24,10 +24,7 @@ namespace Synchronizzer.Implementation
         {
             await EnsureQueueSize(cancellationToken);
             var task = Run(sender, action, cancellationToken);
-            if (!_queue.TryAdd(task, sender))
-            {
-                throw new InvalidOperationException("The task was already added.");
-            }
+            _queue.TryAdd(task, sender);
         }
 
         public async Task WaitAll(object sender)
