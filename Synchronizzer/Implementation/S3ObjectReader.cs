@@ -11,9 +11,9 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class S3ObjectReader : IObjectReader
     {
-        private readonly S3WriteContext _context;
+        private readonly S3Context _context;
 
-        public S3ObjectReader(S3WriteContext context)
+        public S3ObjectReader(S3Context context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
