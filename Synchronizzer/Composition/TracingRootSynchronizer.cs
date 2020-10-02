@@ -25,6 +25,10 @@ namespace Synchronizzer.Composition
             {
                 await _inner.Synchronize(cancellationToken);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Synchronization failed.");
