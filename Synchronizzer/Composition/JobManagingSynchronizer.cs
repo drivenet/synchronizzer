@@ -23,9 +23,12 @@ namespace Synchronizzer.Composition
 
         public void Dispose()
         {
-            foreach (var pair in _jobs)
+            foreach (var (_, job) in _jobs)
             {
-                pair.Value.Value.Dispose();
+                if (job.IsValueCreated)
+                {
+                    job.Value.Dispose();
+                }
             }
         }
 
@@ -43,15 +46,15 @@ namespace Synchronizzer.Composition
                 infos = new HashSet<SyncInfo>();
             }
 
-            foreach (var pair in _jobs)
+            foreach (var (info, job) in _jobs)
             {
-                if (pair.Value.Value.IsCompleted)
+                if (job.Value.IsCompleted)
                 {
-                    await CompleteJob(pair.Key, cancel: false);
+                    await CompleteJob(info, cancel: false);
                 }
-                else if (!infos.Contains(pair.Key))
+                else if (!infos.Contains(info))
                 {
-                    await CompleteJob(pair.Key, cancel: true);
+                    await CompleteJob(info, cancel: true);
                 }
             }
 
