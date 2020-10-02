@@ -64,7 +64,7 @@ namespace Synchronizzer.Composition
 
         private IRemoteWriter CreateS3Writer(string address, string? recycleAddress, Uri uri)
         {
-            var context = S3Utils.CreateContext(uri);
+            var context = S3Utils.CreateWriteContext(uri);
             S3WriteContext? recycleContext;
             if (recycleAddress is object)
             {
@@ -73,7 +73,7 @@ namespace Synchronizzer.Composition
                     throw new ArgumentOutOfRangeException(nameof(address), "Invalid S3 recycle address.");
                 }
 
-                recycleContext = S3Utils.CreateContext(recycleUri);
+                recycleContext = S3Utils.CreateWriteContext(recycleUri);
             }
             else
             {

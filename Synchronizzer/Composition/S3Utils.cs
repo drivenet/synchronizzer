@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Amazon.Runtime;
 using Amazon.S3;
 
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 using Synchronizzer.Implementation;
 
@@ -11,7 +13,21 @@ namespace Synchronizzer.Composition
 {
     internal static class S3Utils
     {
-        public static S3WriteContext CreateContext(Uri uri)
+        public static S3Context CreateContext(Uri uri)
+        {
+            var (s3, bucketName) = CreateContext(uri, out _);
+            return new S3Context(CreateS3Mediator(s3), bucketName);
+        }
+
+        public static S3WriteContext CreateWriteContext(Uri uri)
+        {
+            var (s3, bucketName) = CreateContext(uri, out var query);
+            query.TryGetValue("class", out var storageClassString);
+            var storageClass = ParseStorageClass(storageClassString);
+            return new S3WriteContext(CreateS3Mediator(s3), bucketName, storageClass);
+        }
+
+        private static (IAmazonS3 S3, string BucketName) CreateContext(Uri uri, out Dictionary<string, StringValues> query)
         {
             if (uri is null)
             {
@@ -39,7 +55,7 @@ namespace Synchronizzer.Composition
             var credentials = new BasicAWSCredentials(userInfo[0], userInfo[1]);
 
             var bucketName = uri.AbsolutePath.TrimStart('/');
-            var query = QueryHelpers.ParseQuery(uri.Query);
+            query = QueryHelpers.ParseQuery(uri.Query);
             var host = uri.Host;
 
             var config = new AmazonS3Config
@@ -63,16 +79,17 @@ namespace Synchronizzer.Composition
                 config.ServiceURL = new UriBuilder(Uri.UriSchemeHttps, host).Uri.AbsoluteUri;
             }
 
-            query.TryGetValue("class", out var storageClassString);
-            var storageClass = ParseStorageClass(storageClassString);
             var client = new AmazonS3Client(credentials, config);
-            var s3 = new CancelationHandlingS3Mediator(
+
+            return (client, bucketName);
+        }
+
+        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3)
+            => new CancelationHandlingS3Mediator(
                 new TimeoutHandlingS3Mediator(
                     new ExceptionHandlingS3Mediator(
-                        new DefaultS3Mediator(client)),
+                        new DefaultS3Mediator(s3)),
                     TimeSpan.FromSeconds(127)));
-            return new S3WriteContext(s3, bucketName, storageClass);
-        }
 
         private static S3StorageClass ParseStorageClass(string? storageClass)
         {
