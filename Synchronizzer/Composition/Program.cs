@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 using Tmds.Systemd;
 
@@ -17,83 +18,88 @@ namespace Synchronizzer.Composition
         public static async Task Main(string[] args)
         {
             ConfigureNetworking();
-            var commandLineOptions = GetCommandLineOptions(args);
-            var appConfiguration = LoadAppConfiguration(commandLineOptions.Config);
-            var hostingConfigPath = commandLineOptions.HostingConfig;
-            do
-            {
-                await RunHost(appConfiguration, hostingConfigPath);
-            }
-            while (ServiceManager.IsRunningAsService);
-        }
-
-        private static async Task RunHost(IConfiguration appConfiguration, string hostingConfigPath)
-        {
-            var hostingOptions = GetHostingOptions(hostingConfigPath);
-            using var host = BuildHost(hostingOptions, appConfiguration);
+            using var host = BuildHost(args);
             await host.RunAsync();
         }
 
-        private static IConfiguration LoadAppConfiguration(string configPath)
-            => new ConfigurationBuilder()
-                .AddJsonFile(configPath, optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables("GSS_")
-                .Build();
-
-        private static CommandLineOptions GetCommandLineOptions(string?[] args)
-            => new ConfigurationBuilder()
-                .AddCommandLine(args)
-                .Build()
-                .Get<CommandLineOptions>() ?? new CommandLineOptions();
-
-        private static HostingOptions GetHostingOptions(string configPath)
-            => new ConfigurationBuilder()
-                .AddJsonFile(configPath, optional: false)
-                .Build()
-                .Get<HostingOptions>() ?? new HostingOptions();
-
-        private static IHost BuildHost(HostingOptions hostingOptions, IConfiguration appConfiguration)
+        private static IHost BuildHost(string[] args)
             => new HostBuilder()
-                .ConfigureWebHost(webHost => webHost
-                    .UseUrls(hostingOptions.Listen)
-                    .UseKestrel(options => ConfigureKestrel(options))
-                    .UseStartup<Startup>())
-                .ConfigureLogging(loggingBuilder => ConfigureLogging(loggingBuilder, hostingOptions))
+                .ConfigureHostConfiguration(configBuilder => configBuilder.AddCommandLine(args))
+                .ConfigureWebHost(webHost => ConfigureWebHost(webHost))
+                .ConfigureLogging((builderContext, loggingBuilder) => ConfigureLogging(builderContext, loggingBuilder))
+#if !MINIMAL_BUILD
                 .UseSystemd()
-                .ConfigureAppConfiguration(configBuilder => configBuilder.AddConfiguration(appConfiguration))
+#endif
+                .ConfigureAppConfiguration((builderContext, configBuilder) => ConfigureAppConfiguration(args, builderContext, configBuilder))
                 .Build();
 
-        private static void ConfigureLogging(ILoggingBuilder loggingBuilder, HostingOptions hostingOptions)
-        {
-            loggingBuilder.AddFilter(Filter);
-            var hasJournalD = Journal.IsSupported;
-            if (hasJournalD)
-            {
-                loggingBuilder.AddJournal(options => options.SyslogIdentifier = "synchronizzer");
-            }
+        private static IWebHostBuilder ConfigureWebHost(IWebHostBuilder webHost)
+            => webHost
+                .UseKestrel((builderContext, options) => ConfigureKestrel(builderContext, options))
+                .UseStartup<Startup>();
 
-            if (!hasJournalD || hostingOptions.ForceConsoleLogging)
+#pragma warning disable CA1801 // Review unused parameters -- requred for other build configuration
+        private static void ConfigureLogging(HostBuilderContext builderContext, ILoggingBuilder loggingBuilder)
+#pragma warning restore CA1801 // Review unused parameters
+        {
+            loggingBuilder.AddFilter(
+                (category, level) => level >= LogLevel.Warning
+                    || (level >= LogLevel.Information && !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase)));
+
+#if !MINIMAL_BUILD
+            if (Journal.IsSupported)
+            {
+                loggingBuilder.AddJournal(options =>
+                {
+                    options.SyslogIdentifier = builderContext.HostingEnvironment.ApplicationName;
+                    options.DropWhenBusy = true;
+                });
+            }
+#endif
+
+#if !MINIMAL_BUILD
+            if (builderContext.Configuration.GetValue<bool>("ForceConsoleLogging")
+                 || !Journal.IsAvailable)
+#endif
             {
                 loggingBuilder.AddConsole(options =>
                 {
-                    options.DisableColors = true;
                     options.IncludeScopes = true;
+                    options.Format = ConsoleLoggerFormat.Systemd;
+                    options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffffffzzz \""
+                        + Environment.MachineName
+                        + "\" \""
+                        + builderContext.HostingEnvironment.ApplicationName
+                        + ":\" ";
                 });
             }
-
-            bool Filter(string category, LogLevel level)
-                => level >= LogLevel.Warning
-                    || ((level >= LogLevel.Information || hostingOptions.DebugLogging)
-                        && !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase));
         }
 
-        private static void ConfigureKestrel(KestrelServerOptions options)
+        private static void ConfigureKestrel(WebHostBuilderContext builderContext, KestrelServerOptions options)
         {
             options.AddServerHeader = false;
+            options.Limits.MaxRequestLineSize = 1024;
             options.Limits.MaxRequestBodySize = 0;
             options.Limits.MaxRequestHeadersTotalSize = 4096;
-            options.Limits.MaxConcurrentConnections = 16;
+
+            var kestrelSection = builderContext.Configuration.GetSection("Kestrel");
+            options.Configure(kestrelSection);
+
+            if (kestrelSection.Get<KestrelServerOptions>() is { } kestrelOptions)
+            {
+                options.Limits.MaxConcurrentConnections = kestrelOptions.Limits.MaxConcurrentConnections;
+            }
+            else
+            {
+                options.Limits.MaxConcurrentConnections = 10;
+            }
         }
+
+        private static IConfigurationBuilder ConfigureAppConfiguration(string[] args, HostBuilderContext builderContext, IConfigurationBuilder configBuilder)
+            => configBuilder
+                .AddJsonFile(builderContext.Configuration.GetValue("ConfigPath", "appsettings.json"), optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables("GSS_")
+                .AddCommandLine(args);
 
         private static void ConfigureNetworking()
         {
