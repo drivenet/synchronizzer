@@ -21,10 +21,10 @@ namespace Synchronizzer.Composition
             ILogger<TracingObjectSource> objectSourceLogger,
             ILogger<TracingObjectWriterLocker> lockerLogger)
         {
-            _metricsWriter = metricsWriter;
-            _objectLogger = objectLogger;
-            _objectSourceLogger = objectSourceLogger;
-            _lockerLogger = lockerLogger;
+            _metricsWriter = metricsWriter ?? throw new ArgumentNullException(nameof(metricsWriter));
+            _objectLogger = objectLogger ?? throw new ArgumentNullException(nameof(objectLogger));
+            _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
+            _lockerLogger = lockerLogger ?? throw new ArgumentNullException(nameof(lockerLogger));
         }
 
         public IRemoteWriter Resolve(string address, string? recycleAddress)

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace MongoDB.Driver
 {
@@ -8,7 +9,7 @@ namespace MongoDB.Driver
 
         public IteratorCancel(CancellationTokenSource cancel)
         {
-            _cancel = cancel;
+            _cancel = cancel ?? throw new ArgumentNullException(nameof(cancel));
         }
 
         public void Cancel()

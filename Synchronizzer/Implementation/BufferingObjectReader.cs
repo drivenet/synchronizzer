@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace Synchronizzer.Implementation
 
         public BufferingObjectReader(IObjectReader inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)

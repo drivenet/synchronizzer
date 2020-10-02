@@ -15,8 +15,8 @@ namespace Synchronizzer.Implementation
 
         public CountingObjectWriter(IObjectWriter inner, IMetricsWriter writer, string key)
         {
-            _inner = inner;
-            _writer = writer;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             _prefix = "writer.";
             if (key.Length != 0)
             {

@@ -14,8 +14,8 @@ namespace Synchronizzer.Implementation
 
         public TimedSynchronizer(ISynchronizer inner, SyncTimeHolder timeHolder)
         {
-            _inner = inner;
-            _timeHolder = timeHolder;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _timeHolder = timeHolder ?? throw new ArgumentNullException(nameof(timeHolder));
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)

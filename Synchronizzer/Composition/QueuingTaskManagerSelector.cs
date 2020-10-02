@@ -14,6 +14,11 @@ namespace Synchronizzer.Composition
 
         public QueuingTaskManagerSelector(IQueuingSettings settings)
         {
+            if (settings is null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
             _managerFactory =
                 _ => new Lazy<IQueuingTaskManager>(() => new QueuingTaskManager(settings));
         }

@@ -13,7 +13,7 @@ namespace Synchronizzer.Implementation
 
         public LockingObjectWriterLocker(IObjectWriterLocker inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task Lock(CancellationToken cancellationToken)

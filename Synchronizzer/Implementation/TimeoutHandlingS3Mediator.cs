@@ -13,7 +13,7 @@ namespace Synchronizzer.Implementation
 
         public TimeoutHandlingS3Mediator(IS3Mediator inner, TimeSpan timeout)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             if (timeout != Timeout.InfiniteTimeSpan
                 && (timeout.TotalMilliseconds < 1 || timeout.TotalMilliseconds > int.MaxValue))
             {

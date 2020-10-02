@@ -10,7 +10,7 @@ namespace Synchronizzer.Composition
 
         public QueuingSettings(IOptionsMonitor<SyncOptions> options)
         {
-            _options = options;
+            _options = options ?? throw new System.ArgumentNullException(nameof(options));
         }
 
         public byte MaxParallelism => _options.CurrentValue.MaxParallelism;

@@ -11,7 +11,7 @@ namespace Synchronizzer.Implementation
 
         public RetryingObjectWriterLocker(IObjectWriterLocker inner, byte retries)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _retries = retries;
         }
 

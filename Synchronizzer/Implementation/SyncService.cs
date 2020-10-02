@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Hosting;
@@ -11,7 +12,7 @@ namespace Synchronizzer.Implementation
 
         public SyncService(ISynchronizer synchronizer)
         {
-            _synchronizer = synchronizer;
+            _synchronizer = synchronizer ?? throw new ArgumentNullException(nameof(synchronizer));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

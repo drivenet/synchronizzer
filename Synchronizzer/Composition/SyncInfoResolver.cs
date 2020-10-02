@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Synchronizzer.Composition
@@ -11,12 +10,10 @@ namespace Synchronizzer.Composition
     internal sealed class SyncInfoResolver : IEnumerable<SyncInfo>
     {
         private readonly IOptionsMonitor<SyncOptions> _options;
-        private readonly ILogger _logger;
 
-        public SyncInfoResolver(IOptionsMonitor<SyncOptions> options, ILogger<SyncInfoResolver> logger)
+        public SyncInfoResolver(IOptionsMonitor<SyncOptions> options)
         {
-            _options = options;
-            _logger = logger;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public IEnumerator<SyncInfo> GetEnumerator()

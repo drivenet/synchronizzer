@@ -12,7 +12,7 @@ namespace Synchronizzer.Implementation
 
         public RetryingObjectReader(IObjectReader inner, byte retries)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _retries = retries;
         }
 

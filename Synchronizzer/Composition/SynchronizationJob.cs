@@ -12,8 +12,8 @@ namespace Synchronizzer.Composition
 
         public SynchronizationJob(Task task, CancellationTokenSource cancel)
         {
-            _task = task;
-            _cancel = cancel;
+            _task = task ?? throw new ArgumentNullException(nameof(task));
+            _cancel = cancel ?? throw new ArgumentNullException(nameof(cancel));
         }
 
         public bool IsCompleted => _task.IsCompleted;

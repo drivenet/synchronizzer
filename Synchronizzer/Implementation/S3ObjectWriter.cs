@@ -15,7 +15,7 @@ namespace Synchronizzer.Implementation
 
         public S3ObjectWriter(S3WriteContext context, S3WriteContext? recycleContext)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             if (recycleContext is object)
             {
                 var url = context.S3.ServiceUrl;

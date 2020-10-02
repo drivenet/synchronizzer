@@ -13,6 +13,11 @@ namespace Synchronizzer.Composition
     {
         public static S3WriteContext CreateContext(Uri uri)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
             if (!uri.IsAbsoluteUri
                 || !"s3".Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {

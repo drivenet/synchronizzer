@@ -8,7 +8,7 @@ namespace Synchronizzer.Composition
 
         public SynchronizationJobFactory(ISynchronizerFactory factory)
         {
-            _factory = factory;
+            _factory = factory ?? throw new System.ArgumentNullException(nameof(factory));
         }
 
         public SynchronizationJob Create(SyncInfo info, CancellationToken cancellationToken)

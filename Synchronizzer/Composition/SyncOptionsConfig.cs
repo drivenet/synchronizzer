@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ namespace Synchronizzer.Composition
 
         public SyncOptionsConfig(IConfiguration configuration)
         {
-            _configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public void PostConfigure(string name, SyncOptions options)

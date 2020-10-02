@@ -13,8 +13,8 @@ namespace Synchronizzer.Implementation
 
         public TracingObjectWriterLocker(IObjectWriterLocker inner, ILogger<TracingObjectWriterLocker> logger)
         {
-            _inner = inner;
-            _logger = logger;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public Task Clear(CancellationToken cancellationToken) => _inner.Clear(cancellationToken);

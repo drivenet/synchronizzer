@@ -14,7 +14,7 @@ namespace Synchronizzer.Implementation
 
         public CachingObjectWriterLocker(IObjectWriterLocker inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task Lock(CancellationToken cancellationToken)

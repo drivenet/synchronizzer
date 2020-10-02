@@ -11,11 +11,16 @@ namespace Synchronizzer.Implementation
 
         public RobustObjectWriter(IObjectWriter inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
             try
             {
                 await _inner.Delete(objectName, cancellationToken);
@@ -33,6 +38,11 @@ namespace Synchronizzer.Implementation
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
             try
             {
                 await _inner.Upload(objectName, readOnlyInput, cancellationToken);

@@ -10,7 +10,7 @@ namespace Synchronizzer.Implementation
 
         public RobustSynchronizer(ISynchronizer inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)

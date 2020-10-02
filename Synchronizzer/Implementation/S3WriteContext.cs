@@ -7,7 +7,7 @@ namespace Synchronizzer.Implementation
         public S3WriteContext(IS3Mediator s3, string bucketName, S3StorageClass storageClass)
             : base(s3, bucketName)
         {
-            StorageClass = storageClass;
+            StorageClass = storageClass ?? throw new System.ArgumentNullException(nameof(storageClass));
         }
 
         public S3StorageClass StorageClass { get; }

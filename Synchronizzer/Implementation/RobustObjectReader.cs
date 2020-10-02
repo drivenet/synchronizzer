@@ -11,11 +11,16 @@ namespace Synchronizzer.Implementation
 
         public RobustObjectReader(IObjectReader inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
             try
             {
                 return await _inner.Read(objectName, cancellationToken);

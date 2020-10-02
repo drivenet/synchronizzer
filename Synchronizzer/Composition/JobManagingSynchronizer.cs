@@ -17,8 +17,8 @@ namespace Synchronizzer.Composition
 
         public JobManagingSynchronizer(IEnumerable<SyncInfo> infos, ISynchronizationJobFactory jobFactory)
         {
-            _infos = infos;
-            _jobFactory = jobFactory;
+            _infos = infos ?? throw new ArgumentNullException(nameof(infos));
+            _jobFactory = jobFactory ?? throw new ArgumentNullException(nameof(jobFactory));
         }
 
         public void Dispose()

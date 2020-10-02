@@ -16,9 +16,9 @@ namespace Synchronizzer.Implementation
 
         public TracingObjectSource(IObjectSource inner, string source, ILogger<TracingObjectSource> logger)
         {
-            _inner = inner;
-            _source = source;
-            _logger = logger;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)

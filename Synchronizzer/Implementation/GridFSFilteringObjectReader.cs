@@ -13,7 +13,7 @@ namespace Synchronizzer.Implementation
 
         public GridFSFilteringObjectReader(IObjectReader inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)

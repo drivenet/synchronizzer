@@ -22,6 +22,16 @@ namespace Synchronizzer.Implementation
 
         public static string PreparePath(string objectName, FilesystemContext context)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (Path.DirectorySeparatorChar != '/')
             {
                 objectName = objectName.Replace('/', Path.DirectorySeparatorChar);

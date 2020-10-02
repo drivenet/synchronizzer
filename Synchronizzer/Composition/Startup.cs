@@ -12,7 +12,7 @@ namespace Synchronizzer.Composition
 
         public Startup(IConfiguration configuration)
         {
-            _configuration = configuration;
+            _configuration = configuration ?? throw new System.ArgumentNullException(nameof(configuration));
         }
 
         public void ConfigureServices(IServiceCollection services)

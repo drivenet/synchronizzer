@@ -21,12 +21,12 @@ namespace Synchronizzer.Composition
             IQueuingTaskManagerSelector taskManagerSelector,
             ISyncTimeHolderResolver syncTimeHolderResolver)
         {
-            _syncLogger = syncLogger;
-            _synchronizerLogger = synchronizerLogger;
-            _localReaderResolver = localReaderResolver;
-            _remoteWriterResolver = remoteWriterResolver;
-            _taskManagerSelector = taskManagerSelector;
-            _syncTimeHolderResolver = syncTimeHolderResolver;
+            _syncLogger = syncLogger ?? throw new System.ArgumentNullException(nameof(syncLogger));
+            _synchronizerLogger = synchronizerLogger ?? throw new System.ArgumentNullException(nameof(synchronizerLogger));
+            _localReaderResolver = localReaderResolver ?? throw new System.ArgumentNullException(nameof(localReaderResolver));
+            _remoteWriterResolver = remoteWriterResolver ?? throw new System.ArgumentNullException(nameof(remoteWriterResolver));
+            _taskManagerSelector = taskManagerSelector ?? throw new System.ArgumentNullException(nameof(taskManagerSelector));
+            _syncTimeHolderResolver = syncTimeHolderResolver ?? throw new System.ArgumentNullException(nameof(syncTimeHolderResolver));
         }
 
         public ISynchronizer Create(SyncInfo info)

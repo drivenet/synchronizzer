@@ -15,12 +15,17 @@ namespace Synchronizzer.Implementation
 
         public TracingObjectWriter(IObjectWriter inner, ILogger<TracingObjectWriter> logger)
         {
-            _inner = inner;
-            _logger = logger;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
                 var timer = Stopwatch.StartNew();
@@ -52,6 +57,11 @@ namespace Synchronizzer.Implementation
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
                 var timer = Stopwatch.StartNew();

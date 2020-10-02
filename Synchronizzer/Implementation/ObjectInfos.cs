@@ -21,7 +21,7 @@ namespace Synchronizzer.Implementation
 
         public ObjectInfos(IObjectSource source, string? lastName)
         {
-            _source = source;
+            _source = source ?? throw new ArgumentNullException(nameof(source));
             LastName = lastName;
         }
 

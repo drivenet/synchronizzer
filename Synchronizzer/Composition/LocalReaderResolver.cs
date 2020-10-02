@@ -18,9 +18,9 @@ namespace Synchronizzer.Composition
             ILogger<TracingObjectSource> objectSourceLogger,
             ILogger<TracingObjectReader> objectReaderLogger)
         {
-            _metricsWriter = metricsWriter;
-            _objectSourceLogger = objectSourceLogger;
-            _objectReaderLogger = objectReaderLogger;
+            _metricsWriter = metricsWriter ?? throw new ArgumentNullException(nameof(metricsWriter));
+            _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
+            _objectReaderLogger = objectReaderLogger ?? throw new ArgumentNullException(nameof(objectReaderLogger));
         }
 
         public ILocalReader Resolve(string address)

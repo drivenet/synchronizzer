@@ -7,6 +7,11 @@ namespace Synchronizzer.Implementation
     {
         public FilesystemContext(string path)
         {
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
             if (Path.AltDirectorySeparatorChar != Path.DirectorySeparatorChar)
             {
                 path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);

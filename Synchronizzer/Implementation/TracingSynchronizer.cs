@@ -15,9 +15,9 @@ namespace Synchronizzer.Implementation
 
         public TracingSynchronizer(ISynchronizer inner, ILogger<TracingSynchronizer> logger, string name)
         {
-            _inner = inner;
-            _logger = logger;
-            _name = name;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)

@@ -8,6 +8,11 @@ namespace Synchronizzer.Implementation
     {
         public ObjectInfo(string name, long size, bool isHidden)
         {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             if (name.Length == 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(name), name, "Empty object name.");

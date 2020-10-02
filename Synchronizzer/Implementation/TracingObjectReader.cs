@@ -15,12 +15,17 @@ namespace Synchronizzer.Implementation
 
         public TracingObjectReader(IObjectReader inner, ILogger<TracingObjectReader> logger)
         {
-            _inner = inner;
-            _logger = logger;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
         {
+            if (objectName is null)
+            {
+                throw new ArgumentNullException(nameof(objectName));
+            }
+
             Stream? stream;
             using (_logger.BeginScope("read \"{ObjectName}\"", objectName))
             {

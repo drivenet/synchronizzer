@@ -12,7 +12,7 @@ namespace Synchronizzer.Implementation
 
         public CancelationHandlingS3Mediator(IS3Mediator inner)
         {
-            _inner = inner;
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
         public Uri ServiceUrl => _inner.ServiceUrl;

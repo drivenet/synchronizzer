@@ -17,7 +17,7 @@ namespace Synchronizzer.Implementation
 
         public QueuingTaskManager(IQueuingSettings settings)
         {
-            _settings = settings;
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
         public async Task Enqueue(object sender, Func<CancellationToken, Task> action, CancellationToken cancellationToken)

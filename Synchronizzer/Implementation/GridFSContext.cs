@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using System;
+
+using MongoDB.Bson;
 using MongoDB.Driver.GridFS;
 
 namespace Synchronizzer.Implementation
@@ -7,7 +9,7 @@ namespace Synchronizzer.Implementation
     {
         public GridFSContext(IGridFSBucket<BsonValue> bucket)
         {
-            Bucket = bucket;
+            Bucket = bucket ?? throw new ArgumentNullException(nameof(bucket));
         }
 
         public IGridFSBucket<BsonValue> Bucket { get; }

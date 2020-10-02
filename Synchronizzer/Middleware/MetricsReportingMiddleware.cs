@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace Synchronizzer.Middleware
         public MetricsReportingMiddleware(RequestDelegate next, Components.IMetricsReader metricsReader)
 #pragma warning restore CA1801 // Remove unused parameter
         {
-            _metricsReader = metricsReader;
+            _metricsReader = metricsReader ?? throw new ArgumentNullException(nameof(metricsReader));
         }
 
         public async Task Invoke(HttpContext context)

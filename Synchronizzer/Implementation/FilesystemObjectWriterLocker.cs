@@ -20,7 +20,7 @@ namespace Synchronizzer.Implementation
                 throw new ArgumentException("Invalid lock name.", nameof(lockName));
             }
 
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             _lockName = lockName;
         }
 

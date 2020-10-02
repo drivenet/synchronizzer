@@ -14,10 +14,10 @@ namespace Synchronizzer.Implementation
 
         public RemoteWriter(string address, IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker)
         {
-            Address = address;
-            _source = source;
-            _writer = writer;
-            _locker = locker;
+            Address = address ?? throw new ArgumentNullException(nameof(address));
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            _locker = locker ?? throw new ArgumentNullException(nameof(locker));
         }
 
         public string Address { get; }
@@ -49,6 +49,11 @@ namespace Synchronizzer.Implementation
 
         public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
         {
+            if (readOnlyInput is null)
+            {
+                throw new ArgumentNullException(nameof(readOnlyInput));
+            }
+
             CheckObjectName(objectName);
             await Task.WhenAll(
                 _locker.Lock(cancellationToken),
@@ -57,7 +62,8 @@ namespace Synchronizzer.Implementation
 
         private static void CheckObjectName(string objectName)
         {
-            if (objectName.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase))
+            if (objectName.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase)
+                || objectName.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Cannot use object name that is prefixed with locks.");
             }

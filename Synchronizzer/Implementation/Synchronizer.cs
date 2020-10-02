@@ -15,9 +15,9 @@ namespace Synchronizzer.Implementation
 
         public Synchronizer(ILocalReader localReader, IRemoteWriter remoteWriter, IQueuingTaskManager taskManager, ILogger<Synchronizer>? logger)
         {
-            _localReader = localReader;
-            _remoteWriter = remoteWriter;
-            _taskManager = taskManager;
+            _localReader = localReader ?? throw new ArgumentNullException(nameof(localReader));
+            _remoteWriter = remoteWriter ?? throw new ArgumentNullException(nameof(remoteWriter));
+            _taskManager = taskManager ?? throw new ArgumentNullException(nameof(taskManager));
             _logger = logger;
         }
 

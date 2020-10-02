@@ -6,9 +6,9 @@ namespace Synchronizzer.Composition
     {
         public SyncInfo(string name, string local, string remote, string? recycle)
         {
-            Name = name;
-            Local = local;
-            Remote = remote;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Local = local ?? throw new ArgumentNullException(nameof(local));
+            Remote = remote ?? throw new ArgumentNullException(nameof(remote));
             Recycle = recycle;
         }
 

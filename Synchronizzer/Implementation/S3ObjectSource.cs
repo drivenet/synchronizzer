@@ -14,7 +14,7 @@ namespace Synchronizzer.Implementation
 
         public S3ObjectSource(S3Context context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
