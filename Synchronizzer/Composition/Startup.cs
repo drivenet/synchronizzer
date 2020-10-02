@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Synchronizzer.Composition
 {
@@ -24,7 +25,11 @@ namespace Synchronizzer.Composition
             services.AddSingleton<Components.IMetricsWriter>(provider => provider.GetRequiredService<Components.MetricsContainer>());
             services.AddHostedService<Implementation.SyncService>();
             services.AddSingleton<ISyncTimeHolderResolver>(SyncTimeHolderResolver.Instance);
-            services.AddSingleton<Implementation.ISynchronizer, JobManagingSynchronizer>();
+            services.AddSingleton<JobManagingSynchronizer>();
+            services.AddSingleton<Implementation.ISynchronizer>(
+                provider => new TracingRootSynchronizer(
+                    provider.GetRequiredService<JobManagingSynchronizer>(),
+                    provider.GetRequiredService<ILogger<TracingRootSynchronizer>>()));
             services.AddSingleton<ISynchronizationJobFactory, SynchronizationJobFactory>();
             services.AddSingleton<IEnumerable<SyncInfo>, SyncInfoResolver>();
             services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
