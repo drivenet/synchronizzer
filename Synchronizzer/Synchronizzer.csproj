@@ -4,7 +4,7 @@
   <PropertyGroup>
     <TargetFramework>$(NewApplicationTargetFramework)</TargetFramework>
     <AssemblyName>synchronizzer</AssemblyName>
-    <Version>0.12.2</Version>
+    <Version>0.12.3</Version>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CA2007</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
@@ -29,9 +29,6 @@
 
   <ItemGroup>
     <Content Update="appsettings.json">
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </Content>
-    <Content Update="hostingsettings.json">
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
