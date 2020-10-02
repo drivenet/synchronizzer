@@ -30,7 +30,12 @@ namespace Synchronizzer.Composition
                 provider => new TracingRootSynchronizer(
                     provider.GetRequiredService<JobManagingSynchronizer>(),
                     provider.GetRequiredService<ILogger<TracingRootSynchronizer>>()));
-            services.AddSingleton<ISynchronizationJobFactory, SynchronizationJobFactory>();
+            services.AddSingleton<SynchronizationJobFactory>();
+            services.AddSingleton<ISynchronizationJobFactory>(
+                provider => new RobustJobFactory(
+                    new TracingJobFactory(
+                        provider.GetRequiredService<SynchronizationJobFactory>(),
+                        provider.GetRequiredService<ILogger<TracingJobFactory>>())));
             services.AddSingleton<IEnumerable<SyncInfo>, SyncInfoResolver>();
             services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
             services.AddSingleton<ILocalReaderResolver, LocalReaderResolver>();
