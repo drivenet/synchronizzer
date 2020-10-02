@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,18 +10,20 @@ namespace Synchronizzer.Implementation
     {
         private const string LockExtension = ".lock";
 
+        private static readonly Regex LockNameFilter = new Regex("^[a-zA-Z0-9_-]{1,64}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
         private readonly FilesystemContext _context;
         private readonly string _lockName;
         private bool _isLocked;
 
         public FilesystemObjectWriterLocker(FilesystemContext context, string lockName)
         {
-            if (string.IsNullOrEmpty(lockName))
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            if (!LockNameFilter.IsMatch(lockName))
             {
-                throw new ArgumentException("Invalid lock name.", nameof(lockName));
+                throw new ArgumentException("Invalid filesystem lock name.", nameof(lockName));
             }
 
-            _context = context ?? throw new ArgumentNullException(nameof(context));
             _lockName = lockName;
         }
 
@@ -50,7 +53,7 @@ namespace Synchronizzer.Implementation
             var path = FilesystemUtils.PreparePath(FilesystemConstants.LockPath, _context);
             cancellationToken.ThrowIfCancellationRequested();
             Directory.CreateDirectory(path);
-            foreach (var key in Directory.GetFiles(path, "*" + LockExtension, SearchOption.AllDirectories))
+            foreach (var key in Directory.GetFiles(path, "*" + LockExtension))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var lockTime = File.GetLastWriteTime(key).ToUniversalTime();
@@ -60,7 +63,8 @@ namespace Synchronizzer.Implementation
                 }
                 else
                 {
-                    if (key == _lockName)
+                    var lockName = Path.GetFileNameWithoutExtension(key);
+                    if (lockName == _lockName)
                     {
                         break;
                     }
