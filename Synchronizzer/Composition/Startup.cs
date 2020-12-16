@@ -18,6 +18,10 @@ namespace Synchronizzer.Composition
 
         public void ConfigureServices(IServiceCollection services)
         {
+#pragma warning disable CS0618 // Type or member is obsolete -- required for migration to new driver version
+            MongoDB.Bson.BsonDefaults.GuidRepresentationMode = MongoDB.Bson.GuidRepresentationMode.V3;
+#pragma warning restore CS0618 // Type or member is obsolete
+
             services.Configure<SyncOptions>(_configuration);
             services.ConfigureOptions<SyncOptionsConfig>();
             services.AddSingleton<Components.MetricsContainer>();
