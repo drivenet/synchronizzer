@@ -46,6 +46,9 @@ namespace Synchronizzer.Composition
             services.AddSingleton<IRemoteWriterResolver, RemoteWriterResolver>();
             services.AddSingleton<IQueuingTaskManagerSelector, QueuingTaskManagerSelector>();
             services.AddSingleton<Implementation.IQueuingSettings, QueuingSettings>();
+
+            services.AddSingleton<Middleware.MetricsReportingMiddleware>();
+            services.AddSingleton<Middleware.VersionMiddleware>();
         }
 
 #pragma warning disable CA1822 // Mark members as static -- future-proofing

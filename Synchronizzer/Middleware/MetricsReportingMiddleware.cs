@@ -7,20 +7,18 @@ using Microsoft.AspNetCore.Http;
 
 namespace Synchronizzer.Middleware
 {
-    internal sealed class MetricsReportingMiddleware
+    internal sealed class MetricsReportingMiddleware : IMiddleware
     {
         private static readonly char[] PathChars = new[] { '/' };
 
         private readonly Components.IMetricsReader _metricsReader;
 
-#pragma warning disable CA1801 // Remove unused parameter -- required for middleware
-        public MetricsReportingMiddleware(RequestDelegate next, Components.IMetricsReader metricsReader)
-#pragma warning restore CA1801 // Remove unused parameter
+        public MetricsReportingMiddleware(Components.IMetricsReader metricsReader)
         {
             _metricsReader = metricsReader ?? throw new ArgumentNullException(nameof(metricsReader));
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (context.Request.Method != "GET")
             {

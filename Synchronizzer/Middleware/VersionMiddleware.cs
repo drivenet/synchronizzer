@@ -7,22 +7,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace Synchronizzer.Middleware
 {
-    internal sealed class VersionMiddleware
+    internal sealed class VersionMiddleware : IMiddleware
     {
         private static readonly ReadOnlyMemory<byte> VersionBytes = Encoding.ASCII.GetBytes(Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "?").AsMemory();
 
-        private readonly RequestDelegate _next;
-
-        public VersionMiddleware(RequestDelegate next)
-        {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
-
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (context.Request.Path.HasValue)
             {
-                await _next(context);
+                await next(context);
                 return;
             }
 
