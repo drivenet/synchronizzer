@@ -72,6 +72,7 @@ namespace Synchronizzer.Implementation
                 InputStream = readOnlyInput,
                 AutoCloseStream = false,
                 StorageClass = _context.StorageClass,
+                DisablePayloadSigning = true,
             };
             await _context.S3.Invoke((s3, token) => s3.PutObjectAsync(request, token), cancellationToken);
         }
