@@ -26,7 +26,13 @@ namespace Synchronizzer.Middleware
                 return;
             }
 
-            var metricName = context.Request.Path.Value.TrimStart(PathChars);
+            if (context.Request.Path.Value is not { } pathValue)
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+
+            var metricName = pathValue.TrimStart(PathChars);
             var metricValue = _metricsReader.GetValue(metricName);
             var metricString = (metricValue ?? 0).ToString(CultureInfo.InvariantCulture);
             var bytes = Encoding.UTF8.GetBytes(metricString);

@@ -26,7 +26,11 @@ namespace Synchronizzer.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             if (recyclePath is object)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(recyclePath));
+                if (Path.GetDirectoryName(path) is { } directory)
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
                 try
                 {
                     File.Move(path, recyclePath, true);
@@ -61,8 +65,7 @@ namespace Synchronizzer.Implementation
             var rootLength = root.Length;
             while (true)
             {
-                var directory = Path.GetDirectoryName(path);
-                if (directory is null)
+                if (Path.GetDirectoryName(path) is not { } directory)
                 {
                     break;
                 }
@@ -93,7 +96,11 @@ namespace Synchronizzer.Implementation
         {
             var path = FilesystemUtils.PreparePath(objectName, _context);
             cancellationToken.ThrowIfCancellationRequested();
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            if (Path.GetDirectoryName(path) is { } directory)
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             using var file = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Read | FileShare.Delete);
             await readOnlyInput.CopyToAsync(file, cancellationToken);
         }

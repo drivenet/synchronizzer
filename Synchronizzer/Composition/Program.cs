@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 
 using Tmds.Systemd;
 
@@ -65,10 +64,9 @@ namespace Synchronizzer.Composition
                  || !Journal.IsAvailable)
 #endif
             {
-                loggingBuilder.AddConsole(options =>
+                loggingBuilder.AddSystemdConsole(options =>
                 {
                     options.IncludeScopes = true;
-                    options.Format = ConsoleLoggerFormat.Systemd;
                     options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffffffzzz \""
                         + Environment.MachineName
                         + "\" \""

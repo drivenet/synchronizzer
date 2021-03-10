@@ -1,12 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\shared\Minimal.props" />
 
   <PropertyGroup>
-    <TargetFramework>$(NewApplicationTargetFramework)</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <LangVersion>8.0</LangVersion>
+    <TargetFramework>$(ApplicationTargetFramework)</TargetFramework>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

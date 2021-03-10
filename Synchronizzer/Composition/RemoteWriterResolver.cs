@@ -36,7 +36,7 @@ namespace Synchronizzer.Composition
 
             if (uri.Scheme.Equals("s3", StringComparison.OrdinalIgnoreCase))
             {
-                return CreateS3Writer(address, recycleAddress, uri);
+                return CreateS3Writer(recycleAddress, uri);
             }
 
             return CreateFilesystemWriter(address, recycleAddress, uri);
@@ -62,7 +62,7 @@ namespace Synchronizzer.Composition
 
         private IObjectSource Trace(IObjectSource inner, string source) => new TracingObjectSource(inner, source, _objectSourceLogger);
 
-        private IRemoteWriter CreateS3Writer(string address, string? recycleAddress, Uri uri)
+        private IRemoteWriter CreateS3Writer(string? recycleAddress, Uri uri)
         {
             var context = S3Utils.CreateWriteContext(uri);
             S3WriteContext? recycleContext;
@@ -70,7 +70,7 @@ namespace Synchronizzer.Composition
             {
                 if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(address), "Invalid S3 recycle address.");
+                    throw new ArgumentOutOfRangeException(nameof(recycleAddress), "Invalid S3 recycle address.");
                 }
 
                 recycleContext = S3Utils.CreateWriteContext(recycleUri);
@@ -81,7 +81,7 @@ namespace Synchronizzer.Composition
             }
 
             var remoteAddress = context.S3.ServiceUrl.AbsoluteUri;
-            var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Process.GetCurrentProcess().Id}_{Guid.NewGuid():N}");
+            var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
             const byte S3Retries = 30;
             return new RemoteWriter(
                 remoteAddress,
@@ -124,7 +124,7 @@ namespace Synchronizzer.Composition
             }
 
             const byte FilesystemRetries = 10;
-            var lockName = FormattableString.Invariant($"{Process.GetCurrentProcess().Id}_{Guid.NewGuid():N}");
+            var lockName = FormattableString.Invariant($"{Environment.ProcessId}_{Guid.NewGuid():N}");
             return new RemoteWriter(
                 address,
                 Trace(
