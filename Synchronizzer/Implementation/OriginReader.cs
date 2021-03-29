@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
 {
-    internal sealed class LocalReader : ILocalReader
+    internal sealed class OriginReader : IOriginReader
     {
         private readonly IObjectSource _source;
         private readonly IObjectReader _reader;
 
-        public LocalReader(IObjectSource source, IObjectReader reader)
+        public OriginReader(IObjectSource source, IObjectReader reader)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));

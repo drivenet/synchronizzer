@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
 {
-    internal interface IRemoteWriter : IObjectSource, IObjectWriter
+    internal interface IDestinationWriter : IObjectSource, IObjectWriter
     {
         string Address { get; }
 

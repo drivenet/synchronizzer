@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+
+using Microsoft.Extensions.Logging;
 
 using Synchronizzer.Implementation;
 
@@ -8,41 +10,41 @@ namespace Synchronizzer.Composition
     {
         private readonly ILogger<TracingSynchronizer> _syncLogger;
         private readonly ILogger<Synchronizer> _synchronizerLogger;
-        private readonly ILocalReaderResolver _localReaderResolver;
-        private readonly IRemoteWriterResolver _remoteWriterResolver;
+        private readonly IOriginReaderResolver _originReaderResolver;
+        private readonly IDestinationWriterResolver _destinationWriterResolver;
         private readonly IQueuingTaskManagerSelector _taskManagerSelector;
         private readonly ISyncTimeHolderResolver _syncTimeHolderResolver;
 
         public SynchronizerFactory(
             ILogger<TracingSynchronizer> syncLogger,
             ILogger<Synchronizer> synchronizerLogger,
-            ILocalReaderResolver localReaderResolver,
-            IRemoteWriterResolver remoteWriterResolver,
+            IOriginReaderResolver originReaderResolver,
+            IDestinationWriterResolver destinationWriterResolver,
             IQueuingTaskManagerSelector taskManagerSelector,
             ISyncTimeHolderResolver syncTimeHolderResolver)
         {
-            _syncLogger = syncLogger ?? throw new System.ArgumentNullException(nameof(syncLogger));
-            _synchronizerLogger = synchronizerLogger ?? throw new System.ArgumentNullException(nameof(synchronizerLogger));
-            _localReaderResolver = localReaderResolver ?? throw new System.ArgumentNullException(nameof(localReaderResolver));
-            _remoteWriterResolver = remoteWriterResolver ?? throw new System.ArgumentNullException(nameof(remoteWriterResolver));
-            _taskManagerSelector = taskManagerSelector ?? throw new System.ArgumentNullException(nameof(taskManagerSelector));
-            _syncTimeHolderResolver = syncTimeHolderResolver ?? throw new System.ArgumentNullException(nameof(syncTimeHolderResolver));
+            _syncLogger = syncLogger ?? throw new ArgumentNullException(nameof(syncLogger));
+            _synchronizerLogger = synchronizerLogger ?? throw new ArgumentNullException(nameof(synchronizerLogger));
+            _originReaderResolver = originReaderResolver ?? throw new ArgumentNullException(nameof(originReaderResolver));
+            _destinationWriterResolver = destinationWriterResolver ?? throw new ArgumentNullException(nameof(destinationWriterResolver));
+            _taskManagerSelector = taskManagerSelector ?? throw new ArgumentNullException(nameof(taskManagerSelector));
+            _syncTimeHolderResolver = syncTimeHolderResolver ?? throw new ArgumentNullException(nameof(syncTimeHolderResolver));
         }
 
         public ISynchronizer Create(SyncInfo info)
         {
-            var localReader = _localReaderResolver.Resolve(info.Local);
-            var remoteWriter = _remoteWriterResolver.Resolve(info.Remote, info.Recycle);
-            var taskManager = _taskManagerSelector.Select(remoteWriter.Address);
-            var synchronizer = Create(info.Name, localReader, remoteWriter, taskManager);
+            var originReader = _originReaderResolver.Resolve(info.Origin);
+            var destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle);
+            var taskManager = _taskManagerSelector.Select(destinationWriter.Address);
+            var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager);
             return synchronizer;
         }
 
-        private ISynchronizer Create(string name, ILocalReader localReader, IRemoteWriter remoteWriter, IQueuingTaskManager taskManager)
+        private ISynchronizer Create(string name, IOriginReader originReader, IDestinationWriter destinationWriter, IQueuingTaskManager taskManager)
             => new TimedSynchronizer(
                 new RobustSynchronizer(
                     new TracingSynchronizer(
-                        new Synchronizer(localReader, remoteWriter, taskManager, _synchronizerLogger),
+                        new Synchronizer(originReader, destinationWriter, taskManager, _synchronizerLogger),
                         _syncLogger,
                         name)),
                 _syncTimeHolderResolver.Resolve(name));

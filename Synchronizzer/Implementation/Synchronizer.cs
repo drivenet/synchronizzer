@@ -8,22 +8,22 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class Synchronizer : ISynchronizer
     {
-        private readonly ILocalReader _localReader;
-        private readonly IRemoteWriter _remoteWriter;
+        private readonly IOriginReader _originReader;
+        private readonly IDestinationWriter _destinationWriter;
         private readonly IQueuingTaskManager _taskManager;
         private readonly ILogger? _logger;
 
-        public Synchronizer(ILocalReader localReader, IRemoteWriter remoteWriter, IQueuingTaskManager taskManager, ILogger<Synchronizer>? logger)
+        public Synchronizer(IOriginReader originReader, IDestinationWriter destinationWriter, IQueuingTaskManager taskManager, ILogger<Synchronizer>? logger)
         {
-            _localReader = localReader ?? throw new ArgumentNullException(nameof(localReader));
-            _remoteWriter = remoteWriter ?? throw new ArgumentNullException(nameof(remoteWriter));
+            _originReader = originReader ?? throw new ArgumentNullException(nameof(originReader));
+            _destinationWriter = destinationWriter ?? throw new ArgumentNullException(nameof(destinationWriter));
             _taskManager = taskManager ?? throw new ArgumentNullException(nameof(taskManager));
             _logger = logger;
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)
         {
-            await _remoteWriter.TryLock(cancellationToken);
+            await _destinationWriter.TryLock(cancellationToken);
             try
             {
                 await SynchronizeCore(cancellationToken);
@@ -36,7 +36,7 @@ namespace Synchronizzer.Implementation
                 }
                 finally
                 {
-                    await _remoteWriter.Unlock();
+                    await _destinationWriter.Unlock();
                 }
             }
         }
@@ -44,20 +44,20 @@ namespace Synchronizzer.Implementation
         private async Task SynchronizeCore(CancellationToken cancellationToken)
         {
             string? lastName = null;
-            var localInfos = new ObjectInfos(_localReader, lastName);
-            var remoteInfos = new ObjectInfos(_remoteWriter, lastName);
+            var originInfos = new ObjectInfos(_originReader, lastName);
+            var destinationInfos = new ObjectInfos(_destinationWriter, lastName);
             while (true)
             {
                 _logger?.LogDebug(Events.Populating, "Populating infos.");
                 await Task.WhenAll(
-                    localInfos.Populate(cancellationToken),
-                    remoteInfos.Populate(cancellationToken));
+                    originInfos.Populate(cancellationToken),
+                    destinationInfos.Populate(cancellationToken));
                 _logger?.LogDebug(Events.Populated, "Populated infos.");
                 var counts = await Task.WhenAll(
-                    SynchronizeLocal(localInfos, remoteInfos, cancellationToken),
-                    SynchronizeRemote(localInfos, remoteInfos, cancellationToken));
+                    SynchronizeOrigin(originInfos, destinationInfos, cancellationToken),
+                    SynchronizeDestination(originInfos, destinationInfos, cancellationToken));
 
-                if (!remoteInfos.IsLive && !localInfos.IsLive)
+                if (!destinationInfos.IsLive && !originInfos.IsLive)
                 {
                     break;
                 }
@@ -65,36 +65,36 @@ namespace Synchronizzer.Implementation
                 if (counts[0] == 0 && counts[1] == 0)
                 {
                     throw new InvalidProgramException(
-                        FormattableString.Invariant($"No progress for iteration.\nLocal: {localInfos}\nRemote: {remoteInfos}\n"));
+                        FormattableString.Invariant($"No progress for iteration.\nOrigin: {originInfos}\nDestination: {destinationInfos}\n"));
                 }
             }
         }
 
-        private async Task<uint> SynchronizeLocal(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<uint> SynchronizeOrigin(ObjectInfos originInfos, ObjectInfos destinationInfos, CancellationToken cancellationToken)
         {
-            _logger?.LogDebug(Events.SynchronizingLocal, "Synchronizing local, last name: \"{LastName}\".", localInfos.LastName);
+            _logger?.LogDebug(Events.SynchronizingOrigin, "Synchronizing origin, last name: \"{LastName}\".", originInfos.LastName);
             uint count;
             try
             {
-                count = await SynchronizeLocalCore(localInfos, remoteInfos, cancellationToken);
+                count = await SynchronizeOriginCore(originInfos, destinationInfos, cancellationToken);
             }
             catch (Exception exception)
             {
-                _logger?.LogWarning(Events.SynchronizeLocalFailed, exception, "Failed to synchronize local.");
+                _logger?.LogWarning(Events.SynchronizeOriginFailed, exception, "Failed to synchronize origin.");
                 throw;
             }
 
-            _logger?.LogInformation(Events.SynchronizedLocal, "Synchronized local, count: {Count}, last name: \"{LastName}\".", count, localInfos.LastName);
+            _logger?.LogInformation(Events.SynchronizedOrigin, "Synchronized origin, count: {Count}, last name: \"{LastName}\".", count, originInfos.LastName);
             return count;
         }
 
-        private async Task<uint> SynchronizeLocalCore(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<uint> SynchronizeOriginCore(ObjectInfos originInfos, ObjectInfos destinationInfos, CancellationToken cancellationToken)
         {
             var count = 0u;
-            foreach (var objectInfo in localInfos)
+            foreach (var objectInfo in originInfos)
             {
                 var name = objectInfo.Name;
-                if (remoteInfos.LastName is string lastName
+                if (destinationInfos.LastName is string lastName
                     && string.CompareOrdinal(name, lastName) > 0)
                 {
                     break;
@@ -102,7 +102,7 @@ namespace Synchronizzer.Implementation
 
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!objectInfo.IsHidden
-                    && !remoteInfos.HasObject(objectInfo))
+                    && !destinationInfos.HasObject(objectInfo))
                 {
                     await _taskManager.Enqueue(
                         this,
@@ -110,7 +110,7 @@ namespace Synchronizzer.Implementation
                         cancellationToken);
                 }
 
-                localInfos.Skip();
+                originInfos.Skip();
                 ++count;
             }
 
@@ -119,38 +119,38 @@ namespace Synchronizzer.Implementation
 
         private async Task Upload(string name, CancellationToken cancellationToken)
         {
-            using var input = await _localReader.Read(name, cancellationToken);
+            using var input = await _originReader.Read(name, cancellationToken);
             if (input is object)
             {
-                await _remoteWriter.Upload(name, input, cancellationToken);
+                await _destinationWriter.Upload(name, input, cancellationToken);
             }
         }
 
-        private async Task<uint> SynchronizeRemote(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<uint> SynchronizeDestination(ObjectInfos originInfos, ObjectInfos destinationInfos, CancellationToken cancellationToken)
         {
-            _logger?.LogDebug(Events.SynchronizingRemote, "Synchronizing remote, last name: \"{LastName}\".", remoteInfos.LastName);
+            _logger?.LogDebug(Events.SynchronizingDestination, "Synchronizing destination, last name: \"{LastName}\".", destinationInfos.LastName);
             uint count;
             try
             {
-                count = await SynchronizeRemoteCore(localInfos, remoteInfos, cancellationToken);
+                count = await SynchronizeDestinationCore(originInfos, destinationInfos, cancellationToken);
             }
             catch (Exception exception)
             {
-                _logger?.LogWarning(Events.SynchronizeRemoteFailed, exception, "Failed to synchronize remote.");
+                _logger?.LogWarning(Events.SynchronizeDestinationFailed, exception, "Failed to synchronize destination.");
                 throw;
             }
 
-            _logger?.LogInformation(Events.SynchronizedRemote, "Synchronized remote, count: {Count}, last name: \"{LastName}\".", count, remoteInfos.LastName);
+            _logger?.LogInformation(Events.SynchronizedDestination, "Synchronized destination, count: {Count}, last name: \"{LastName}\".", count, destinationInfos.LastName);
             return count;
         }
 
-        private async Task<uint> SynchronizeRemoteCore(ObjectInfos localInfos, ObjectInfos remoteInfos, CancellationToken cancellationToken)
+        private async Task<uint> SynchronizeDestinationCore(ObjectInfos originInfos, ObjectInfos destinationInfos, CancellationToken cancellationToken)
         {
             var count = 0u;
-            foreach (var objectInfo in remoteInfos)
+            foreach (var objectInfo in destinationInfos)
             {
                 var name = objectInfo.Name;
-                if (localInfos.LastName is string lastName
+                if (originInfos.LastName is string lastName
                     && string.CompareOrdinal(name, lastName) > 0)
                 {
                     break;
@@ -158,15 +158,15 @@ namespace Synchronizzer.Implementation
 
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!objectInfo.IsHidden
-                    && !localInfos.HasObjectByName(objectInfo))
+                    && !originInfos.HasObjectByName(objectInfo))
                 {
                     await _taskManager.Enqueue(
                         this,
-                        token => _remoteWriter.Delete(name, token),
+                        token => _destinationWriter.Delete(name, token),
                         cancellationToken);
                 }
 
-                remoteInfos.Skip();
+                destinationInfos.Skip();
                 ++count;
             }
 
@@ -177,12 +177,12 @@ namespace Synchronizzer.Implementation
         {
             public static readonly EventId Populating = new EventId(1, nameof(Populating));
             public static readonly EventId Populated = new EventId(2, nameof(Populated));
-            public static readonly EventId SynchronizingLocal = new EventId(3, nameof(SynchronizingLocal));
-            public static readonly EventId SynchronizedLocal = new EventId(4, nameof(SynchronizedLocal));
-            public static readonly EventId SynchronizeLocalFailed = new EventId(5, nameof(SynchronizeLocalFailed));
-            public static readonly EventId SynchronizingRemote = new EventId(6, nameof(SynchronizingRemote));
-            public static readonly EventId SynchronizedRemote = new EventId(7, nameof(SynchronizedRemote));
-            public static readonly EventId SynchronizeRemoteFailed = new EventId(8, nameof(SynchronizeRemoteFailed));
+            public static readonly EventId SynchronizingOrigin = new EventId(3, nameof(SynchronizingOrigin));
+            public static readonly EventId SynchronizedOrigin = new EventId(4, nameof(SynchronizedOrigin));
+            public static readonly EventId SynchronizeOriginFailed = new EventId(5, nameof(SynchronizeOriginFailed));
+            public static readonly EventId SynchronizingDestination = new EventId(6, nameof(SynchronizingDestination));
+            public static readonly EventId SynchronizedDestination = new EventId(7, nameof(SynchronizedDestination));
+            public static readonly EventId SynchronizeDestinationFailed = new EventId(8, nameof(SynchronizeDestinationFailed));
         }
     }
 }

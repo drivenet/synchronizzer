@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 using Microsoft.Extensions.Logging;
 
@@ -8,14 +7,14 @@ using Synchronizzer.Implementation;
 
 namespace Synchronizzer.Composition
 {
-    internal sealed class RemoteWriterResolver : IRemoteWriterResolver
+    internal sealed class DestinationWriterResolver : IDestinationWriterResolver
     {
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectWriterLocker> _lockerLogger;
 
-        public RemoteWriterResolver(
+        public DestinationWriterResolver(
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectWriter> objectLogger,
             ILogger<TracingObjectSource> objectSourceLogger,
@@ -27,11 +26,11 @@ namespace Synchronizzer.Composition
             _lockerLogger = lockerLogger ?? throw new ArgumentNullException(nameof(lockerLogger));
         }
 
-        public IRemoteWriter Resolve(string address, string? recycleAddress)
+        public IDestinationWriter Resolve(string address, string? recycleAddress)
         {
             if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
             {
-                throw new ArgumentOutOfRangeException(nameof(address), "Invalid remote address.");
+                throw new ArgumentOutOfRangeException(nameof(address), "Invalid destination address.");
             }
 
             if (uri.Scheme.Equals("s3", StringComparison.OrdinalIgnoreCase))
@@ -62,7 +61,7 @@ namespace Synchronizzer.Composition
 
         private IObjectSource Trace(IObjectSource inner, string source) => new TracingObjectSource(inner, source, _objectSourceLogger);
 
-        private IRemoteWriter CreateS3Writer(string? recycleAddress, Uri uri)
+        private IDestinationWriter CreateS3Writer(string? recycleAddress, Uri uri)
         {
             var context = S3Utils.CreateWriteContext(uri);
             S3WriteContext? recycleContext;
@@ -80,17 +79,17 @@ namespace Synchronizzer.Composition
                 recycleContext = null;
             }
 
-            var remoteAddress = context.S3.ServiceUrl.AbsoluteUri;
+            var destinationAddress = context.S3.ServiceUrl.AbsoluteUri;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
             const byte S3Retries = 30;
-            return new RemoteWriter(
-                remoteAddress,
+            return new DestinationWriter(
+                destinationAddress,
                 Retry(
                     Trace(
                         Count(
                             new S3ObjectSource(context),
-                            "remote.s3"),
-                        "remote"),
+                            "destination.s3"),
+                        "destination"),
                     S3Retries),
                 Robust(
                     Trace(
@@ -105,7 +104,7 @@ namespace Synchronizzer.Composition
                             S3Retries))));
         }
 
-        private IRemoteWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri)
+        private IDestinationWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri)
         {
             var context = FilesystemUtils.CreateContext(uri);
             FilesystemContext? recycleContext;
@@ -125,13 +124,13 @@ namespace Synchronizzer.Composition
 
             const byte FilesystemRetries = 10;
             var lockName = FormattableString.Invariant($"{Environment.ProcessId}_{Guid.NewGuid():N}");
-            return new RemoteWriter(
+            return new DestinationWriter(
                 address,
                 Trace(
                     Count(
                         new FilesystemObjectSource(context),
-                        "remote.fs"),
-                    "remote"),
+                        "destination.fs"),
+                    "destination"),
                 Trace(
                     Count(
                         new FilesystemObjectWriter(context, recycleContext),

@@ -7,13 +7,13 @@ using Synchronizzer.Implementation;
 
 namespace Synchronizzer.Composition
 {
-    internal sealed class LocalReaderResolver : ILocalReaderResolver
+    internal sealed class OriginReaderResolver : IOriginReaderResolver
     {
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectReader> _objectReaderLogger;
 
-        public LocalReaderResolver(
+        public OriginReaderResolver(
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectSource> objectSourceLogger,
             ILogger<TracingObjectReader> objectReaderLogger)
@@ -23,7 +23,7 @@ namespace Synchronizzer.Composition
             _objectReaderLogger = objectReaderLogger ?? throw new ArgumentNullException(nameof(objectReaderLogger));
         }
 
-        public ILocalReader Resolve(string address)
+        public IOriginReader Resolve(string address)
         {
             if (Uri.TryCreate(address, UriKind.Absolute, out var uri))
             {
@@ -40,7 +40,7 @@ namespace Synchronizzer.Composition
                 return CreateGridFSReader(address);
             }
 
-            throw new ArgumentOutOfRangeException(nameof(address), "Invalid local address.");
+            throw new ArgumentOutOfRangeException(nameof(address), "Invalid origin address.");
         }
 
         private static IObjectReader Robust(IObjectReader reader)
@@ -62,16 +62,16 @@ namespace Synchronizzer.Composition
             => new TracingObjectReader(reader, _objectReaderLogger);
 
         private IObjectSource Trace(IObjectSource source)
-            => new TracingObjectSource(source, "local", _objectSourceLogger);
+            => new TracingObjectSource(source, "origin", _objectSourceLogger);
 
-        private ILocalReader CreateFilesystemReader(Uri uri)
+        private IOriginReader CreateFilesystemReader(Uri uri)
         {
             var context = FilesystemUtils.CreateContext(uri);
-            return new LocalReader(
+            return new OriginReader(
                 Trace(
                     Count(
                         new FilesystemObjectSource(context),
-                        "local.fs")),
+                        "origin.fs")),
                 Robust(
                     Trace(
                         Count(
@@ -79,14 +79,14 @@ namespace Synchronizzer.Composition
                             "fs"))));
         }
 
-        private ILocalReader CreateS3Reader(Uri uri)
+        private IOriginReader CreateS3Reader(Uri uri)
         {
             var context = S3Utils.CreateContext(uri);
-            return new LocalReader(
+            return new OriginReader(
                 Trace(
                     Count(
                         new S3ObjectSource(context),
-                        "local.s3")),
+                        "origin.s3")),
                 Robust(
                     Trace(
                         Count(
@@ -94,16 +94,16 @@ namespace Synchronizzer.Composition
                             "s3"))));
         }
 
-        private ILocalReader CreateGridFSReader(string address)
+        private IOriginReader CreateGridFSReader(string address)
         {
             const byte GridFSRetries = 10;
             var context = GridFSUtils.CreateContext(address);
-            return new LocalReader(
+            return new OriginReader(
                 Retry(
                     Trace(
                         Count(
                             new GridFSObjectSource(context),
-                            "local.gridfs")),
+                            "origin.gridfs")),
                     GridFSRetries),
                 Robust(
                     Trace(

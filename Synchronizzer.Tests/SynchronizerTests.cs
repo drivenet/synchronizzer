@@ -77,30 +77,30 @@ namespace Synchronizzer.Tests
 
         [Theory]
         [MemberData(nameof(Sources))]
-        internal void Test(IEnumerable<ObjectInfo> localInfos, IEnumerable<ObjectInfo> remoteInfos)
+        internal void Test(IEnumerable<ObjectInfo> originInfos, IEnumerable<ObjectInfo> destinationInfos)
         {
-            localInfos = localInfos.ToList();
-            remoteInfos = remoteInfos.ToList();
-            var localSource = new ObjectSourceStub(localInfos);
+            originInfos = originInfos.ToList();
+            destinationInfos = destinationInfos.ToList();
+            var originSource = new ObjectSourceStub(originInfos);
             var reader = new ObjectReaderMock();
-            var remoteSource = new ObjectSourceStub(remoteInfos);
+            var destinationSource = new ObjectSourceStub(destinationInfos);
             var writer = new ObjectWriterMock();
-            var localReader = new LocalReader(localSource, reader);
+            var originReader = new OriginReader(originSource, reader);
             var locker = new ObjectWriterLockerStub();
-            var remoteWriter = new RemoteWriter("", remoteSource, writer, locker);
+            var destinationWriter = new DestinationWriter("", destinationSource, writer, locker);
             var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
-            var synchronizer = new Synchronizer(localReader, remoteWriter, taskManager, null);
+            var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, null);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 
-            var deleted = remoteInfos
+            var deleted = destinationInfos
                 .Where(info => !info.IsHidden)
                 .Select(info => info.Name)
                 .ToHashSet();
-            var uploaded = localInfos
+            var uploaded = originInfos
                 .Where(info => !info.IsHidden && !deleted.Contains(info.Name))
                 .Select(info => (info.Name, reader.GetStream(info.Name)))
                 .ToHashSet();
-            deleted.ExceptWith(localInfos.Select(info => info.Name));
+            deleted.ExceptWith(originInfos.Select(info => info.Name));
             Assert.True(deleted.SetEquals(writer.GetDeletes()));
             Assert.True(uploaded.SetEquals(writer.GetUploads()));
         }

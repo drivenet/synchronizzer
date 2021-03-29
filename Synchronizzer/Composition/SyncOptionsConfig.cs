@@ -29,8 +29,8 @@ namespace Synchronizzer.Composition
             var template = _configuration.GetSection("vars");
             foreach (var job in jobs)
             {
-                job.Local = ReplaceAddress(job.Local, template);
-                job.Remote = ReplaceAddress(job.Remote, template);
+                job.Origin = ReplaceAddress(job.Origin, template);
+                job.Destination = ReplaceAddress(job.Destination, template);
                 job.Recycle = ReplaceAddress(job.Recycle, template);
             }
         }

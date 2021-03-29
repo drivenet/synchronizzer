@@ -2,8 +2,8 @@
 
 namespace Synchronizzer.Composition
 {
-    internal interface ILocalReaderResolver
+    internal interface IOriginReaderResolver
     {
-        ILocalReader Resolve(string address);
+        IOriginReader Resolve(string address);
     }
 }

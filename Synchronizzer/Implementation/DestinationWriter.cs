@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
 {
-    internal sealed class RemoteWriter : IRemoteWriter
+    internal sealed class DestinationWriter : IDestinationWriter
     {
         private readonly IObjectSource _source;
         private readonly IObjectWriter _writer;
         private readonly IObjectWriterLocker _locker;
 
-        public RemoteWriter(string address, IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker)
+        public DestinationWriter(string address, IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker)
         {
             Address = address ?? throw new ArgumentNullException(nameof(address));
             _source = source ?? throw new ArgumentNullException(nameof(source));

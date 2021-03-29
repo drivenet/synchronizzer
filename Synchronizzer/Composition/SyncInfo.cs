@@ -4,29 +4,27 @@ namespace Synchronizzer.Composition
 {
     internal sealed class SyncInfo : IEquatable<SyncInfo>
     {
-        public SyncInfo(string name, string local, string remote, string? recycle)
+        public SyncInfo(string name, string origin, string destination, string? recycle)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            Local = local ?? throw new ArgumentNullException(nameof(local));
-            Remote = remote ?? throw new ArgumentNullException(nameof(remote));
+            Origin = origin ?? throw new ArgumentNullException(nameof(origin));
+            Destination = destination ?? throw new ArgumentNullException(nameof(destination));
             Recycle = recycle;
         }
 
         public string Name { get; }
 
-        public string Local { get; }
+        public string Origin { get; }
 
-        public string Remote { get; }
+        public string Destination { get; }
 
         public string? Recycle { get; }
 
-#pragma warning disable CS8614 // Nullability of reference types in type of parameter doesn't match implicitly implemented member. -- matches, just not yet
         public bool Equals(SyncInfo? other)
-#pragma warning restore CS8614 // Nullability of reference types in type of parameter doesn't match implicitly implemented member.
             => other is object
             && Name == other.Name
-            && Local == other.Local
-            && Remote == other.Remote
+            && Origin == other.Origin
+            && Destination == other.Destination
             && Recycle == other.Recycle;
 
         public override bool Equals(object? obj) => Equals(obj as SyncInfo);

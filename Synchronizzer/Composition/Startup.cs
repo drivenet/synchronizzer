@@ -42,8 +42,8 @@ namespace Synchronizzer.Composition
                         provider.GetRequiredService<ILogger<TracingJobFactory>>())));
             services.AddSingleton<IEnumerable<SyncInfo>, SyncInfoResolver>();
             services.AddSingleton<ISynchronizerFactory, SynchronizerFactory>();
-            services.AddSingleton<ILocalReaderResolver, LocalReaderResolver>();
-            services.AddSingleton<IRemoteWriterResolver, RemoteWriterResolver>();
+            services.AddSingleton<IOriginReaderResolver, OriginReaderResolver>();
+            services.AddSingleton<IDestinationWriterResolver, DestinationWriterResolver>();
             services.AddSingleton<IQueuingTaskManagerSelector, QueuingTaskManagerSelector>();
             services.AddSingleton<Implementation.IQueuingSettings, QueuingSettings>();
 
