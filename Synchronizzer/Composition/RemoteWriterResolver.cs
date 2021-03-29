@@ -113,7 +113,7 @@ namespace Synchronizzer.Composition
             {
                 if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(address), "Invalid S3 recycle address.");
+                    throw new ArgumentOutOfRangeException(nameof(address), "Invalid filesystem recycle address.");
                 }
 
                 recycleContext = FilesystemUtils.CreateContext(recycleUri);
