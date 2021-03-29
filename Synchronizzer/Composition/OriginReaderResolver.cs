@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 
 using Synchronizzer.Components;
 using Synchronizzer.Implementation;
@@ -12,15 +13,18 @@ namespace Synchronizzer.Composition
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectReader> _objectReaderLogger;
+        private readonly RecyclableMemoryStreamManager _streamManager;
 
         public OriginReaderResolver(
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectSource> objectSourceLogger,
-            ILogger<TracingObjectReader> objectReaderLogger)
+            ILogger<TracingObjectReader> objectReaderLogger,
+            RecyclableMemoryStreamManager streamManager)
         {
             _metricsWriter = metricsWriter ?? throw new ArgumentNullException(nameof(metricsWriter));
             _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
             _objectReaderLogger = objectReaderLogger ?? throw new ArgumentNullException(nameof(objectReaderLogger));
+            _streamManager = streamManager ?? throw new ArgumentNullException(nameof(streamManager));
         }
 
         public IOriginReader Resolve(string address)
@@ -111,7 +115,8 @@ namespace Synchronizzer.Composition
                             Retry(
                                 new GridFSFilteringObjectReader(
                                     new BufferingObjectReader(
-                                        new GridFSObjectReader(context))),
+                                        new GridFSObjectReader(context),
+                                        _streamManager)),
                                 GridFSRetries),
                             "gridfs"))));
         }

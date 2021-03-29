@@ -3,15 +3,19 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.IO;
+
 namespace Synchronizzer.Implementation
 {
     internal sealed class BufferingObjectReader : IObjectReader
     {
         private readonly IObjectReader _inner;
+        private readonly RecyclableMemoryStreamManager _streamManager;
 
-        public BufferingObjectReader(IObjectReader inner)
+        public BufferingObjectReader(IObjectReader inner, RecyclableMemoryStreamManager streamManager)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _streamManager = streamManager ?? throw new ArgumentNullException(nameof(streamManager));
         }
 
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
@@ -20,7 +24,7 @@ namespace Synchronizzer.Implementation
             if (stream is object)
             {
                 var length = checked((int)stream.Length);
-                var bufferedStream = new MemoryStream(length);
+                var bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), length);
                 await stream.CopyToAsync(bufferedStream, cancellationToken);
                 return bufferedStream;
             }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 
 namespace Synchronizzer.Composition
 {
@@ -49,6 +50,8 @@ namespace Synchronizzer.Composition
 
             services.AddSingleton<Middleware.MetricsReportingMiddleware>();
             services.AddSingleton<Middleware.VersionMiddleware>();
+
+            services.AddSingleton<RecyclableMemoryStreamManager>();
         }
 
 #pragma warning disable CA1822 // Mark members as static -- future-proofing
