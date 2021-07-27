@@ -8,7 +8,7 @@ namespace Synchronizzer.Implementation
     internal sealed class LockingObjectWriterLocker : IObjectWriterLocker
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _lock = new(1);
         private readonly IObjectWriterLocker _inner;
 
         public LockingObjectWriterLocker(IObjectWriterLocker inner)

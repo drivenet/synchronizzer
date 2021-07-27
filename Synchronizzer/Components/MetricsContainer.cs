@@ -4,7 +4,7 @@ namespace Synchronizzer.Components
 {
     internal sealed class MetricsContainer : IMetricsReader, IMetricsWriter
     {
-        private readonly ConcurrentDictionary<string, double> _metrics = new ConcurrentDictionary<string, double>();
+        private readonly ConcurrentDictionary<string, double> _metrics = new();
 
         public void Add(string itemName, double value)
             => _metrics.AddOrUpdate(itemName, value, (_, current) => current + value);

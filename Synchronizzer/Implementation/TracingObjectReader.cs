@@ -72,9 +72,9 @@ namespace Synchronizzer.Implementation
 
         private static class Events
         {
-            public static readonly EventId Reading = new EventId(1, nameof(Reading));
-            public static readonly EventId Read = new EventId(2, nameof(Read));
-            public static readonly EventId ReadCanceled = new EventId(3, nameof(ReadCanceled));
+            public static readonly EventId Reading = new(1, nameof(Reading));
+            public static readonly EventId Read = new(2, nameof(Read));
+            public static readonly EventId ReadCanceled = new(3, nameof(ReadCanceled));
         }
     }
 }

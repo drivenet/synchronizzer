@@ -9,7 +9,7 @@ namespace Synchronizzer.Implementation
     {
         private static readonly TimeSpan LockInterval = TimeSpan.FromSeconds(47);
 
-        private readonly Stopwatch _timer = new Stopwatch();
+        private readonly Stopwatch _timer = new();
         private readonly IObjectWriterLocker _inner;
 
         public CachingObjectWriterLocker(IObjectWriterLocker inner)

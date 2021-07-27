@@ -42,9 +42,9 @@ namespace Synchronizzer.Implementation
 
         private static class Events
         {
-            public static readonly EventId Locking = new EventId(1, nameof(Locking));
-            public static readonly EventId Locked = new EventId(2, nameof(Locked));
-            public static readonly EventId LockCanceled = new EventId(3, nameof(LockCanceled));
+            public static readonly EventId Locking = new(1, nameof(Locking));
+            public static readonly EventId Locked = new(2, nameof(Locked));
+            public static readonly EventId LockCanceled = new(3, nameof(LockCanceled));
         }
     }
 }

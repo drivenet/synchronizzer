@@ -94,12 +94,12 @@ namespace Synchronizzer.Implementation
 
         private static class Events
         {
-            public static readonly EventId Upload = new EventId(1, nameof(Upload));
-            public static readonly EventId Uploaded = new EventId(2, nameof(Uploaded));
-            public static readonly EventId Delete = new EventId(3, nameof(Delete));
-            public static readonly EventId Deleted = new EventId(4, nameof(Deleted));
-            public static readonly EventId UploadCanceled = new EventId(5, nameof(UploadCanceled));
-            public static readonly EventId DeleteCanceled = new EventId(6, nameof(DeleteCanceled));
+            public static readonly EventId Upload = new(1, nameof(Upload));
+            public static readonly EventId Uploaded = new(2, nameof(Uploaded));
+            public static readonly EventId Delete = new(3, nameof(Delete));
+            public static readonly EventId Deleted = new(4, nameof(Deleted));
+            public static readonly EventId UploadCanceled = new(5, nameof(UploadCanceled));
+            public static readonly EventId DeleteCanceled = new(6, nameof(DeleteCanceled));
         }
     }
 }

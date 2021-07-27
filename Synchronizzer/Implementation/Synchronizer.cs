@@ -175,14 +175,14 @@ namespace Synchronizzer.Implementation
 
         private static class Events
         {
-            public static readonly EventId Populating = new EventId(1, nameof(Populating));
-            public static readonly EventId Populated = new EventId(2, nameof(Populated));
-            public static readonly EventId SynchronizingOrigin = new EventId(3, nameof(SynchronizingOrigin));
-            public static readonly EventId SynchronizedOrigin = new EventId(4, nameof(SynchronizedOrigin));
-            public static readonly EventId SynchronizeOriginFailed = new EventId(5, nameof(SynchronizeOriginFailed));
-            public static readonly EventId SynchronizingDestination = new EventId(6, nameof(SynchronizingDestination));
-            public static readonly EventId SynchronizedDestination = new EventId(7, nameof(SynchronizedDestination));
-            public static readonly EventId SynchronizeDestinationFailed = new EventId(8, nameof(SynchronizeDestinationFailed));
+            public static readonly EventId Populating = new(1, nameof(Populating));
+            public static readonly EventId Populated = new(2, nameof(Populated));
+            public static readonly EventId SynchronizingOrigin = new(3, nameof(SynchronizingOrigin));
+            public static readonly EventId SynchronizedOrigin = new(4, nameof(SynchronizedOrigin));
+            public static readonly EventId SynchronizeOriginFailed = new(5, nameof(SynchronizeOriginFailed));
+            public static readonly EventId SynchronizingDestination = new(6, nameof(SynchronizingDestination));
+            public static readonly EventId SynchronizedDestination = new(7, nameof(SynchronizedDestination));
+            public static readonly EventId SynchronizeDestinationFailed = new(8, nameof(SynchronizeDestinationFailed));
         }
     }
 }

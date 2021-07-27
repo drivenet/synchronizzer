@@ -52,8 +52,8 @@ namespace Synchronizzer.Implementation
 
         private static class Events
         {
-            public static readonly EventId Begin = new EventId(1, nameof(Begin));
-            public static readonly EventId End = new EventId(2, nameof(End));
+            public static readonly EventId Begin = new(1, nameof(Begin));
+            public static readonly EventId End = new(2, nameof(End));
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Synchronizzer.Composition
         private readonly Func<string, Lazy<IQueuingTaskManager>> _managerFactory;
 
         private readonly ConcurrentDictionary<string, Lazy<IQueuingTaskManager>> _managers =
-            new ConcurrentDictionary<string, Lazy<IQueuingTaskManager>>();
+            new();
 
         public QueuingTaskManagerSelector(IQueuingSettings settings)
         {

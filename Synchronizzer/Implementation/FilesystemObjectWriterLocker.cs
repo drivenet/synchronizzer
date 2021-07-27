@@ -10,7 +10,7 @@ namespace Synchronizzer.Implementation
     {
         private const string LockExtension = ".lock";
 
-        private static readonly Regex LockNameFilter = new Regex("^[a-zA-Z0-9_-]{1,64}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex LockNameFilter = new("^[a-zA-Z0-9_-]{1,64}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         private readonly FilesystemContext _context;
         private readonly string _lockName;

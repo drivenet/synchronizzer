@@ -16,7 +16,7 @@ namespace Synchronizzer.Implementation
         private readonly IObjectSource _source;
 
         private Task<IReadOnlyCollection<ObjectInfo>>? _nextTask;
-        private List<ObjectInfo>? _infos = new List<ObjectInfo>();
+        private List<ObjectInfo>? _infos = new();
         private int _skip;
 
         public ObjectInfos(IObjectSource source, string? lastName)
@@ -121,6 +121,6 @@ namespace Synchronizzer.Implementation
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private static InvalidOperationException CreateCompletedException() => new InvalidOperationException("Object infos are marked as completed.");
+        private static InvalidOperationException CreateCompletedException() => new("Object infos are marked as completed.");
     }
 }

@@ -9,7 +9,7 @@ namespace Synchronizzer.Composition
 {
     internal sealed class SyncOptionsConfig : IPostConfigureOptions<SyncOptions>
     {
-        private static readonly Regex UriVars = new Regex(@"\$(\w+)\$", RegexOptions.CultureInvariant);
+        private static readonly Regex UriVars = new(@"\$(\w+)\$", RegexOptions.CultureInvariant);
 
         private readonly IConfiguration _configuration;
 

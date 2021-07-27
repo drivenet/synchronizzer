@@ -11,8 +11,8 @@ namespace Synchronizzer.Implementation
     {
         private const double GoldenRatio = 1.618;
 
-        private readonly ConcurrentDictionary<Task, object> _queue = new ConcurrentDictionary<Task, object>();
-        private readonly ConditionalWeakTable<object, CancellationTokenSource> _cancel = new ConditionalWeakTable<object, CancellationTokenSource>();
+        private readonly ConcurrentDictionary<Task, object> _queue = new();
+        private readonly ConditionalWeakTable<object, CancellationTokenSource> _cancel = new();
         private readonly IQueuingSettings _settings;
 
         public QueuingTaskManager(IQueuingSettings settings)

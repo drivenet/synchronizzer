@@ -11,7 +11,7 @@ namespace Synchronizzer.Composition
 {
     internal sealed class JobManagingSynchronizer : ISynchronizer, IDisposable
     {
-        private readonly ConcurrentDictionary<SyncInfo, Lazy<SynchronizationJob>> _jobs = new ConcurrentDictionary<SyncInfo, Lazy<SynchronizationJob>>();
+        private readonly ConcurrentDictionary<SyncInfo, Lazy<SynchronizationJob>> _jobs = new();
         private readonly IEnumerable<SyncInfo> _infos;
         private readonly ISynchronizationJobFactory _jobFactory;
 
@@ -66,7 +66,7 @@ namespace Synchronizzer.Composition
             }
 
             Lazy<SynchronizationJob> TaskFactory(SyncInfo info)
-                => new Lazy<SynchronizationJob>(() => _jobFactory.Create(info, cancellationToken));
+                => new(() => _jobFactory.Create(info, cancellationToken));
         }
 
         private async Task CompleteJob(SyncInfo info, bool cancel)

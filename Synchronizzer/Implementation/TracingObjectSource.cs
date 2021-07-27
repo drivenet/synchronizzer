@@ -56,9 +56,9 @@ namespace Synchronizzer.Implementation
 
         private static class Events
         {
-            public static readonly EventId Get = new EventId(1, nameof(Get));
-            public static readonly EventId Got = new EventId(2, nameof(Got));
-            public static readonly EventId GetCanceled = new EventId(3, nameof(GetCanceled));
+            public static readonly EventId Get = new(1, nameof(Get));
+            public static readonly EventId Got = new(2, nameof(Got));
+            public static readonly EventId GetCanceled = new(3, nameof(GetCanceled));
         }
     }
 }

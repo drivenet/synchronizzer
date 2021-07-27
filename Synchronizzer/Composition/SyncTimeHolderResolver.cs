@@ -7,7 +7,7 @@ namespace Synchronizzer.Composition
 {
     internal sealed class SyncTimeHolderResolver : ISyncTimeHolderResolver
     {
-        private readonly ConcurrentDictionary<string, Lazy<SyncTimeHolder>> _cache = new ConcurrentDictionary<string, Lazy<SyncTimeHolder>>();
+        private readonly ConcurrentDictionary<string, Lazy<SyncTimeHolder>> _cache = new();
 
         public static SyncTimeHolderResolver Instance { get; } = new SyncTimeHolderResolver();
 
