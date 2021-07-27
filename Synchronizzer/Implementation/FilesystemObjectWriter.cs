@@ -22,9 +22,9 @@ namespace Synchronizzer.Implementation
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var path = FilesystemUtils.PreparePath(objectName, _context);
-            var recyclePath = _recycleContext is object ? FilesystemUtils.PreparePath(objectName, _recycleContext) : null;
+            var recyclePath = _recycleContext is not null ? FilesystemUtils.PreparePath(objectName, _recycleContext) : null;
             cancellationToken.ThrowIfCancellationRequested();
-            if (recyclePath is object)
+            if (recyclePath is not null)
             {
                 if (Path.GetDirectoryName(path) is { } directory)
                 {

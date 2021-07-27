@@ -65,7 +65,7 @@ namespace Synchronizzer.Composition
         {
             var context = S3Utils.CreateWriteContext(uri);
             S3WriteContext? recycleContext;
-            if (recycleAddress is object)
+            if (recycleAddress is not null)
             {
                 if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
                 {
@@ -108,7 +108,7 @@ namespace Synchronizzer.Composition
         {
             var context = FilesystemUtils.CreateContext(uri);
             FilesystemContext? recycleContext;
-            if (recycleAddress is object)
+            if (recycleAddress is not null)
             {
                 if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
                 {

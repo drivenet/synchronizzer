@@ -27,7 +27,7 @@ namespace Synchronizzer.Implementation
 
         public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
         {
-            var filter = fromName is object
+            var filter = fromName is not null
                 ? Builders.Filter.Gt<string>(info => info.Filename, fromName)
                 : Builders.Filter.Empty;
             const int Limit = 8192;

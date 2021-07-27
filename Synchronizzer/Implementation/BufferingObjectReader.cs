@@ -21,7 +21,7 @@ namespace Synchronizzer.Implementation
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
         {
             using var stream = await _inner.Read(objectName, cancellationToken);
-            if (stream is object)
+            if (stream is not null)
             {
                 var length = checked((int)stream.Length);
                 var bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), length);

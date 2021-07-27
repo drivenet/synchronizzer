@@ -27,7 +27,7 @@ namespace Synchronizzer.Implementation
 
         public string? LastName { get; private set; }
 
-        public bool IsLive => _infos is object;
+        public bool IsLive => _infos is not null;
 
         public async Task Populate(CancellationToken cancellationToken)
         {

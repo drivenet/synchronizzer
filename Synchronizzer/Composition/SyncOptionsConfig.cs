@@ -37,7 +37,7 @@ namespace Synchronizzer.Composition
 
         private static string? ReplaceAddress(string? address, IConfiguration template)
         {
-            if (address is object)
+            if (address is not null)
             {
                 address = UriVars.Replace(
                     address,

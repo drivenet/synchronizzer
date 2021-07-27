@@ -21,7 +21,7 @@ namespace Synchronizzer.Composition
         public string? Recycle { get; }
 
         public bool Equals(SyncInfo? other)
-            => other is object
+            => other is not null
             && Name == other.Name
             && Origin == other.Origin
             && Destination == other.Destination

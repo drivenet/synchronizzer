@@ -42,7 +42,7 @@ namespace Synchronizzer.Implementation
             }
 
             _writer.Add(_prefix + "reads", 1);
-            if (result is object)
+            if (result is not null)
             {
                 _writer.Add(_prefix + "reads_length", result.Length);
             }

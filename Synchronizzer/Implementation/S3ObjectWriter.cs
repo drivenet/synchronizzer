@@ -16,7 +16,7 @@ namespace Synchronizzer.Implementation
         public S3ObjectWriter(S3WriteContext context, S3WriteContext? recycleContext)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            if (recycleContext is object)
+            if (recycleContext is not null)
             {
                 var url = context.S3.ServiceUrl;
                 var recycleUrl = recycleContext.S3.ServiceUrl;
@@ -39,7 +39,7 @@ namespace Synchronizzer.Implementation
                 Key = objectName,
             };
 
-            if (_recycleContext is object)
+            if (_recycleContext is not null)
             {
                 var copyRequest = new CopyObjectRequest
                 {
