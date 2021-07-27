@@ -9,6 +9,8 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class BufferingObjectReader : IObjectReader
     {
+        private const long MaxBufferedLength = 16 << 20;
+
         private readonly IObjectReader _inner;
         private readonly RecyclableMemoryStreamManager _streamManager;
 
@@ -21,10 +23,9 @@ namespace Synchronizzer.Implementation
         public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
         {
             using var stream = await _inner.Read(objectName, cancellationToken);
-            if (stream is not null)
+            if (stream is { Length: <= MaxBufferedLength })
             {
-                var length = checked((int)stream.Length);
-                var bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), length);
+                var bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), stream.Length);
                 await stream.CopyToAsync(bufferedStream, cancellationToken);
                 return bufferedStream;
             }
