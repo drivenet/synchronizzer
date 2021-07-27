@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <AssemblyName>synchronizzer</AssemblyName>
-    <Version>0.15.5</Version>
+    <Version>0.15.6</Version>
     <NoWarn>$(NoWarn);CA2007</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
   </PropertyGroup>

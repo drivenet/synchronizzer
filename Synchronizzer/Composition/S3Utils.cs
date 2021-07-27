@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 
@@ -64,8 +65,21 @@ namespace Synchronizzer.Composition
                 DisableLogging = true,
                 Timeout = TimeSpan.FromSeconds(47),
             };
-            var regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(host);
-            if (regionEndpoint.DisplayName != "Unknown")
+            RegionEndpoint? regionEndpoint;
+            try
+            {
+                regionEndpoint = RegionEndpoint.GetBySystemName(host);
+                if (regionEndpoint is { DisplayName: "Unknown" })
+                {
+                    regionEndpoint = null;
+                }
+            }
+            catch (ArgumentException)
+            {
+                regionEndpoint = null;
+            }
+
+            if (regionEndpoint is not null)
             {
                 config.RegionEndpoint = regionEndpoint;
             }
