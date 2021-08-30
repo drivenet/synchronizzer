@@ -147,7 +147,6 @@ namespace Synchronizzer.Composition
                             Trace(
                                 new FilesystemObjectWriterLocker(context, lockName)),
                             FilesystemRetries))));
-            ;
         }
     }
 }
