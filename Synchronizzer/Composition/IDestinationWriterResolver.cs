@@ -4,6 +4,6 @@ namespace Synchronizzer.Composition
 {
     internal interface IDestinationWriterResolver
     {
-        IDestinationWriter Resolve(string address, string? recycleAddress);
+        IDestinationWriter Resolve(string address, string? recycleAddress, bool dryRun);
     }
 }

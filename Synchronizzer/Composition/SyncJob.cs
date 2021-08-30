@@ -9,5 +9,7 @@
         public string? Destination { get; set; }
 
         public string? Recycle { get; set; }
+
+        public bool DryRun { get; set; }
     }
 }

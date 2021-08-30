@@ -28,7 +28,7 @@ namespace Synchronizzer.Composition
             _logOperations = true;
         }
 
-        public IDestinationWriter Resolve(string address, string? recycleAddress)
+        public IDestinationWriter Resolve(string address, string? recycleAddress, bool dryRun)
         {
             if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
             {
@@ -37,10 +37,10 @@ namespace Synchronizzer.Composition
 
             if (uri.Scheme.Equals("s3", StringComparison.OrdinalIgnoreCase))
             {
-                return CreateS3Writer(recycleAddress, uri);
+                return CreateS3Writer(recycleAddress, uri, dryRun);
             }
 
-            return CreateFilesystemWriter(address, recycleAddress, uri);
+            return CreateFilesystemWriter(address, recycleAddress, uri, dryRun);
         }
 
         private static IObjectWriterLocker Lock(IObjectWriterLocker inner) => new LockingObjectWriterLocker(inner);
@@ -63,7 +63,7 @@ namespace Synchronizzer.Composition
 
         private IObjectSource Trace(IObjectSource inner, string source) => new TracingObjectSource(inner, source, _objectSourceLogger);
 
-        private IDestinationWriter CreateS3Writer(string? recycleAddress, Uri uri)
+        private IDestinationWriter CreateS3Writer(string? recycleAddress, Uri uri, bool dryRun)
         {
             var context = S3Utils.CreateWriteContext(uri);
             S3WriteContext? recycleContext;
@@ -96,7 +96,9 @@ namespace Synchronizzer.Composition
                 Robust(
                     Trace(
                         Count(
-                            new S3ObjectWriter(context, recycleContext),
+                            dryRun
+                                ? NullObjectWriter.Instance
+                                : new S3ObjectWriter(context, recycleContext),
                             "s3"))),
                 Lock(
                     Cache(
@@ -106,7 +108,7 @@ namespace Synchronizzer.Composition
                             S3Retries))));
         }
 
-        private IDestinationWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri)
+        private IDestinationWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri, bool dryRun)
         {
             var context = FilesystemUtils.CreateContext(uri);
             FilesystemContext? recycleContext;
@@ -135,7 +137,9 @@ namespace Synchronizzer.Composition
                     "destination"),
                 Trace(
                     Count(
-                        new FilesystemObjectWriter(context, recycleContext),
+                        dryRun
+                            ? NullObjectWriter.Instance
+                            : new FilesystemObjectWriter(context, recycleContext),
                         "fs")),
                 Lock(
                     Cache(
@@ -143,6 +147,7 @@ namespace Synchronizzer.Composition
                             Trace(
                                 new FilesystemObjectWriterLocker(context, lockName)),
                             FilesystemRetries))));
+            ;
         }
     }
 }

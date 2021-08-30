@@ -34,7 +34,7 @@ namespace Synchronizzer.Composition
         public ISynchronizer Create(SyncInfo info)
         {
             var originReader = _originReaderResolver.Resolve(info.Origin);
-            var destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle);
+            var destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle, info.DryRun);
             var taskManager = _taskManagerSelector.Select(destinationWriter.Address);
             var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager);
             return synchronizer;

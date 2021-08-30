@@ -28,6 +28,7 @@ namespace Synchronizzer.Composition
                 job.Name ?? throw new ArgumentNullException(nameof(job), "Invalid sync job name."),
                 job.Origin ?? throw new ArgumentNullException(nameof(job), FormattableString.Invariant($"Missing sync job origin address for job \"{job.Name}\".")),
                 job.Destination ?? throw new ArgumentNullException(nameof(job), FormattableString.Invariant($"Missing sync job destination address for job \"{job.Name}\".")),
-                job.Recycle);
+                job.Recycle,
+                job.DryRun);
     }
 }
