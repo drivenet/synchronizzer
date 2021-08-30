@@ -11,11 +11,13 @@ namespace Synchronizzer.Implementation
     internal sealed class TracingObjectWriter : IObjectWriter
     {
         private readonly IObjectWriter _inner;
+        private readonly LogLevel _opLogLevel;
         private readonly ILogger _logger;
 
-        public TracingObjectWriter(IObjectWriter inner, ILogger<TracingObjectWriter> logger)
+        public TracingObjectWriter(IObjectWriter inner, bool logOperations, ILogger<TracingObjectWriter> logger)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _opLogLevel = logOperations ? LogLevel.Information : LogLevel.Debug;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -51,7 +53,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogDebug(Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
+                _logger.Log(_opLogLevel, Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -88,7 +90,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.LogDebug(Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
+                _logger.Log(_opLogLevel, Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
             }
         }
 

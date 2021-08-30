@@ -13,6 +13,7 @@ namespace Synchronizzer.Composition
         private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectWriterLocker> _lockerLogger;
+        private readonly bool _logOperations;
 
         public DestinationWriterResolver(
             IMetricsWriter metricsWriter,
@@ -24,6 +25,7 @@ namespace Synchronizzer.Composition
             _objectLogger = objectLogger ?? throw new ArgumentNullException(nameof(objectLogger));
             _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
             _lockerLogger = lockerLogger ?? throw new ArgumentNullException(nameof(lockerLogger));
+            _logOperations = true;
         }
 
         public IDestinationWriter Resolve(string address, string? recycleAddress)
@@ -55,7 +57,7 @@ namespace Synchronizzer.Composition
 
         private IObjectWriter Count(IObjectWriter inner, string key) => new CountingObjectWriter(inner, _metricsWriter, key);
 
-        private IObjectWriter Trace(IObjectWriter inner) => new TracingObjectWriter(inner, _objectLogger);
+        private IObjectWriter Trace(IObjectWriter inner) => new TracingObjectWriter(inner, _logOperations, _objectLogger);
 
         private IObjectSource Count(IObjectSource inner, string key) => new CountingObjectSource(inner, _metricsWriter, key);
 
