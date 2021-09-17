@@ -85,16 +85,21 @@ namespace Synchronizzer.Composition
 
         private IOriginReader CreateS3Reader(Uri uri)
         {
+            const byte S3Retries = 30;
             var context = S3Utils.CreateContext(uri);
             return new OriginReader(
-                Trace(
-                    Count(
-                        new S3ObjectSource(context),
-                        "origin.s3")),
+                Retry(
+                    Trace(
+                        Count(
+                            new S3ObjectSource(context),
+                            "origin.s3")),
+                    S3Retries),
                 Robust(
                     Trace(
                         Count(
-                            new S3ObjectReader(context),
+                            Retry(
+                                new S3ObjectReader(context),
+                                S3Retries),
                             "s3"))));
         }
 
