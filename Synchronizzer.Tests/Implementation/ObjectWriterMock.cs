@@ -30,7 +30,7 @@ namespace Synchronizzer.Tests.Implementation
             return Task.CompletedTask;
         }
 
-        public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_deleted.Contains(objectName))
@@ -38,7 +38,7 @@ namespace Synchronizzer.Tests.Implementation
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Object was deleted.");
             }
 
-            if (!_uploaded.TryAdd(objectName, readOnlyInput))
+            if (!_uploaded.TryAdd(objectName, readObject.Stream))
             {
                 throw new ArgumentOutOfRangeException(nameof(objectName), objectName, "Object was already uploaded.");
             }
