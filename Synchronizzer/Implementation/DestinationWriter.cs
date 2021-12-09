@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,17 +46,17 @@ namespace Synchronizzer.Implementation
             await _locker.Clear(cts.Token);
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
-            if (readOnlyInput is null)
+            if (readObject is null)
             {
-                throw new ArgumentNullException(nameof(readOnlyInput));
+                throw new ArgumentNullException(nameof(readObject));
             }
 
             CheckObjectName(objectName);
             await Task.WhenAll(
                 _locker.Lock(cancellationToken),
-                _writer.Upload(objectName, readOnlyInput, cancellationToken));
+                _writer.Upload(objectName, readObject, cancellationToken));
         }
 
         private static void CheckObjectName(string objectName)

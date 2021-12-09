@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,13 +42,16 @@ namespace Synchronizzer.Implementation
             _writer.Add(_prefix + "deletes", 1);
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
-            long length;
+            if (readObject is null)
+            {
+                throw new ArgumentNullException(nameof(readObject));
+            }
+
             try
             {
-                length = readOnlyInput.Length;
-                await _inner.Upload(objectName, readOnlyInput, cancellationToken);
+                await _inner.Upload(objectName, readObject, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -62,7 +64,7 @@ namespace Synchronizzer.Implementation
             }
 
             _writer.Add(_prefix + "uploads", 1);
-            _writer.Add(_prefix + "uploads_length", length);
+            _writer.Add(_prefix + "uploads_length", readObject.Length);
         }
     }
 }

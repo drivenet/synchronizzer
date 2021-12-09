@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,13 +62,13 @@ namespace Synchronizzer.Implementation
             await _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteRequest, token), cancellationToken);
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
             var request = new PutObjectRequest
             {
                 BucketName = _context.BucketName,
                 Key = objectName,
-                InputStream = readOnlyInput,
+                InputStream = readObject.Stream,
                 AutoCloseStream = false,
                 StorageClass = _context.StorageClass,
                 DisablePayloadSigning = true,

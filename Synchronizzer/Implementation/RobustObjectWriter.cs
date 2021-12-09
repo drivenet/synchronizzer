@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,16 +35,21 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
             if (objectName is null)
             {
                 throw new ArgumentNullException(nameof(objectName));
             }
 
+            if (readObject is null)
+            {
+                throw new ArgumentNullException(nameof(readObject));
+            }
+
             try
             {
-                await _inner.Upload(objectName, readOnlyInput, cancellationToken);
+                await _inner.Upload(objectName, readObject, cancellationToken);
             }
             catch (OperationCanceledException)
             {

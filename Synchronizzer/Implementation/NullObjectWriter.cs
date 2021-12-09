@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
@@ -10,6 +9,6 @@ namespace Synchronizzer.Implementation
 
         public Task Delete(string objectName, CancellationToken cancellationToken) => Task.CompletedTask;
 
-        public Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

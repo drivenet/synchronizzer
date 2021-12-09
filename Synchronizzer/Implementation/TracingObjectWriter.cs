@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,21 +56,26 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
             if (objectName is null)
             {
                 throw new ArgumentNullException(nameof(objectName));
             }
 
+            if (readObject is null)
+            {
+                throw new ArgumentNullException(nameof(readObject));
+            }
+
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
                 var timer = Stopwatch.StartNew();
-                var objectLength = readOnlyInput.Length;
+                var objectLength = readObject.Length;
                 _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
                 try
                 {
-                    await _inner.Upload(objectName, readOnlyInput, cancellationToken);
+                    await _inner.Upload(objectName, readObject, cancellationToken);
                 }
                 catch (OperationCanceledException exception)
                 {

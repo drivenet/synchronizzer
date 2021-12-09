@@ -122,7 +122,7 @@ namespace Synchronizzer.Implementation
             using var input = await _originReader.Read(name, cancellationToken);
             if (input is not null)
             {
-                await _destinationWriter.Upload(name, input.Stream, cancellationToken);
+                await _destinationWriter.Upload(name, input, cancellationToken);
             }
         }
 

@@ -92,8 +92,13 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task Upload(string objectName, Stream readOnlyInput, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
         {
+            if (readObject is null)
+            {
+                throw new ArgumentNullException(nameof(readObject));
+            }
+
             var path = FilesystemUtils.PreparePath(objectName, _context);
             cancellationToken.ThrowIfCancellationRequested();
             if (Path.GetDirectoryName(path) is { } directory)
@@ -102,7 +107,7 @@ namespace Synchronizzer.Implementation
             }
 
             using var file = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Read | FileShare.Delete);
-            await readOnlyInput.CopyToAsync(file, cancellationToken);
+            await readObject.Stream.CopyToAsync(file, cancellationToken);
         }
     }
 }
