@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,21 +18,21 @@ namespace Synchronizzer.Implementation
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
             if (objectName is null)
             {
                 throw new ArgumentNullException(nameof(objectName));
             }
 
-            Stream? stream;
+            ReadObject? readObject;
             using (_logger.BeginScope("read \"{ObjectName}\"", objectName))
             {
                 var timer = Stopwatch.StartNew();
                 _logger.LogDebug(Events.Reading, "Reading \"{ObjectName}\".", objectName);
                 try
                 {
-                    stream = await _inner.Read(objectName, cancellationToken);
+                    readObject = await _inner.Read(objectName, cancellationToken);
                 }
                 catch (OperationCanceledException exception)
                 {
@@ -52,22 +51,10 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                long? length;
-                try
-                {
-                    length = stream?.Length;
-                }
-#pragma warning disable CA1031 // Do not catch general exception types -- required for robust diagnostics
-                catch
-#pragma warning restore CA1031 // Do not catch general exception types
-                {
-                    length = null;
-                }
-
-                _logger.LogDebug(Events.Read, "Read \"{ObjectName}\", length {Length}, elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds, length);
+                _logger.LogDebug(Events.Read, "Read \"{ObjectName}\", length {Length}, elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds, readObject?.Length);
             }
 
-            return stream;
+            return readObject;
         }
 
         private static class Events

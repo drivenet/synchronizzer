@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,9 +23,9 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
-            Stream? result;
+            ReadObject? result;
             try
             {
                 result = await _inner.Read(objectName, cancellationToken);

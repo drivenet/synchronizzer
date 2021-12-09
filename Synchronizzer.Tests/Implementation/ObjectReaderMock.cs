@@ -12,12 +12,13 @@ namespace Synchronizzer.Tests.Implementation
     {
         private readonly Dictionary<string, Stream> _map = new Dictionary<string, Stream>();
 
-        public Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        public Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             Stream stream = new MemoryStream(Array.Empty<byte>(), false);
+            var readObject = new ReadObject(stream, 0);
             _map.Add(objectName, stream);
-            return Task.FromResult<Stream?>(stream);
+            return Task.FromResult<ReadObject?>(readObject);
         }
 
         public Stream GetStream(string objectName) => _map[objectName];

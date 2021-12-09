@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ namespace Synchronizzer.Implementation
             _retries = retries;
         }
 
-        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
             var retries = _retries;
             while (true)

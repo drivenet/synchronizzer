@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
             var request = new GetObjectRequest
             {
@@ -29,7 +28,7 @@ namespace Synchronizzer.Implementation
             try
             {
                 var response = await _context.S3.Invoke((s3, token) => s3.GetObjectAsync(request, token), cancellationToken);
-                return response.ResponseStream;
+                return new ReadObject(response.ResponseStream, response.ContentLength);
             }
             catch (AmazonS3Exception exception) when (exception.StatusCode == HttpStatusCode.NotFound)
             {

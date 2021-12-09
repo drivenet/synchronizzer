@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ namespace Synchronizzer.Implementation
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
-        public async Task<Stream?> Read(string objectName, CancellationToken cancellationToken)
+        public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
             try
             {
