@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Amazon.S3;
-
 namespace Synchronizzer.Implementation
 {
     internal class S3Context
