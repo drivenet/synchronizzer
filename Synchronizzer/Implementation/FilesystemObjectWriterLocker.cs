@@ -79,8 +79,10 @@ namespace Synchronizzer.Implementation
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            File.Create(path + _lockName + LockExtension).Dispose();
-            _isLocked = true;
+            await using (File.Create(path + _lockName + LockExtension))
+            {
+                _isLocked = true;
+            }
         }
 
         public override string ToString() => FormattableString.Invariant($"FilesystemObjectWriterLocker(\"{_lockName}\")");

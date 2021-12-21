@@ -34,7 +34,7 @@ namespace Synchronizzer.Implementation
             var lockTask = _locker.Lock(cancellationToken);
             var getTask = _source.GetOrdered(fromName, cancellationToken);
             await Task.WhenAll(lockTask, getTask);
-            return getTask.Result;
+            return await getTask;
         }
 
         public Task TryLock(CancellationToken cancellationToken) => _locker.Lock(cancellationToken);
