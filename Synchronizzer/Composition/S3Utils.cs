@@ -64,6 +64,7 @@ namespace Synchronizzer.Composition
                 ForcePathStyle = true,
                 DisableLogging = true,
                 Timeout = TimeSpan.FromSeconds(47),
+                RetryMode = RequestRetryMode.Standard,
             };
             RegionEndpoint? regionEndpoint;
             try
