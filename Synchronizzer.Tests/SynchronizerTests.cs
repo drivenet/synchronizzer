@@ -85,7 +85,7 @@ namespace Synchronizzer.Tests
             var reader = new ObjectReaderMock();
             var destinationSource = new ObjectSourceStub(destinationInfos);
             var writer = new ObjectWriterMock();
-            var originReader = new OriginReader(originSource, reader);
+            var originReader = new OriginReader(originSource, reader, "");
             var locker = new ObjectWriterLockerStub();
             var destinationWriter = new DestinationWriter("", destinationSource, writer, locker);
             var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
