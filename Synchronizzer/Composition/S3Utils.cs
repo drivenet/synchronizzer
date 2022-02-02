@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 using Amazon;
 using Amazon.Runtime;
@@ -53,7 +54,7 @@ namespace Synchronizzer.Composition
                     "The S3 URI is missing credentials.");
             }
 
-            var credentials = new BasicAWSCredentials(userInfo[0], userInfo[1]);
+            var credentials = new BasicAWSCredentials(WebUtility.UrlDecode(userInfo[0]), WebUtility.UrlDecode(userInfo[1]));
 
             var bucketName = uri.AbsolutePath.TrimStart('/');
             query = QueryHelpers.ParseQuery(uri.Query);
