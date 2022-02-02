@@ -2,5 +2,6 @@
 {
     internal interface IOriginReader : IObjectSource, IObjectReader
     {
+        string Address { get; }
     }
 }

@@ -59,6 +59,8 @@ namespace Synchronizzer.Implementation
                 _writer.Upload(objectName, readObject, cancellationToken));
         }
 
+        public override string ToString() => Address;
+
         private static void CheckObjectName(string objectName)
         {
             if (objectName.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase)

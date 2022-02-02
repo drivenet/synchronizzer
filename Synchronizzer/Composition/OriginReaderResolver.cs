@@ -80,7 +80,8 @@ namespace Synchronizzer.Composition
                     Trace(
                         Count(
                             new FilesystemObjectReader(context),
-                            "fs"))));
+                            "fs"))),
+                "file://" + context.FilePath);
         }
 
         private IOriginReader CreateS3Reader(Uri uri)
@@ -100,7 +101,8 @@ namespace Synchronizzer.Composition
                             Retry(
                                 new S3ObjectReader(context),
                                 S3Retries),
-                            "s3"))));
+                            "s3"))),
+                "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName);
         }
 
         private IOriginReader CreateGridFSReader(string address)
@@ -123,7 +125,8 @@ namespace Synchronizzer.Composition
                                         new GridFSObjectReader(context),
                                         _streamManager)),
                                 GridFSRetries),
-                            "gridfs"))));
+                            "gridfs"))),
+                "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName);
         }
     }
 }
