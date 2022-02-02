@@ -36,7 +36,7 @@ namespace Synchronizzer.Implementation
                 return;
             }
 
-            ObjectInfo? lastInfo = _infos.LastOrDefault();
+            var lastInfo = _infos.LastOrDefault();
             _infos.RemoveRange(0, _skip);
             _skip = 0;
             if (_infos.Count >= MaxListLength)
