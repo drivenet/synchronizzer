@@ -15,14 +15,14 @@ namespace Synchronizzer.Implementation
 
         private readonly IObjectSource _source;
 
-        private Task<IReadOnlyCollection<ObjectInfo>>? _nextTask;
+        private Task<ObjectsBatch>? _nextTask;
         private List<ObjectInfo>? _infos = new();
         private int _skip;
+        private string? _continuationToken;
 
-        public ObjectInfos(IObjectSource source, string? lastName)
+        public ObjectInfos(IObjectSource source)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
-            LastName = lastName;
         }
 
         public string? LastName { get; private set; }
@@ -45,7 +45,7 @@ namespace Synchronizzer.Implementation
             }
 
             var task = Interlocked.Exchange(ref _nextTask, null)
-                 ?? _source.GetOrdered(LastName, cancellationToken);
+                 ?? _source.GetOrdered(_continuationToken, cancellationToken);
             var newInfos = await task;
             var index = 0;
             foreach (var info in newInfos)
@@ -66,12 +66,14 @@ namespace Synchronizzer.Implementation
             {
                 _infos = null;
                 LastName = null;
+                _continuationToken = null;
                 _nextTask = null;
                 return;
             }
 
             LastName = _infos[count - 1].Name;
-            _nextTask = _source.GetOrdered(LastName, cancellationToken);
+            _continuationToken = newInfos.ContinuationToken;
+            _nextTask = _source.GetOrdered(_continuationToken, cancellationToken);
         }
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_infos ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();

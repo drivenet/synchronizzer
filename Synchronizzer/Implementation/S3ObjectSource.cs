@@ -17,12 +17,17 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
         {
+            if (continuationToken is { Length: 0 })
+            {
+                return ObjectsBatch.Empty;
+            }
+
             var request = new ListObjectsV2Request
             {
                 BucketName = _context.BucketName,
-                StartAfter = fromName,
+                ContinuationToken = continuationToken,
             };
             var response = await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
             var s3Objects = response.S3Objects;
@@ -34,7 +39,7 @@ namespace Synchronizzer.Implementation
                     var isHidden = objectName.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase);
                     return new ObjectInfo(objectName, s3Object.Size, isHidden);
                 }));
-            return result;
+            return new(result, response.NextContinuationToken ?? "");
         }
     }
 }

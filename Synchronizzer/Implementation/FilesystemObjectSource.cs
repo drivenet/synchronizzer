@@ -19,13 +19,18 @@ namespace Synchronizzer.Implementation
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously -- enumerating file system is synchronous
-        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
+            if (continuationToken is { Length: 0 })
+            {
+                return ObjectsBatch.Empty;
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
-            var result = Enumerate(fromName, cancellationToken).ToList();
+            var result = Enumerate(continuationToken, cancellationToken).ToList();
             result.Sort();
-            return result;
+            return new(result, "");
         }
 
         private IEnumerable<ObjectInfo> Enumerate(string? fromName, CancellationToken cancellationToken)

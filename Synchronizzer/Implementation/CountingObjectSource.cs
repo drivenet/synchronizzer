@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,12 +23,12 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
         {
-            IReadOnlyCollection<ObjectInfo> result;
+            ObjectsBatch result;
             try
             {
-                result = await _inner.GetOrdered(fromName, cancellationToken);
+                result = await _inner.GetOrdered(continuationToken, cancellationToken);
             }
             catch (OperationCanceledException)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,17 +26,29 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
         {
-            var filter = fromName is not null
-                ? Builders.Filter.Gt(info => info.Filename, fromName)
-                : Builders.Filter.Empty;
+            FilterDefinition<GridFSFileInfo<BsonValue>> filter;
+            if (continuationToken is null)
+            {
+                filter = Builders.Filter.Empty;
+            }
+            else if (continuationToken.Length != 0)
+            {
+                filter = Builders.Filter.Gt(info => info.Filename, continuationToken);
+            }
+            else
+            {
+                return ObjectsBatch.Empty;
+            }
+
             const int Limit = 8192;
             var options = new GridFSFindOptions<BsonValue>
             {
                 Sort = FilenameSort,
                 BatchSize = (Limit / 2) + 1,
             };
+            continuationToken = "";
             var result = new List<ObjectInfo>(Limit);
             using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
             {
@@ -55,11 +68,12 @@ namespace Synchronizzer.Implementation
                         }
 
                         result.Add(objectInfo);
+                        continuationToken = objectInfo.Name;
                     },
                     cancellationToken);
             }
 
-            return result;
+            return new(result, continuationToken);
         }
     }
 }

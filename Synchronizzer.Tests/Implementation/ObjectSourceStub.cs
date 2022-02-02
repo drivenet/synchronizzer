@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,8 +12,6 @@ namespace Synchronizzer.Tests.Implementation
 {
     internal sealed class ObjectSourceStub : IObjectSource, IEnumerable<ObjectInfo>
     {
-        private static readonly Task<IReadOnlyCollection<ObjectInfo>> EmptyTask = Task.FromResult<IReadOnlyCollection<ObjectInfo>>(Array.Empty<ObjectInfo>());
-
         private readonly List<ObjectInfo>? _list;
 
         public ObjectSourceStub(IEnumerable<ObjectInfo> infos)
@@ -40,26 +39,23 @@ namespace Synchronizzer.Tests.Implementation
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_list ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
 
-        public Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_list is null)
             {
-                return EmptyTask;
+                return Task.FromResult(ObjectsBatch.Empty);
             }
 
             int index;
-            if (fromName is object)
+            if (continuationToken is not null)
             {
-                index = _list.BinarySearch(new ObjectInfo(fromName, 0, false), ObjectInfoNameComparer.Instance);
-                if (index < 0)
+                if (continuationToken.Length == 0)
                 {
-                    index = ~index;
+                    return Task.FromResult(ObjectsBatch.Empty);
                 }
-                else
-                {
-                    ++index;
-                }
+
+                index = int.Parse(continuationToken, NumberFormatInfo.InvariantInfo);
             }
             else
             {
@@ -67,18 +63,20 @@ namespace Synchronizzer.Tests.Implementation
             }
 
             var count = _list.Count - index;
+            if (count == 0)
+            {
+                return Task.FromResult(ObjectsBatch.Empty);
+            }
+
             const int BatchSize = 1000;
             if (count > BatchSize)
             {
                 count = BatchSize;
             }
 
-            if (count == 0)
-            {
-                return EmptyTask;
-            }
-
-            return Task.FromResult<IReadOnlyCollection<ObjectInfo>>(_list.GetRange(index, count));
+            var nextIndex = index + count;
+            continuationToken = nextIndex.ToString(NumberFormatInfo.InvariantInfo);
+            return Task.FromResult(new ObjectsBatch(_list.GetRange(index, count), continuationToken));
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

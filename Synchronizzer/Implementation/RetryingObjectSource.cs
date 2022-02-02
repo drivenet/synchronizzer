@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,14 +15,14 @@ namespace Synchronizzer.Implementation
             _retries = retries;
         }
 
-        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
         {
             var retries = _retries;
             while (true)
             {
                 try
                 {
-                    return await _inner.GetOrdered(fromName, cancellationToken);
+                    return await _inner.GetOrdered(continuationToken, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {

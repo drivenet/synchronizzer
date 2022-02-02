@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,10 +28,10 @@ namespace Synchronizzer.Implementation
                 _writer.Delete(objectName, cancellationToken));
         }
 
-        public async Task<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? fromName, CancellationToken cancellationToken)
+        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
         {
             var lockTask = _locker.Lock(cancellationToken);
-            var getTask = _source.GetOrdered(fromName, cancellationToken);
+            var getTask = _source.GetOrdered(continuationToken, cancellationToken);
             await Task.WhenAll(lockTask, getTask);
             return await getTask;
         }

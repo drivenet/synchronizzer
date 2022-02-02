@@ -43,9 +43,8 @@ namespace Synchronizzer.Implementation
 
         private async Task SynchronizeCore(CancellationToken cancellationToken)
         {
-            string? lastName = null;
-            var originInfos = new ObjectInfos(_originReader, lastName);
-            var destinationInfos = new ObjectInfos(_destinationWriter, lastName);
+            var originInfos = new ObjectInfos(_originReader);
+            var destinationInfos = new ObjectInfos(_destinationWriter);
             while (true)
             {
                 _logger?.LogDebug(Events.Populating, "Populating infos.");
