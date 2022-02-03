@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 using static System.FormattableString;
 
@@ -19,22 +19,18 @@ namespace Synchronizzer.Implementation
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously -- enumerating file system is synchronous
-        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            if (continuationToken is { Length: 0 })
-            {
-                return ObjectsBatch.Empty;
-            }
-
+            var result = Enumerate(null, cancellationToken).ToList();
             cancellationToken.ThrowIfCancellationRequested();
-            var result = Enumerate(continuationToken, cancellationToken).ToList();
             result.Sort();
-            return new(result, "");
+            yield return result;
         }
 
         private IEnumerable<ObjectInfo> Enumerate(string? fromName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var directoryInfo = new DirectoryInfo(_context.FilePath);
             var prefix = directoryInfo.FullName + Path.DirectorySeparatorChar;
             foreach (var info in directoryInfo.GetFileSystemInfos("*", SearchOption.AllDirectories))
@@ -63,7 +59,7 @@ namespace Synchronizzer.Implementation
                     {
                         var isHidden = (fileInfo.Attributes & FileAttributes.Hidden) != 0
                             || name.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase);
-                        yield return new ObjectInfo(name, fileInfo.Length, isHidden);
+                        yield return new(name, fileInfo.Length, isHidden);
                     }
                 }
             }

@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 using Synchronizzer.Components;
 
@@ -23,26 +24,44 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            ObjectsBatch result;
+            IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
             try
             {
-                result = await _inner.GetOrdered(continuationToken, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                _writer.Add(_prefix + "get_errors", 1);
-                throw;
-            }
+                while (true)
+                {
+                    try
+                    {
+                        enumerator ??= _inner.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
+                        if (!await enumerator.MoveNextAsync())
+                        {
+                            break;
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch
+                    {
+                        _writer.Add(_prefix + "get_errors", 1);
+                        throw;
+                    }
 
-            _writer.Add(_prefix + "gets", 1);
-            _writer.Add(_prefix + "objects", result.Count);
-            return result;
+                    var batch = enumerator.Current;
+                    _writer.Add(_prefix + "gets", 1);
+                    _writer.Add(_prefix + "objects", batch.Count);
+                    yield return batch;
+                }
+            }
+            finally
+            {
+                if (enumerator is not null)
+                {
+                    await enumerator.DisposeAsync();
+                }
+            }
         }
     }
 }

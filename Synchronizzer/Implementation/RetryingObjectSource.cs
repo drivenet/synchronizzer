@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,29 +17,47 @@ namespace Synchronizzer.Implementation
             _retries = retries;
         }
 
-        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var retries = _retries;
-            while (true)
+            IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
+            try
             {
-                try
+                while (true)
                 {
-                    return await _inner.GetOrdered(continuationToken, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (TimeoutException)
-                {
-                }
+                    try
+                    {
+                        enumerator ??= _inner.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
+                        if (!await enumerator.MoveNextAsync())
+                        {
+                            break;
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (TimeoutException)
+                    {
+                        continue;
+                    }
 #pragma warning disable CA1031 // Do not catch general exception types -- dumb retry mechanism
-                catch when (retries-- > 0)
+                    catch when (retries-- > 0)
 #pragma warning restore CA1031 // Do not catch general exception types
-                {
-                }
+                    {
+                        await Task.Delay(1511, cancellationToken);
+                        continue;
+                    }
 
-                await Task.Delay(1511, cancellationToken);
+                    yield return enumerator.Current;
+                }
+            }
+            finally
+            {
+                if (enumerator is not null)
+                {
+                    await enumerator.DisposeAsync();
+                }
             }
         }
     }

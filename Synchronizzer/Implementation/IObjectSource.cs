@@ -1,10 +1,10 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading;
 
 namespace Synchronizzer.Implementation
 {
     internal interface IObjectSource
     {
-        Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken);
+        IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(CancellationToken cancellationToken);
     }
 }

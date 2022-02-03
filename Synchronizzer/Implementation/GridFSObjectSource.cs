@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -26,21 +25,9 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            FilterDefinition<GridFSFileInfo<BsonValue>> filter;
-            if (continuationToken is null)
-            {
-                filter = Builders.Filter.Empty;
-            }
-            else if (continuationToken.Length != 0)
-            {
-                filter = Builders.Filter.Gt(info => info.Filename, continuationToken);
-            }
-            else
-            {
-                return ObjectsBatch.Empty;
-            }
+            var filter = Builders.Filter.Empty;
 
             const int Limit = 8192;
             var options = new GridFSFindOptions<BsonValue>
@@ -48,32 +35,39 @@ namespace Synchronizzer.Implementation
                 Sort = FilenameSort,
                 BatchSize = (Limit / 2) + 1,
             };
-            continuationToken = "";
-            var result = new List<ObjectInfo>(Limit);
-            using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
+            while (true)
             {
-                await infos.ForEachAsync(
-                    (info, cancel) =>
-                    {
-                        var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
-                        var lastIndex = result.Count - 1;
-                        if (lastIndex >= 0
-                            && result[lastIndex].Name == objectInfo.Name)
+                var result = new List<ObjectInfo>(Limit);
+                using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
+                {
+                    await infos.ForEachAsync(
+                        (info, cancel) =>
                         {
-                            result.RemoveAt(lastIndex);
-                        }
-                        else if (lastIndex == Limit - 1)
-                        {
-                            cancel.Cancel();
-                        }
+                            var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
+                            var lastIndex = result.Count - 1;
+                            if (lastIndex >= 0
+                                && result[lastIndex].Name == objectInfo.Name)
+                            {
+                                result.RemoveAt(lastIndex);
+                            }
+                            else if (lastIndex == Limit - 1)
+                            {
+                                cancel.Cancel();
+                            }
 
-                        result.Add(objectInfo);
-                        continuationToken = objectInfo.Name;
-                    },
-                    cancellationToken);
+                            result.Add(objectInfo);
+                        },
+                        cancellationToken);
+                }
+
+                if (result.Count == 0)
+                {
+                    break;
+                }
+
+                yield return result;
+                filter = Builders.Filter.Gt(info => info.Filename, result[^1].Name);
             }
-
-            return new(result, continuationToken);
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,12 +30,15 @@ namespace Synchronizzer.Implementation
                 _writer.Delete(objectName, cancellationToken));
         }
 
-        public async Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var lockTask = _locker.Lock(cancellationToken);
-            var getTask = _source.GetOrdered(continuationToken, cancellationToken);
-            await Task.WhenAll(lockTask, getTask);
-            return await getTask;
+            await _locker.Lock(cancellationToken);
+            await using var enumerator = _source.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
+            while (await enumerator.MoveNextAsync())
+            {
+                await _locker.Lock(cancellationToken);
+                yield return enumerator.Current;
+            }
         }
 
         public Task TryLock(CancellationToken cancellationToken) => _locker.Lock(cancellationToken);

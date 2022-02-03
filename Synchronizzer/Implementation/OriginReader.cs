@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace Synchronizzer.Implementation
 
         public string Address { get; }
 
-        public Task<ObjectsBatch> GetOrdered(string? continuationToken, CancellationToken cancellationToken) => _source.GetOrdered(continuationToken, cancellationToken);
+        public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(CancellationToken cancellationToken) => _source.GetOrdered(cancellationToken);
 
         public Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken) => _reader.Read(objectName, cancellationToken);
 

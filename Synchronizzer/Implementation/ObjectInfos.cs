@@ -8,28 +8,30 @@ using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
 {
-    internal sealed class ObjectInfos : IEnumerable<ObjectInfo>
+    internal sealed class ObjectInfos : IEnumerable<ObjectInfo>, IAsyncDisposable
     {
         private const int MaxListLength = 65536;
         private static readonly IComparer<ObjectInfo> NameOnlyComparer = new ObjectInfoNameComparer();
 
         private readonly IObjectSource _source;
-
-        private Task<ObjectsBatch>? _nextTask;
+        private readonly CancellationToken _cancellationToken;
         private List<ObjectInfo>? _infos = new();
+#pragma warning disable CA2213 // Disposable fields should be disposed -- it's disposed, analyzer just doesn't understand it
+        private IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? _enumerator;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private int _skip;
-        private string? _continuationToken;
 
-        public ObjectInfos(IObjectSource source)
+        public ObjectInfos(IObjectSource source, CancellationToken cancellationToken)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
+            _cancellationToken = cancellationToken;
         }
 
         public string? LastName { get; private set; }
 
         public bool IsLive => _infos is not null;
 
-        public async Task Populate(CancellationToken cancellationToken)
+        public async Task Populate()
         {
             if (_infos is null)
             {
@@ -44,21 +46,23 @@ namespace Synchronizzer.Implementation
                 return;
             }
 
-            var task = Interlocked.Exchange(ref _nextTask, null)
-                 ?? _source.GetOrdered(_continuationToken, cancellationToken);
-            var newInfos = await task;
-            var index = 0;
-            foreach (var info in newInfos)
+            _enumerator ??= _source.GetOrdered(_cancellationToken).GetAsyncEnumerator(_cancellationToken);
+            if (await _enumerator.MoveNextAsync())
             {
-                if (info.CompareTo(lastInfo) <= 0)
+                var index = 0;
+                foreach (var info in _enumerator.Current)
                 {
-                    throw new InvalidDataException(FormattableString.Invariant(
-                        $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {_source}."));
-                }
+                    if (info.CompareTo(lastInfo) <= 0)
+                    {
+                        throw new InvalidDataException(FormattableString.Invariant(
+                            $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {_source}."));
+                    }
 
-                _infos.Add(info);
-                lastInfo = info;
-                ++index;
+                    _infos.Add(info);
+                    lastInfo = info;
+                    ++index;
+                    LastName = info.Name;
+                }
             }
 
             var count = _infos.Count;
@@ -66,14 +70,8 @@ namespace Synchronizzer.Implementation
             {
                 _infos = null;
                 LastName = null;
-                _continuationToken = null;
-                _nextTask = null;
                 return;
             }
-
-            LastName = _infos[count - 1].Name;
-            _continuationToken = newInfos.ContinuationToken;
-            _nextTask = _source.GetOrdered(_continuationToken, cancellationToken);
         }
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_infos ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
@@ -88,7 +86,7 @@ namespace Synchronizzer.Implementation
             var count = _infos.Count;
             if (_skip >= count)
             {
-                throw new InvalidOperationException(FormattableString.Invariant($"Skip {_skip} is greater than or equal to count {count}"));
+                throw new InvalidOperationException(FormattableString.Invariant($"Skip {_skip} is greater than or equal to count {count}."));
             }
 
             ++_skip;
@@ -120,6 +118,16 @@ namespace Synchronizzer.Implementation
             => IsLive
                 ? FormattableString.Invariant($"(Count={_infos?.Count};Skip={_skip};LastName={LastName})")
                 : "(Completed)";
+
+        public ValueTask DisposeAsync()
+        {
+            if (_enumerator is { } enumerator)
+            {
+                return enumerator.DisposeAsync();
+            }
+
+            return ValueTask.CompletedTask;
+        }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

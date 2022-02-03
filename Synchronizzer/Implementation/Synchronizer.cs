@@ -43,14 +43,14 @@ namespace Synchronizzer.Implementation
 
         private async Task SynchronizeCore(CancellationToken cancellationToken)
         {
-            var originInfos = new ObjectInfos(_originReader);
-            var destinationInfos = new ObjectInfos(_destinationWriter);
+            await using var originInfos = new ObjectInfos(_originReader, cancellationToken);
+            await using var destinationInfos = new ObjectInfos(_destinationWriter, cancellationToken);
             while (true)
             {
                 _logger?.LogDebug(Events.Populating, "Populating infos.");
                 await Task.WhenAll(
-                    originInfos.Populate(cancellationToken),
-                    destinationInfos.Populate(cancellationToken));
+                    originInfos.Populate(),
+                    destinationInfos.Populate());
                 _logger?.LogDebug(Events.Populated, "Populated infos.");
                 var counts = await Task.WhenAll(
                     SynchronizeOrigin(originInfos, destinationInfos, cancellationToken),
