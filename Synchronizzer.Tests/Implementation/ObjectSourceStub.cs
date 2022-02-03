@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 using Synchronizzer.Implementation;
 
@@ -40,44 +38,34 @@ namespace Synchronizzer.Tests.Implementation
 
         public IEnumerator<ObjectInfo> GetEnumerator() => (_list ?? Enumerable.Empty<ObjectInfo>()).GetEnumerator();
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_list is null)
             {
-                return Task.FromResult(ObjectsBatch.Empty);
+                yield break;
             }
 
-            int index;
-            if (continuationToken is not null)
+            var index = 0;
+            while (true)
             {
-                if (continuationToken.Length == 0)
+                var count = _list.Count - index;
+                if (count == 0)
                 {
-                    return Task.FromResult(ObjectsBatch.Empty);
+                    break;
                 }
 
-                index = int.Parse(continuationToken, NumberFormatInfo.InvariantInfo);
-            }
-            else
-            {
-                index = 0;
-            }
+                const int BatchSize = 1000;
+                if (count > BatchSize)
+                {
+                    count = BatchSize;
+                }
 
-            var count = _list.Count - index;
-            if (count == 0)
-            {
-                return Task.FromResult(ObjectsBatch.Empty);
+                yield return _list.GetRange(index, count);
+                index += count;
             }
-
-            const int BatchSize = 1000;
-            if (count > BatchSize)
-            {
-                count = BatchSize;
-            }
-
-            var nextIndex = index + count;
-            continuationToken = nextIndex.ToString(NumberFormatInfo.InvariantInfo);
-            return Task.FromResult(new ObjectsBatch(_list.GetRange(index, count), continuationToken));
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
