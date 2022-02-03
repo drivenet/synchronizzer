@@ -70,7 +70,6 @@ namespace Synchronizzer.Implementation
             {
                 _infos = null;
                 LastName = null;
-                return;
             }
         }
 
