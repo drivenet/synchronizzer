@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -35,7 +36,24 @@ namespace Synchronizzer.Implementation
                 Sort = FilenameSort,
                 BatchSize = (Limit / 2) + 1,
             };
+
+            Task<IReadOnlyList<ObjectInfo>>? nextTask = null;
             while (true)
+            {
+                nextTask ??= Next();
+                var result = await nextTask;
+                if (result.Count == 0)
+                {
+                    break;
+                }
+
+                filter = Builders.Filter.Gt(info => info.Filename, result[^1].Name);
+                nextTask = Next();
+
+                yield return result;
+            }
+
+            async Task<IReadOnlyList<ObjectInfo>> Next()
             {
                 var result = new List<ObjectInfo>(Limit);
                 using (var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken))
@@ -60,13 +78,7 @@ namespace Synchronizzer.Implementation
                         cancellationToken);
                 }
 
-                if (result.Count == 0)
-                {
-                    break;
-                }
-
-                yield return result;
-                filter = Builders.Filter.Gt(info => info.Filename, result[^1].Name);
+                return result;
             }
         }
     }
