@@ -34,20 +34,20 @@ namespace Synchronizzer.Implementation
                 Delimiter = "/",
                 MaxKeys = MaxKeys,
             };
-            Task<ListObjectsV2Response>? responseTask = null;
+            Task<ListObjectsV2Response>? nextTask = null;
             while (true)
             {
-                responseTask ??= NextTask();
+                nextTask ??= Next();
                 list.Clear();
-                var response = await responseTask;
+                var response = await nextTask;
                 if (response.NextContinuationToken is { } continuationToken)
                 {
                     request.ContinuationToken = continuationToken;
-                    responseTask = NextTask();
+                    nextTask = Next();
                 }
                 else
                 {
-                    responseTask = null;
+                    nextTask = null;
                 }
 
                 PopulateList(response, list);
@@ -83,13 +83,13 @@ namespace Synchronizzer.Implementation
                     yield return result;
                 }
 
-                if (responseTask is null)
+                if (nextTask is null)
                 {
                     break;
                 }
             }
 
-            Task<ListObjectsV2Response> NextTask() => _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+            Task<ListObjectsV2Response> Next() => _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
         }
 
         private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size)> list)
