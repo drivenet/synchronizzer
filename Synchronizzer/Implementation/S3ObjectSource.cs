@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Amazon.S3.Model;
+
+using static System.FormattableString;
 
 namespace Synchronizzer.Implementation
 {
@@ -17,30 +20,110 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+        public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(CancellationToken cancellationToken)
+            => GetOrdered(null, cancellationToken);
+
+        private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            string? continuationToken = null;
-            do
+            const int MaxKeys = 1000;
+            var list = new List<(string Key, long Size)>(MaxKeys);
+            var request = new ListObjectsV2Request
             {
-                var request = new ListObjectsV2Request
+                Prefix = prefix,
+                BucketName = _context.BucketName,
+                Delimiter = "/",
+                MaxKeys = MaxKeys,
+            };
+            Task<ListObjectsV2Response>? responseTask = null;
+            while (true)
+            {
+                responseTask ??= NextTask();
+                list.Clear();
+                var response = await responseTask;
+                if (response.NextContinuationToken is { } continuationToken)
                 {
-                    BucketName = _context.BucketName,
-                    ContinuationToken = continuationToken,
-                };
-                var response = await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
-                var s3Objects = response.S3Objects;
-                var result = new List<ObjectInfo>(s3Objects.Count);
-                result.AddRange(s3Objects.Select(
-                    s3Object =>
+                    request.ContinuationToken = continuationToken;
+                    responseTask = NextTask();
+                }
+                else
+                {
+                    responseTask = null;
+                }
+
+                PopulateList(response, list);
+                List<ObjectInfo>? result = null;
+                foreach (var (key, size) in list)
+                {
+                    if (size < 0)
                     {
-                        var objectName = s3Object.Key.TrimEnd('/');
-                        var isHidden = objectName.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase);
-                        return new ObjectInfo(objectName, s3Object.Size, isHidden);
-                    }));
-                yield return result;
-                continuationToken = response.NextContinuationToken;
+                        if (result is { Count: not 0 })
+                        {
+                            yield return result;
+                            result = null;
+                        }
+
+                        await foreach (var prefixedResult in GetOrdered(key, cancellationToken))
+                        {
+                            if (prefixedResult.Count != 0)
+                            {
+                                yield return prefixedResult;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var isHidden = key.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase);
+                        result ??= new();
+                        result.Add(new(key, size, isHidden));
+                    }
+                }
+
+                if (result is { Count: not 0 })
+                {
+                    yield return result;
+                }
+
+                if (responseTask is null)
+                {
+                    break;
+                }
             }
-            while (continuationToken is not null);
+
+            Task<ListObjectsV2Response> NextTask() => _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+        }
+
+        private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size)> list)
+        {
+            foreach (var s3Object in response.S3Objects)
+            {
+                if (s3Object.Key == response.Prefix)
+                {
+                    continue;
+                }
+
+                if (s3Object.Size < 0)
+                {
+                    throw new InvalidDataException(Invariant($"Invalid size {s3Object.Size} for key \"{s3Object.Key}\"."));
+                }
+
+                list.Add((s3Object.Key, s3Object.Size));
+            }
+
+            foreach (var commonPrefix in response.CommonPrefixes)
+            {
+                list.Add((commonPrefix, -1L));
+            }
+
+            list.Sort((a, b) =>
+            {
+                var comparison = string.CompareOrdinal(a.Key, b.Key);
+                if (comparison == 0)
+                {
+                    comparison = a.Size.CompareTo(b.Size);
+                }
+
+                return comparison;
+            });
         }
     }
 }
