@@ -92,7 +92,8 @@ namespace Synchronizzer.Composition
                 Retry(
                     Trace(
                         Count(
-                            new S3ObjectSource(context),
+                            Buffer(
+                                new S3ObjectSource(context)),
                             "origin.s3")),
                     S3Retries),
                 Robust(
@@ -128,5 +129,8 @@ namespace Synchronizzer.Composition
                             "gridfs"))),
                 "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName);
         }
+
+        private static IObjectSource Buffer(IObjectSource source)
+            => new BufferingObjectSource(source);
     }
 }

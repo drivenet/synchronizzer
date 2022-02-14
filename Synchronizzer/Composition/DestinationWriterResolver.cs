@@ -89,7 +89,8 @@ namespace Synchronizzer.Composition
                 Retry(
                     Trace(
                         Count(
-                            new S3ObjectSource(context),
+                            Buffer(
+                                new S3ObjectSource(context)),
                             "destination.s3"),
                         "destination"),
                     S3Retries),
@@ -148,5 +149,8 @@ namespace Synchronizzer.Composition
                                 new FilesystemObjectWriterLocker(context, lockName)),
                             FilesystemRetries))));
         }
+
+        private static IObjectSource Buffer(IObjectSource source)
+            => new BufferingObjectSource(source);
     }
 }
