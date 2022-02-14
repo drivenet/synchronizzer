@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,13 +22,22 @@ namespace Synchronizzer.Implementation
 
         public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
-            using var readObject = await _inner.Read(objectName, cancellationToken);
+            var readObject = await _inner.Read(objectName, cancellationToken);
             if (readObject is { Length: <= MaxBufferedLength })
             {
+                Stream bufferedStream;
+                try
+                {
 #pragma warning disable CA2000 // Dispose objects before losing scope -- passed to ReadObject for future disposal
-                var bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), readObject.Length);
+                    bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), readObject.Length);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                await readObject.Stream.CopyToAsync(bufferedStream, cancellationToken);
+                    await readObject.Stream.CopyToAsync(bufferedStream, cancellationToken);
+                }
+                finally
+                {
+                    readObject.Dispose();
+                }
+
                 return new ReadObject(bufferedStream, bufferedStream.Length);
             }
 
