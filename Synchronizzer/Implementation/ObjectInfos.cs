@@ -19,6 +19,7 @@ namespace Synchronizzer.Implementation
 #pragma warning disable CA2213 // Disposable fields should be disposed -- it's disposed, analyzer just doesn't understand it
         private IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? _enumerator;
 #pragma warning restore CA2213 // Disposable fields should be disposed
+        private ValueTask<bool> _enumerationTask;
         private int _skip;
 
         public ObjectInfos(IObjectSource source, CancellationToken cancellationToken)
@@ -46,11 +47,31 @@ namespace Synchronizzer.Implementation
                 return;
             }
 
-            _enumerator ??= _source.GetOrdered(_cancellationToken).GetAsyncEnumerator(_cancellationToken);
-            if (await _enumerator.MoveNextAsync())
+            if (_enumerator is null)
             {
+                var enumerator = _source.GetOrdered(_cancellationToken).GetAsyncEnumerator(_cancellationToken);
+#pragma warning disable CA2012 // Use ValueTasks correctly -- the _enumerationTask is awaited only once
+                _enumerationTask = enumerator.MoveNextAsync();
+#pragma warning restore CA2012 // Use ValueTasks correctly
+                _enumerator = enumerator;
+            }
+
+            if (await _enumerationTask)
+            {
+                IReadOnlyCollection<ObjectInfo> infos;
+                try
+                {
+                    infos = _enumerator.Current;
+                }
+                finally
+                {
+#pragma warning disable CA2012 // Use ValueTasks correctly -- the _enumerationTask is awaited only once
+                    _enumerationTask = _enumerator.MoveNextAsync();
+#pragma warning restore CA2012 // Use ValueTasks correctly
+                }
+
                 var index = 0;
-                foreach (var info in _enumerator.Current)
+                foreach (var info in infos)
                 {
                     if (info.CompareTo(lastInfo) <= 0)
                     {
