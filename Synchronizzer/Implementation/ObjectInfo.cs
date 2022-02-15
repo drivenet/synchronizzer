@@ -23,7 +23,7 @@ namespace Synchronizzer.Implementation
                 throw new ArgumentOutOfRangeException(nameof(size), size, "Negative object size.");
             }
 
-            Name = name.Normalize(NormalizationForm.FormC);
+            Name = name;
             Size = size;
             IsHidden = isHidden;
         }
