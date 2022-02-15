@@ -16,6 +16,7 @@ internal sealed class BufferingObjectSource : IObjectSource
 
     public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        const int BufferSize = 8192;
         await using var enumerator = _inner.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
         List<ObjectInfo>? buffer = null;
         var enumerationTask = enumerator.MoveNextAsync();
@@ -23,8 +24,8 @@ internal sealed class BufferingObjectSource : IObjectSource
         {
             var current = enumerator.Current;
             enumerationTask = enumerator.MoveNextAsync();
-            (buffer ??= new()).AddRange(current);
-            if (buffer.Count > 8192)
+            (buffer ??= new(BufferSize)).AddRange(current);
+            if (buffer.Count > BufferSize)
             {
                 yield return buffer;
                 buffer = null;
