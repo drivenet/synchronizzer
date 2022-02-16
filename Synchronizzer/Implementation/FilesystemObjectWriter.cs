@@ -26,7 +26,7 @@ namespace Synchronizzer.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             if (recyclePath is not null)
             {
-                if (Path.GetDirectoryName(path) is { } directory)
+                if (Path.GetDirectoryName(recyclePath) is { } directory)
                 {
                     Directory.CreateDirectory(directory);
                 }
