@@ -11,6 +11,8 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class FilesystemObjectSource : IObjectSource
     {
+        private static readonly FileAttributes HiddenMask = Environment.OSVersion.Platform == PlatformID.Win32NT ? FileAttributes.Hidden : default;
+
         private readonly FilesystemContext _context;
 
         public FilesystemObjectSource(FilesystemContext context)
@@ -57,12 +59,13 @@ namespace Synchronizzer.Implementation
 
                     if (string.CompareOrdinal(name, fromName) > 0)
                     {
-                        var isHidden = (fileInfo.Attributes & FileAttributes.Hidden) != 0
+                        var isHidden = (fileInfo.Attributes & HiddenMask) != 0
                             || name.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase);
                         yield return new(name, fileInfo.Length, isHidden);
                     }
                 }
             }
         }
+
     }
 }
