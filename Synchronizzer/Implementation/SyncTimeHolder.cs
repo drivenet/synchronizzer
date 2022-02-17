@@ -29,6 +29,11 @@ namespace Synchronizzer.Implementation
         public async Task Wait(CancellationToken cancellationToken)
         {
             var wait = _wait;
+            if (wait == TimeSpan.Zero)
+            {
+                return;
+            }
+
             var timer = Stopwatch.StartNew();
             try
             {
