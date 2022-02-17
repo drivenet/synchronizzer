@@ -47,8 +47,6 @@ namespace Synchronizzer.Composition
 
         private static IObjectWriterLocker Cache(IObjectWriterLocker inner) => new CachingObjectWriterLocker(inner);
 
-        private static IObjectWriterLocker Retry(IObjectWriterLocker inner, byte retries) => new RetryingObjectWriterLocker(inner, retries);
-
         private static IObjectWriter Robust(IObjectWriter inner) => new RobustObjectWriter(inner);
 
         private IObjectWriterLocker Trace(IObjectWriterLocker inner) => new TracingObjectWriterLocker(inner, _lockerLogger);
@@ -81,13 +79,12 @@ namespace Synchronizzer.Composition
 
             var destinationAddress = context.S3.ServiceUrl.AbsoluteUri;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
-            const byte S3Retries = 10;
             return new DestinationWriter(
                 destinationAddress,
                 Trace(
                     Count(
                         Buffer(
-                            new S3ObjectSource(context, S3Retries)),
+                            new S3ObjectSource(context)),
                         "destination.s3"),
                     "destination"),
                 Robust(
@@ -99,10 +96,8 @@ namespace Synchronizzer.Composition
                             "s3"))),
                 Lock(
                     Cache(
-                        Retry(
-                            Trace(
-                                new S3ObjectWriterLocker(context, lockName)),
-                            S3Retries))));
+                        Trace(
+                            new S3ObjectWriterLocker(context, lockName)))));
         }
 
         private IDestinationWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri, bool dryRun)
@@ -123,7 +118,6 @@ namespace Synchronizzer.Composition
                 recycleContext = null;
             }
 
-            const byte FilesystemRetries = 10;
             var lockName = FormattableString.Invariant($"{Environment.ProcessId}_{Guid.NewGuid():N}");
             return new DestinationWriter(
                 address,
@@ -140,10 +134,8 @@ namespace Synchronizzer.Composition
                         "fs")),
                 Lock(
                     Cache(
-                        Retry(
-                            Trace(
-                                new FilesystemObjectWriterLocker(context, lockName)),
-                            FilesystemRetries))));
+                        Trace(
+                            new FilesystemObjectWriterLocker(context, lockName)))));
         }
 
         private static IObjectSource Buffer(IObjectSource source)

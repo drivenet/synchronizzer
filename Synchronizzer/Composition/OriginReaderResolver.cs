@@ -50,9 +50,6 @@ namespace Synchronizzer.Composition
         private static IObjectReader Robust(IObjectReader reader)
             => new RobustObjectReader(reader);
 
-        private static IObjectReader Retry(IObjectReader reader, byte retries)
-            => new RetryingObjectReader(reader, retries);
-
         private IObjectReader Count(IObjectReader reader, string key)
             => new CountingObjectReader(reader, _metricsWriter, key);
 
@@ -83,42 +80,36 @@ namespace Synchronizzer.Composition
 
         private IOriginReader CreateS3Reader(Uri uri)
         {
-            const byte S3Retries = 30;
             var context = S3Utils.CreateContext(uri);
             return new OriginReader(
                 Trace(
                     Count(
                         Buffer(
-                            new S3ObjectSource(context, S3Retries)),
+                            new S3ObjectSource(context)),
                         "origin.s3")),
                 Robust(
                     Trace(
                         Count(
-                            Retry(
-                                new S3ObjectReader(context),
-                                S3Retries),
+                            new S3ObjectReader(context),
                             "s3"))),
                 "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName);
         }
 
         private IOriginReader CreateGridFSReader(string address)
         {
-            const byte GridFSRetries = 5;
             var context = GridFSUtils.CreateContext(address);
             return new OriginReader(
                 Trace(
                     Count(
-                        new GridFSObjectSource(context, GridFSRetries),
+                        new GridFSObjectSource(context),
                         "origin.gridfs")),
                 Robust(
                     Trace(
                         Count(
-                            Retry(
-                                new GridFSFilteringObjectReader(
-                                    new BufferingObjectReader(
-                                        new GridFSObjectReader(context),
-                                        _streamManager)),
-                                GridFSRetries),
+                            new GridFSFilteringObjectReader(
+                                new BufferingObjectReader(
+                                    new GridFSObjectReader(context),
+                                    _streamManager)),
                             "gridfs"))),
                 "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName);
         }

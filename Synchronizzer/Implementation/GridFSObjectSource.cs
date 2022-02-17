@@ -20,12 +20,10 @@ namespace Synchronizzer.Implementation
                 .Ascending(info => info.UploadDateTime);
 
         private readonly GridFSContext _context;
-        private readonly byte _retries;
 
-        public GridFSObjectSource(GridFSContext context, byte retries)
+        public GridFSObjectSource(GridFSContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _retries = retries;
         }
 
         public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
@@ -57,45 +55,28 @@ namespace Synchronizzer.Implementation
 
             async Task<IReadOnlyList<ObjectInfo>> Next()
             {
-                var retries = _retries;
                 var result = new List<ObjectInfo>(Limit);
-                while (true)
-                {
-                    try
+                using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
+                await infos.ForEachAsync(
+                    (info, cancel) =>
                     {
-                        using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
-                        await infos.ForEachAsync(
-                            (info, cancel) =>
-                            {
-                                var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
-                                var lastIndex = result.Count - 1;
-                                if (lastIndex >= 0
-                                    && result[lastIndex].Name == objectInfo.Name)
-                                {
-                                    result.RemoveAt(lastIndex);
-                                }
-                                else if (lastIndex == Limit - 1)
-                                {
-                                    cancel.Cancel();
-                                }
+                        var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
+                        var lastIndex = result.Count - 1;
+                        if (lastIndex >= 0
+                            && result[lastIndex].Name == objectInfo.Name)
+                        {
+                            result.RemoveAt(lastIndex);
+                        }
+                        else if (lastIndex == Limit - 1)
+                        {
+                            cancel.Cancel();
+                        }
 
-                                result.Add(objectInfo);
-                            },
-                            cancellationToken);
+                        result.Add(objectInfo);
+                    },
+                    cancellationToken);
 
-                        return result;
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-#pragma warning disable CA1031 // Do not catch general exception types -- dumb retry mechanism
-                    catch when (retries-- > 0)
-#pragma warning restore CA1031 // Do not catch general exception types
-                    {
-                        await Task.Delay(1511, cancellationToken);
-                    }
-                }
+                return result;
             }
         }
     }
