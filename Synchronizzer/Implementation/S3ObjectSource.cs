@@ -14,10 +14,12 @@ namespace Synchronizzer.Implementation
     internal sealed class S3ObjectSource : IObjectSource
     {
         private readonly S3Context _context;
+        private readonly byte _retries;
 
-        public S3ObjectSource(S3Context context)
+        public S3ObjectSource(S3Context context, byte retries)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _retries = retries;
         }
 
         public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(CancellationToken cancellationToken)
@@ -89,7 +91,27 @@ namespace Synchronizzer.Implementation
                 }
             }
 
-            Task<ListObjectsV2Response> Next() => _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+            async Task<ListObjectsV2Response> Next()
+            {
+                var retries = _retries;
+                while (true)
+                {
+                    try
+                    {
+                        return await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+#pragma warning disable CA1031 // Do not catch general exception types -- dumb retry mechanism
+                    catch when (retries-- > 0)
+#pragma warning restore CA1031 // Do not catch general exception types
+                    {
+                        await Task.Delay(1511, cancellationToken);
+                    }
+                }
+            }
         }
 
         private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size)> list)

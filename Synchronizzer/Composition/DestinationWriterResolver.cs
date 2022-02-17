@@ -51,8 +51,6 @@ namespace Synchronizzer.Composition
 
         private static IObjectWriter Robust(IObjectWriter inner) => new RobustObjectWriter(inner);
 
-        private static IObjectSource Retry(IObjectSource inner, byte retries) => new RetryingObjectSource(inner, retries);
-
         private IObjectWriterLocker Trace(IObjectWriterLocker inner) => new TracingObjectWriterLocker(inner, _lockerLogger);
 
         private IObjectWriter Count(IObjectWriter inner, string key) => new CountingObjectWriter(inner, _metricsWriter, key);
@@ -83,17 +81,15 @@ namespace Synchronizzer.Composition
 
             var destinationAddress = context.S3.ServiceUrl.AbsoluteUri;
             var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
-            const byte S3Retries = 30;
+            const byte S3Retries = 10;
             return new DestinationWriter(
                 destinationAddress,
-                Retry(
-                    Trace(
-                        Count(
-                            Buffer(
-                                new S3ObjectSource(context)),
-                            "destination.s3"),
-                        "destination"),
-                    S3Retries),
+                Trace(
+                    Count(
+                        Buffer(
+                            new S3ObjectSource(context, S3Retries)),
+                        "destination.s3"),
+                    "destination"),
                 Robust(
                     Trace(
                         Count(
