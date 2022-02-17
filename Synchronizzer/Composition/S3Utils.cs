@@ -66,6 +66,7 @@ namespace Synchronizzer.Composition
                 DisableLogging = true,
                 Timeout = TimeSpan.FromSeconds(47),
                 RetryMode = RequestRetryMode.Standard,
+                MaxErrorRetry = 10,
             };
             RegionEndpoint? regionEndpoint;
             try
