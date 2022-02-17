@@ -41,12 +41,13 @@ namespace Synchronizzer.Composition
         }
 
         private ISynchronizer Create(string name, IOriginReader originReader, IDestinationWriter destinationWriter, IQueuingTaskManager taskManager)
-            => new TimedSynchronizer(
-                new RobustSynchronizer(
-                    new TracingSynchronizer(
-                        new Synchronizer(originReader, destinationWriter, taskManager, _synchronizerLogger),
-                        _syncLogger,
-                        name)),
-                _syncTimeHolderResolver.Resolve(name));
+            => new DeferringSynchronizer(
+                new TimedSynchronizer(
+                    new RobustSynchronizer(
+                        new TracingSynchronizer(
+                            new Synchronizer(originReader, destinationWriter, taskManager, _synchronizerLogger),
+                            _syncLogger,
+                            name)),
+                    _syncTimeHolderResolver.Resolve(name)));
     }
 }
