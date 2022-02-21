@@ -29,6 +29,7 @@ namespace Synchronizzer.Composition
                 job.Origin ?? throw new ArgumentNullException(nameof(job), FormattableString.Invariant($"Missing sync job origin address for job \"{job.Name}\".")),
                 job.Destination ?? throw new ArgumentNullException(nameof(job), FormattableString.Invariant($"Missing sync job destination address for job \"{job.Name}\".")),
                 job.Recycle,
-                job.DryRun);
+                job.DryRun,
+                job.CopyOnly);
     }
 }

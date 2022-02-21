@@ -11,5 +11,7 @@
         public string? Recycle { get; set; }
 
         public bool DryRun { get; set; }
+
+        public bool CopyOnly { get; set; }
     }
 }

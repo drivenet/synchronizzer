@@ -4,7 +4,7 @@ namespace Synchronizzer.Composition
 {
     internal sealed class SyncInfo : IEquatable<SyncInfo>
     {
-        public SyncInfo(string name, string origin, string destination, string? recycle, bool dryRun)
+        public SyncInfo(string name, string origin, string destination, string? recycle, bool dryRun, bool copyOnly)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Origin = origin ?? throw new ArgumentNullException(nameof(origin));
@@ -23,13 +23,16 @@ namespace Synchronizzer.Composition
 
         public bool DryRun { get; }
 
+        public bool CopyOnly { get; }
+
         public bool Equals(SyncInfo? other)
             => other is not null
             && Name == other.Name
             && Origin == other.Origin
             && Destination == other.Destination
             && Recycle == other.Recycle
-            && DryRun == other.DryRun;
+            && DryRun == other.DryRun
+            && CopyOnly == other.CopyOnly;
 
         public override bool Equals(object? obj) => Equals(obj as SyncInfo);
 

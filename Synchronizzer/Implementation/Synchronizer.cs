@@ -11,13 +11,20 @@ namespace Synchronizzer.Implementation
         private readonly IOriginReader _originReader;
         private readonly IDestinationWriter _destinationWriter;
         private readonly IQueuingTaskManager _taskManager;
+        private readonly bool _copyOnly;
         private readonly ILogger? _logger;
 
-        public Synchronizer(IOriginReader originReader, IDestinationWriter destinationWriter, IQueuingTaskManager taskManager, ILogger<Synchronizer>? logger)
+        public Synchronizer(
+            IOriginReader originReader,
+            IDestinationWriter destinationWriter,
+            IQueuingTaskManager taskManager,
+            bool copyOnly,
+            ILogger<Synchronizer>? logger)
         {
             _originReader = originReader ?? throw new ArgumentNullException(nameof(originReader));
             _destinationWriter = destinationWriter ?? throw new ArgumentNullException(nameof(destinationWriter));
             _taskManager = taskManager ?? throw new ArgumentNullException(nameof(taskManager));
+            _copyOnly = copyOnly;
             _logger = logger;
         }
 
@@ -156,7 +163,8 @@ namespace Synchronizzer.Implementation
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!objectInfo.IsHidden
+                if (!_copyOnly
+                    && !objectInfo.IsHidden
                     && !originInfos.HasObjectByName(objectInfo))
                 {
                     await _taskManager.Enqueue(
