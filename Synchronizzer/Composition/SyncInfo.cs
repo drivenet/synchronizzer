@@ -11,6 +11,7 @@ namespace Synchronizzer.Composition
             Destination = destination ?? throw new ArgumentNullException(nameof(destination));
             Recycle = recycle;
             DryRun = dryRun;
+            CopyOnly = copyOnly;
         }
 
         public string Name { get; }
