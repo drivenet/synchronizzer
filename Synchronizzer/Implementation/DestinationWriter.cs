@@ -33,11 +33,10 @@ namespace Synchronizzer.Implementation
         public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await _locker.Lock(cancellationToken);
-            await using var enumerator = _source.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
-            while (await enumerator.MoveNextAsync())
+            await foreach (var item in _source.GetOrdered(cancellationToken))
             {
                 await _locker.Lock(cancellationToken);
-                yield return enumerator.Current;
+                yield return item;
             }
         }
 
