@@ -17,14 +17,10 @@ internal sealed class BufferingObjectSource : IObjectSource
     public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const int BufferSize = 8192;
-        await using var enumerator = _inner.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
         List<ObjectInfo>? buffer = null;
-        var enumerationTask = enumerator.MoveNextAsync();
-        while (await enumerationTask)
+        await foreach (var infos in _inner.GetOrdered(cancellationToken))
         {
-            var current = enumerator.Current;
-            enumerationTask = enumerator.MoveNextAsync();
-            (buffer ??= new(BufferSize)).AddRange(current);
+            (buffer ??= new(BufferSize)).AddRange(infos);
             if (buffer.Count > BufferSize)
             {
                 yield return buffer;
