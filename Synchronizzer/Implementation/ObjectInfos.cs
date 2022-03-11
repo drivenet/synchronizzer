@@ -143,7 +143,14 @@ namespace Synchronizzer.Implementation
         {
             if (_enumerator is { } enumerator)
             {
-                return enumerator.DisposeAsync();
+                try
+                {
+                    return enumerator.DisposeAsync();
+                }
+                catch (NotSupportedException)
+                {
+                    // Thrown when the enumerator task is not yet completed
+                }
             }
 
             return ValueTask.CompletedTask;
