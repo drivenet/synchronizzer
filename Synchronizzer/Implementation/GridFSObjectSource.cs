@@ -54,30 +54,33 @@ namespace Synchronizzer.Implementation
             }
 
             async Task<IReadOnlyList<ObjectInfo>> Next()
-            {
-                var result = new List<ObjectInfo>(Limit);
-                using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
-                await infos.ForEachAsync(
-                    (info, cancel) =>
+                => await GridFSUtils.SafeExecute(
+                    async () =>
                     {
-                        var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
-                        var lastIndex = result.Count - 1;
-                        if (lastIndex >= 0
-                            && result[lastIndex].Name == objectInfo.Name)
-                        {
-                            result.RemoveAt(lastIndex);
-                        }
-                        else if (lastIndex == Limit - 1)
-                        {
-                            cancel.Cancel();
-                        }
+                        var result = new List<ObjectInfo>(Limit);
+                        using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
+                        await infos.ForEachAsync(
+                            (info, cancel) =>
+                            {
+                                var objectInfo = new ObjectInfo(info.Filename, info.Length, false);
+                                var lastIndex = result.Count - 1;
+                                if (lastIndex >= 0
+                                    && result[lastIndex].Name == objectInfo.Name)
+                                {
+                                    result.RemoveAt(lastIndex);
+                                }
+                                else if (lastIndex == Limit - 1)
+                                {
+                                    cancel.Cancel();
+                                }
 
-                        result.Add(objectInfo);
+                                result.Add(objectInfo);
+                            },
+                            cancellationToken);
+                        return result;
                     },
+                    10,
                     cancellationToken);
-
-                return result;
-            }
         }
     }
 }

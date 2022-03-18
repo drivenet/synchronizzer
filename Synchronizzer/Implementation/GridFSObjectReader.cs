@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,18 +18,23 @@ namespace Synchronizzer.Implementation
 
         public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
+            Stream stream;
             try
             {
-                var stream = await _context.Bucket.OpenDownloadStreamByNameAsync(
-                    objectName,
-                    new GridFSDownloadByNameOptions { Seekable = true },
+                stream = await GridFSUtils.SafeExecute(
+                    async () => await _context.Bucket.OpenDownloadStreamByNameAsync(
+                        objectName,
+                        new GridFSDownloadByNameOptions { Seekable = true },
+                        cancellationToken),
+                    10,
                     cancellationToken);
-                return new ReadObject(stream, stream.Length);
             }
             catch (GridFSFileNotFoundException)
             {
                 return null;
             }
+
+            return new ReadObject(stream, stream.Length);
         }
     }
 }
