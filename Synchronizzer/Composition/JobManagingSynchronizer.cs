@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +60,22 @@ namespace Synchronizzer.Composition
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            var destinations = new Dictionary<string, string>();
+            foreach (var info in infos)
+            {
+                var destination = info.Destination;
+                if (!destinations.TryAdd(destination, info.Name))
+                {
+                    throw new InvalidDataException(FormattableString.Invariant($"Destination for job \"{info.Name}\" was already used for job \"{destinations[destination]}\"."));
+                }
+
+                if (info.Recycle is { } recyle
+                    && !destinations.TryAdd(recyle, info.Name))
+                {
+                    throw new InvalidDataException(FormattableString.Invariant($"Recycle for job \"{info.Name}\" was already used for job \"{destinations[recyle]}\"."));
+                }
+            }
 
             foreach (var info in infos)
             {
