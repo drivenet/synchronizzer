@@ -19,7 +19,14 @@ namespace Synchronizzer.Implementation
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await _synchronizer.Synchronize(stoppingToken);
+                try
+                {
+                    await _synchronizer.Synchronize(stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
             }
         }
     }
