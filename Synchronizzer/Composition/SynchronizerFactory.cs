@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Logging;
 
@@ -34,6 +35,12 @@ namespace Synchronizzer.Composition
         public ISynchronizer Create(SyncInfo info)
         {
             var originReader = _originReaderResolver.Resolve(info.Origin);
+            if (info.Exclude is { } exclude)
+            {
+                var filteringSource = new FilteringObjectSource(originReader, exclude);
+                originReader = new OriginReader(filteringSource, originReader, originReader.Address);
+            }
+
             var destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle, info.DryRun);
             var taskManager = _taskManagerSelector.Select(destinationWriter.Address);
             var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager, info.CopyOnly);

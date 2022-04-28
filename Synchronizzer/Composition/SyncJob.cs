@@ -10,6 +10,8 @@
 
         public string? Recycle { get; set; }
 
+        public string? ExcludePattern { get; set; }
+
         public bool DryRun { get; set; }
 
         public bool CopyOnly { get; set; }
