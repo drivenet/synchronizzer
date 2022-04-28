@@ -131,7 +131,12 @@ namespace Synchronizzer.Implementation
             }
 
             var index = _infos.BinarySearch(objectInfo, NameOnlyComparer);
-            return index >= 0;
+            if (index < 0)
+            {
+                return false;
+            }
+
+            return !_infos[index].IsHidden;
         }
 
         public override string ToString()
