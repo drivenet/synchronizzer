@@ -50,6 +50,10 @@ internal sealed class FilteringObjectSource : IObjectSource
 
                     filteredInfos.Add(new(info.Name, info.Size, true));
                 }
+                else
+                {
+                    filteredInfos?.Add(info);
+                }
 
                 ++processed;
             }
