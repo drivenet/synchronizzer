@@ -11,7 +11,7 @@ namespace Synchronizzer.Implementation
     internal sealed class ObjectInfos : IEnumerable<ObjectInfo>, IAsyncDisposable
     {
         private const int MaxListLength = 65536;
-        private static readonly IComparer<ObjectInfo> NameOnlyComparer = new ObjectInfoNameComparer();
+        private static readonly IComparer<ObjectInfo> NameComparer = new ObjectInfoNameComparer();
 
         private readonly IObjectSource _source;
         private readonly CancellationToken _cancellationToken;
@@ -130,7 +130,7 @@ namespace Synchronizzer.Implementation
                 return false;
             }
 
-            var index = _infos.BinarySearch(objectInfo, NameOnlyComparer);
+            var index = _infos.BinarySearch(objectInfo, NameComparer);
             if (index < 0)
             {
                 return false;
