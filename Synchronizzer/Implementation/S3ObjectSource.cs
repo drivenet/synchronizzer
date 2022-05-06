@@ -111,16 +111,7 @@ namespace Synchronizzer.Implementation
                 list.Add((commonPrefix, -1L));
             }
 
-            list.Sort((a, b) =>
-            {
-                var comparison = string.CompareOrdinal(a.Key, b.Key);
-                if (comparison == 0)
-                {
-                    comparison = a.Size.CompareTo(b.Size);
-                }
-
-                return comparison;
-            });
+            list.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
         }
     }
 }
