@@ -19,7 +19,7 @@ namespace Synchronizzer.Implementation
 
             if (size < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(size), size, "Negative object size.");
+                throw new ArgumentOutOfRangeException(nameof(size), size, FormattableString.Invariant($"Negative object size for \"{name}\"."));
             }
 
             Name = name;
