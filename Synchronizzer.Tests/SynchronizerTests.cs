@@ -115,7 +115,8 @@ namespace Synchronizzer.Tests
                 yield return new ObjectInfo(
                     rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture),
                     rng1.Next(),
-                    rng1.NextDouble() < 0.1);
+                    rng1.NextDouble() < 0.1,
+                    new DateTime(0, DateTimeKind.Utc));
             }
 #pragma warning restore CA5394 // Do not use insecure randomness
         }

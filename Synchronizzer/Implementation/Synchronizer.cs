@@ -108,7 +108,7 @@ namespace Synchronizzer.Implementation
 
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!objectInfo.IsHidden
-                    && !destinationInfos.HasObject(objectInfo))
+                    && !destinationInfos.HasFreshObject(objectInfo))
                 {
                     await _taskManager.Enqueue(
                         this,

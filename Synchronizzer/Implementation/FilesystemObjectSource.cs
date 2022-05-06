@@ -61,7 +61,7 @@ namespace Synchronizzer.Implementation
                     {
                         var isHidden = (fileInfo.Attributes & HiddenMask) != 0
                             || name.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase);
-                        yield return new(name, fileInfo.Length, isHidden);
+                        yield return new(name, fileInfo.Length, isHidden, fileInfo.LastWriteTimeUtc);
                     }
                 }
             }

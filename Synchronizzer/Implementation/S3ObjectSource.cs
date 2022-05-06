@@ -10,6 +10,8 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class S3ObjectSource : IObjectSource
     {
+        private static readonly DateTime PrefixTimestamp = new DateTime(0, DateTimeKind.Utc);
+
         private readonly S3Context _context;
 
         public S3ObjectSource(S3Context context)
@@ -23,7 +25,7 @@ namespace Synchronizzer.Implementation
         private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             const int MaxKeys = 1000;
-            var list = new List<(string Key, long Size)>(MaxKeys);
+            var list = new List<(string Key, long Size, DateTime Timestamp)>(MaxKeys);
             var request = new ListObjectsV2Request
             {
                 Prefix = prefix,
@@ -49,7 +51,7 @@ namespace Synchronizzer.Implementation
 
                 PopulateList(response, list);
                 List<ObjectInfo>? result = null;
-                foreach (var (key, size) in list)
+                foreach (var (key, size, timestamp) in list)
                 {
                     if (size < 0)
                     {
@@ -71,7 +73,7 @@ namespace Synchronizzer.Implementation
                     {
                         var isHidden = key.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase);
                         result ??= new();
-                        result.Add(new(key, size, isHidden));
+                        result.Add(new(key, size, isHidden, timestamp));
                     }
                 }
 
@@ -89,7 +91,7 @@ namespace Synchronizzer.Implementation
             Task<ListObjectsV2Response> Next() => _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
         }
 
-        private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size)> list)
+        private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size, DateTime Timestamp)> list)
         {
             foreach (var s3Object in response.S3Objects)
             {
@@ -98,17 +100,12 @@ namespace Synchronizzer.Implementation
                     continue;
                 }
 
-                if (s3Object.Size < 0)
-                {
-                    throw new InvalidDataException(Invariant($"Invalid size {s3Object.Size} for key \"{s3Object.Key}\"."));
-                }
-
-                list.Add((s3Object.Key, s3Object.Size));
+                list.Add((s3Object.Key, s3Object.Size, s3Object.LastModified.ToUniversalTime()));
             }
 
             foreach (var commonPrefix in response.CommonPrefixes)
             {
-                list.Add((commonPrefix, -1L));
+                list.Add((commonPrefix, -1L, PrefixTimestamp));
             }
 
             list.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));

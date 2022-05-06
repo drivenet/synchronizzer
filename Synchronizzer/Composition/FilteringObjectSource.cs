@@ -48,7 +48,7 @@ internal sealed class FilteringObjectSource : IObjectSource
                         filteredInfos.AddRange(infos.Take(processed));
                     }
 
-                    filteredInfos.Add(new(info.Name, info.Size, true));
+                    filteredInfos.Add(new(info.Name, info.Size, true, info.Timestamp));
                 }
                 else
                 {
