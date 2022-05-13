@@ -107,13 +107,19 @@ namespace Synchronizzer.Implementation
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!objectInfo.IsHidden
-                    && !destinationInfos.HasFreshObject(objectInfo))
+                if (!objectInfo.IsHidden)
                 {
-                    await _taskManager.Enqueue(
-                        this,
-                        token => Upload(name, token),
-                        cancellationToken);
+                    if (destinationInfos.FindObjectByMetadata(objectInfo) is not { } destinationObjectInfo)
+                    {
+                        await _taskManager.Enqueue(
+                            this,
+                            token => Upload(name, token),
+                            cancellationToken);
+                    }
+                    else if (destinationObjectInfo.Timestamp < objectInfo.Timestamp)
+                    {
+                        _logger?.LogInformation("Stale \"{Name}\" ({DestinationTimestamp} vs {SourceTimestamp})", name, destinationObjectInfo.Timestamp, objectInfo.Timestamp);
+                    }
                 }
 
                 originInfos.Skip();
