@@ -83,10 +83,10 @@ namespace Synchronizzer.Composition
             var context = S3Utils.CreateContext(uri);
             return new OriginReader(
                 Trace(
-                    Count(
-                        Buffer(
-                            new S3ObjectSource(context)),
-                        "origin.s3")),
+                    Buffer(
+                        Count(
+                            new S3ObjectSource(context),
+                            "origin.s3"))),
                 Robust(
                     Trace(
                         Count(

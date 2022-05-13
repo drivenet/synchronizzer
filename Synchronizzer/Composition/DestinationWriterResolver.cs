@@ -82,10 +82,10 @@ namespace Synchronizzer.Composition
             return new DestinationWriter(
                 destinationAddress,
                 Trace(
-                    Count(
-                        Buffer(
-                            new S3ObjectSource(context)),
-                        "destination.s3"),
+                    Buffer(
+                        Count(
+                            new S3ObjectSource(context),
+                            "destination.s3")),
                     "destination"),
                 Robust(
                     Trace(
