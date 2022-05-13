@@ -67,6 +67,6 @@ namespace Synchronizzer.Implementation
 
         public override int GetHashCode() => Name.GetHashCode(StringComparison.Ordinal);
 
-        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1}{2}", Name, Size, IsHidden ? ", hidden" : null);
+        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1} @{2}{3}", Name, Size, Timestamp, IsHidden ? ", hidden" : null);
     }
 }
