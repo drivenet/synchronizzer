@@ -15,5 +15,7 @@
         public bool DryRun { get; set; }
 
         public bool CopyOnly { get; set; }
+
+        public bool IgnoreTimestamp { get; set; }
     }
 }

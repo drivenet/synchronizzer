@@ -89,7 +89,7 @@ namespace Synchronizzer.Tests
             var locker = new ObjectWriterLockerStub();
             var destinationWriter = new DestinationWriter("", destinationSource, writer, locker);
             var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
-            var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, null);
+            var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, false, null);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 
             var deleted = destinationInfos

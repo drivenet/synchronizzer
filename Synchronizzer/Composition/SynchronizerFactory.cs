@@ -42,16 +42,22 @@ namespace Synchronizzer.Composition
 
             var destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle, info.DryRun);
             var taskManager = _taskManagerSelector.Select(destinationWriter.Address);
-            var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager, info.CopyOnly);
+            var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager, info.CopyOnly, info.IgnoreTimestamp);
             return synchronizer;
         }
 
-        private ISynchronizer Create(string name, IOriginReader originReader, IDestinationWriter destinationWriter, IQueuingTaskManager taskManager, bool copyOnly)
+        private ISynchronizer Create(
+            string name,
+            IOriginReader originReader,
+            IDestinationWriter destinationWriter,
+            IQueuingTaskManager taskManager,
+            bool copyOnly,
+            bool ignoreTimestamp)
             => new DeferringSynchronizer(
                 new TimedSynchronizer(
                     new RobustSynchronizer(
                         new TracingSynchronizer(
-                            new Synchronizer(originReader, destinationWriter, taskManager, copyOnly, _synchronizerLogger),
+                            new Synchronizer(originReader, destinationWriter, taskManager, copyOnly, ignoreTimestamp, _synchronizerLogger),
                             _syncLogger,
                             name)),
                     _syncTimeHolderResolver.Resolve(name)));

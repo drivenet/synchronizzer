@@ -12,6 +12,7 @@ namespace Synchronizzer.Implementation
         private readonly IDestinationWriter _destinationWriter;
         private readonly IQueuingTaskManager _taskManager;
         private readonly bool _copyOnly;
+        private readonly bool _ignoreTimestamp;
         private readonly ILogger? _logger;
 
         public Synchronizer(
@@ -19,12 +20,14 @@ namespace Synchronizzer.Implementation
             IDestinationWriter destinationWriter,
             IQueuingTaskManager taskManager,
             bool copyOnly,
+            bool ignoreTimestamp,
             ILogger<Synchronizer>? logger)
         {
             _originReader = originReader ?? throw new ArgumentNullException(nameof(originReader));
             _destinationWriter = destinationWriter ?? throw new ArgumentNullException(nameof(destinationWriter));
             _taskManager = taskManager ?? throw new ArgumentNullException(nameof(taskManager));
             _copyOnly = copyOnly;
+            _ignoreTimestamp = ignoreTimestamp;
             _logger = logger;
         }
 
@@ -107,13 +110,17 @@ namespace Synchronizzer.Implementation
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!objectInfo.IsHidden
-                    && !destinationInfos.HasFreshObject(objectInfo))
+                if (!objectInfo.IsHidden)
                 {
-                    await _taskManager.Enqueue(
-                        this,
-                        token => Upload(name, token),
-                        cancellationToken);
+                    var destinationObjectInfo = destinationInfos.FindObjectByMetadata(objectInfo);
+                    if (destinationObjectInfo is null
+                        || (!_ignoreTimestamp && objectInfo.Timestamp > destinationObjectInfo.Timestamp))
+                    {
+                        await _taskManager.Enqueue(
+                            this,
+                            token => Upload(name, token),
+                            cancellationToken);
+                    }
                 }
 
                 originInfos.Skip();

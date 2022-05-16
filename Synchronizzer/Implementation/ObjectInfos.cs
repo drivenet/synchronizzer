@@ -129,16 +129,6 @@ namespace Synchronizzer.Implementation
             return _infos[index];
         }
 
-        public bool HasFreshObject(ObjectInfo objectInfo)
-        {
-            if (FindObjectByMetadata(objectInfo) is not { } foundInfo)
-            {
-                return false;
-            }
-
-            return foundInfo.Timestamp >= objectInfo.Timestamp;
-        }
-
         public bool HasObjectByName(ObjectInfo objectInfo)
         {
             if (_infos is null)

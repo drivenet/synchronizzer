@@ -5,7 +5,15 @@ namespace Synchronizzer.Composition
 {
     internal sealed class SyncInfo : IEquatable<SyncInfo>
     {
-        public SyncInfo(string name, string origin, string destination, string? recycle, Regex? exclude, bool dryRun, bool copyOnly)
+        public SyncInfo(
+            string name,
+            string origin,
+            string destination,
+            string? recycle,
+            Regex? exclude,
+            bool dryRun,
+            bool copyOnly,
+            bool ignoreTimestamp)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Origin = origin ?? throw new ArgumentNullException(nameof(origin));
@@ -14,6 +22,7 @@ namespace Synchronizzer.Composition
             Exclude = exclude;
             DryRun = dryRun;
             CopyOnly = copyOnly;
+            IgnoreTimestamp = ignoreTimestamp;
         }
 
         public string Name { get; }
@@ -30,6 +39,8 @@ namespace Synchronizzer.Composition
 
         public bool CopyOnly { get; }
 
+        public bool IgnoreTimestamp { get; }
+
         public bool Equals(SyncInfo? other)
             => other is not null
             && Name == other.Name
@@ -39,7 +50,8 @@ namespace Synchronizzer.Composition
             && Exclude?.ToString() == other.Exclude?.ToString()
             && Exclude?.Options == other.Exclude?.Options
             && DryRun == other.DryRun
-            && CopyOnly == other.CopyOnly;
+            && CopyOnly == other.CopyOnly
+            && IgnoreTimestamp == other.IgnoreTimestamp;
 
         public override bool Equals(object? obj) => Equals(obj as SyncInfo);
 

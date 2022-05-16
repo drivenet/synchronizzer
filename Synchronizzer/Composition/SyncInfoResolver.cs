@@ -32,7 +32,8 @@ namespace Synchronizzer.Composition
                 job.Recycle,
                 CreateExcludeRegex(job),
                 job.DryRun,
-                job.CopyOnly);
+                job.CopyOnly,
+                job.IgnoreTimestamp);
 
         private static Regex? CreateExcludeRegex(SyncJob job)
         {
