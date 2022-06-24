@@ -23,16 +23,16 @@ namespace Synchronizzer.Implementation
 
         public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using (_logger.BeginScope("{Source}", _source))
+            IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
+            try
             {
-                IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
-                try
+                while (true)
                 {
-                    while (true)
+                    var timer = Stopwatch.StartNew();
+                    IReadOnlyCollection<ObjectInfo> result;
+                    using (_logger.BeginScope("{Source}", _source))
                     {
-                        var timer = Stopwatch.StartNew();
                         _logger.LogDebug(Events.Get, "Get next.");
-                        IReadOnlyCollection<ObjectInfo> result;
                         try
                         {
                             enumerator ??= _inner.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
@@ -60,15 +60,16 @@ namespace Synchronizzer.Implementation
                         }
 
                         _logger.LogInformation(Events.Got, "Got count {Count}, elapsed {Elapsed}.", result.Count, timer.Elapsed.TotalMilliseconds);
-                        yield return result;
                     }
+
+                    yield return result;
                 }
-                finally
+            }
+            finally
+            {
+                if (enumerator is not null)
                 {
-                    if (enumerator is not null)
-                    {
-                        await enumerator.DisposeAsync();
-                    }
+                    await enumerator.DisposeAsync();
                 }
             }
         }
