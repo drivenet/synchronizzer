@@ -24,46 +24,41 @@ namespace Synchronizzer.Implementation
         public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            var result = Enumerate(null, cancellationToken).ToList();
+            var result = Enumerate(cancellationToken).ToList();
             cancellationToken.ThrowIfCancellationRequested();
             result.Sort();
             yield return result;
         }
 
-        private IEnumerable<ObjectInfo> Enumerate(string? fromName, CancellationToken cancellationToken)
+        private IEnumerable<ObjectInfo> Enumerate(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var directoryInfo = new DirectoryInfo(_context.FilePath);
             var prefix = directoryInfo.FullName + Path.DirectorySeparatorChar;
-            foreach (var info in directoryInfo.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            var options = new EnumerationOptions
+            {
+                AttributesToSkip = FileAttributes.Encrypted | FileAttributes.Temporary | FileAttributes.Offline | FileAttributes.Device | FileAttributes.System,
+                RecurseSubdirectories = true,
+            };
+
+            foreach (var fileInfo in directoryInfo.EnumerateFiles("*", options))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if ((info.Attributes & (FileAttributes.Encrypted | FileAttributes.Temporary | FileAttributes.Offline)) != 0)
+                var name = fileInfo.FullName;
+                if (!name.StartsWith(prefix, StringComparison.Ordinal))
                 {
-                    continue;
+                    throw new InvalidDataException(Invariant($"The name \"{name}\" does not start with expected prefix \"{prefix}\"."));
                 }
 
-                if (info is FileInfo fileInfo)
+                name = name.Substring(prefix.Length);
+                if (Path.DirectorySeparatorChar != '/')
                 {
-                    var name = fileInfo.FullName;
-                    if (!name.StartsWith(prefix, StringComparison.Ordinal))
-                    {
-                        throw new InvalidDataException(Invariant($"The name \"{name}\" does not start with expected prefix \"{prefix}\"."));
-                    }
-
-                    name = name.Substring(prefix.Length);
-                    if (Path.DirectorySeparatorChar != '/')
-                    {
-                        name = name.Replace(Path.DirectorySeparatorChar, '/');
-                    }
-
-                    if (string.CompareOrdinal(name, fromName) > 0)
-                    {
-                        var isHidden = (fileInfo.Attributes & HiddenMask) != 0
-                            || name.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase);
-                        yield return new(name, fileInfo.Length, isHidden, fileInfo.LastWriteTimeUtc);
-                    }
+                    name = name.Replace(Path.DirectorySeparatorChar, '/');
                 }
+
+                var isHidden = (fileInfo.Attributes & HiddenMask) != 0
+                    || name.StartsWith(FilesystemConstants.LockPath, StringComparison.OrdinalIgnoreCase);
+                yield return new(name, fileInfo.Length, isHidden, fileInfo.LastWriteTimeUtc);
             }
         }
     }
