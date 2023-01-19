@@ -13,7 +13,9 @@ namespace Synchronizzer.Implementation
         public DefaultS3Mediator(IAmazonS3 s3)
         {
             _s3 = s3 ?? throw new ArgumentNullException(nameof(s3));
+#pragma warning disable CS0618 // Type or member is obsolete -- required for implementation
             ServiceUrl = new Uri(_s3.Config.DetermineServiceURL(), UriKind.Absolute);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public Uri ServiceUrl { get; }
