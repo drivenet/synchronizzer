@@ -26,15 +26,17 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var filter = Builders.Filter.Empty;
 
             const int Limit = 8192;
+            const int NiceLimit = 1000;
+            var limit = nice ? NiceLimit : Limit;
             var options = new GridFSFindOptions<BsonValue>
             {
                 Sort = FilenameSort,
-                BatchSize = (Limit / 2) + 1,
+                BatchSize = (limit / 2) + 1,
             };
 
             Task<IReadOnlyList<ObjectInfo>>? nextTask = null;
@@ -48,16 +50,25 @@ namespace Synchronizzer.Implementation
                 }
 
                 filter = Builders.Filter.Gt(info => info.Filename, result[^1].Name);
-                nextTask = Next();
+                if (!nice)
+                {
+                    nextTask = Next();
+                }
 
                 yield return result;
+
+                if (nice)
+                {
+                    nextTask = Next();
+                }
             }
 
             async Task<IReadOnlyList<ObjectInfo>> Next()
-                => await GridFSUtils.SafeExecute(
+            {
+                return await GridFSUtils.SafeExecute(
                     async () =>
                     {
-                        var result = new List<ObjectInfo>(Limit);
+                        var result = new List<ObjectInfo>(limit);
                         using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
                         await infos.ForEachAsync(
                             (info, cancel) =>
@@ -69,7 +80,7 @@ namespace Synchronizzer.Implementation
                                 {
                                     result.RemoveAt(lastIndex);
                                 }
-                                else if (lastIndex == Limit - 1)
+                                else if (lastIndex == limit - 1)
                                 {
                                     cancel.Cancel();
                                 }
@@ -81,6 +92,7 @@ namespace Synchronizzer.Implementation
                     },
                     10,
                     cancellationToken);
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
             try
@@ -33,7 +33,7 @@ namespace Synchronizzer.Implementation
                 {
                     try
                     {
-                        enumerator ??= _inner.GetOrdered(cancellationToken).GetAsyncEnumerator(cancellationToken);
+                        enumerator ??= _inner.GetOrdered(nice, cancellationToken).GetAsyncEnumerator(cancellationToken);
                         if (!await enumerator.MoveNextAsync())
                         {
                             break;

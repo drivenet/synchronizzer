@@ -33,7 +33,7 @@ namespace Synchronizzer.Implementation
 
         public bool IsLive => _infos is not null;
 
-        public async Task Populate()
+        public async Task Populate(bool nice)
         {
             if (_infos is null)
             {
@@ -50,7 +50,7 @@ namespace Synchronizzer.Implementation
 
             if (_enumerator is null)
             {
-                var enumerator = _source.GetOrdered(_cancellationToken).GetAsyncEnumerator(_cancellationToken);
+                var enumerator = _source.GetOrdered(nice, _cancellationToken).GetAsyncEnumerator(_cancellationToken);
 #pragma warning disable CA2012 // Use ValueTasks correctly -- the _enumerationTask is awaited only once
                 _enumerationTask = enumerator.MoveNextAsync();
 #pragma warning restore CA2012 // Use ValueTasks correctly

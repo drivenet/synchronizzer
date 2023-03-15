@@ -19,19 +19,21 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(CancellationToken cancellationToken)
-            => GetOrdered(null, cancellationToken);
+        public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken)
+            => GetOrdered(nice, null, cancellationToken);
 
-        private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
+        private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             const int MaxKeys = 1000;
-            var list = new List<(string Key, long Size, DateTime Timestamp)>(MaxKeys);
+            const int NiceMaxKeys = 100;
+            var maxKeys = nice ? NiceMaxKeys : MaxKeys;
+            var list = new List<(string Key, long Size, DateTime Timestamp)>(maxKeys);
             var request = new ListObjectsV2Request
             {
                 Prefix = prefix,
                 BucketName = _context.BucketName,
                 Delimiter = "/",
-                MaxKeys = MaxKeys,
+                MaxKeys = maxKeys,
             };
             Task<ListObjectsV2Response>? nextTask = null;
             while (true)
@@ -42,7 +44,10 @@ namespace Synchronizzer.Implementation
                 if (response.NextContinuationToken is { } continuationToken)
                 {
                     request.ContinuationToken = continuationToken;
-                    nextTask = Next();
+                    if (!nice)
+                    {
+                        nextTask = Next();
+                    }
                 }
                 else
                 {
@@ -61,7 +66,7 @@ namespace Synchronizzer.Implementation
                             result = null;
                         }
 
-                        await foreach (var prefixedResult in GetOrdered(key, cancellationToken))
+                        await foreach (var prefixedResult in GetOrdered(nice, key, cancellationToken))
                         {
                             if (prefixedResult.Count != 0)
                             {
@@ -86,9 +91,17 @@ namespace Synchronizzer.Implementation
                 {
                     break;
                 }
+
+                if (nice)
+                {
+                    nextTask = Next();
+                }
             }
 
-            Task<ListObjectsV2Response> Next() => _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+            async Task<ListObjectsV2Response> Next()
+            {
+                return await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+            }
         }
 
         private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size, DateTime Timestamp)> list)

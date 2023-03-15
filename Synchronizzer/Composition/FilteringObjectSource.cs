@@ -20,10 +20,10 @@ internal sealed class FilteringObjectSource : IObjectSource
         _exclude = exclude ?? throw new ArgumentNullException(nameof(exclude));
     }
 
-    public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         List<ObjectInfo>? filteredInfosBuffer = null;
-        await foreach (var infos in _inner.GetOrdered(cancellationToken))
+        await foreach (var infos in _inner.GetOrdered(nice, cancellationToken))
         {
             var result = infos;
             var processed = 0;

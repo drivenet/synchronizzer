@@ -17,5 +17,7 @@
         public bool CopyOnly { get; set; }
 
         public bool IgnoreTimestamp { get; set; }
+
+        public bool Nice { get; set; }
     }
 }

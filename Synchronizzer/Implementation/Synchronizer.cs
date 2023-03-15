@@ -13,6 +13,7 @@ namespace Synchronizzer.Implementation
         private readonly IQueuingTaskManager _taskManager;
         private readonly bool _copyOnly;
         private readonly bool _ignoreTimestamp;
+        private readonly bool _nice;
         private readonly ILogger? _logger;
 
         public Synchronizer(
@@ -21,6 +22,7 @@ namespace Synchronizzer.Implementation
             IQueuingTaskManager taskManager,
             bool copyOnly,
             bool ignoreTimestamp,
+            bool nice,
             ILogger<Synchronizer>? logger)
         {
             _originReader = originReader ?? throw new ArgumentNullException(nameof(originReader));
@@ -28,6 +30,7 @@ namespace Synchronizzer.Implementation
             _taskManager = taskManager ?? throw new ArgumentNullException(nameof(taskManager));
             _copyOnly = copyOnly;
             _ignoreTimestamp = ignoreTimestamp;
+            _nice = nice;
             _logger = logger;
         }
 
@@ -59,8 +62,8 @@ namespace Synchronizzer.Implementation
             {
                 _logger?.LogDebug(Events.Populating, "Populating infos.");
                 await Task.WhenAll(
-                    originInfos.Populate(),
-                    destinationInfos.Populate());
+                    originInfos.Populate(_nice),
+                    destinationInfos.Populate(_nice));
                 _logger?.LogDebug(Events.Populated, "Populated infos.");
                 var counts = await Task.WhenAll(
                     SynchronizeOrigin(originInfos, destinationInfos, cancellationToken),

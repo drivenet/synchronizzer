@@ -13,7 +13,8 @@ namespace Synchronizzer.Composition
             Regex? exclude,
             bool dryRun,
             bool copyOnly,
-            bool ignoreTimestamp)
+            bool ignoreTimestamp,
+            bool nice)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Origin = origin ?? throw new ArgumentNullException(nameof(origin));
@@ -23,6 +24,7 @@ namespace Synchronizzer.Composition
             DryRun = dryRun;
             CopyOnly = copyOnly;
             IgnoreTimestamp = ignoreTimestamp;
+            Nice = nice;
         }
 
         public string Name { get; }
@@ -41,6 +43,8 @@ namespace Synchronizzer.Composition
 
         public bool IgnoreTimestamp { get; }
 
+        public bool Nice { get; }
+
         public bool Equals(SyncInfo? other)
             => other is not null
             && Name == other.Name
@@ -51,7 +55,8 @@ namespace Synchronizzer.Composition
             && Exclude?.Options == other.Exclude?.Options
             && DryRun == other.DryRun
             && CopyOnly == other.CopyOnly
-            && IgnoreTimestamp == other.IgnoreTimestamp;
+            && IgnoreTimestamp == other.IgnoreTimestamp
+            && Nice == other.Nice;
 
         public override bool Equals(object? obj) => Equals(obj as SyncInfo);
 

@@ -30,10 +30,10 @@ namespace Synchronizzer.Implementation
                 _writer.Delete(objectName, cancellationToken));
         }
 
-        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await _locker.Lock(cancellationToken);
-            await foreach (var item in _source.GetOrdered(cancellationToken))
+            await foreach (var item in _source.GetOrdered(nice, cancellationToken))
             {
                 await _locker.Lock(cancellationToken);
                 yield return item;

@@ -14,11 +14,11 @@ internal sealed class BufferingObjectSource : IObjectSource
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered([EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const int BufferSize = 8192;
         List<ObjectInfo>? buffer = null;
-        await foreach (var infos in _inner.GetOrdered(cancellationToken))
+        await foreach (var infos in _inner.GetOrdered(nice, cancellationToken))
         {
             (buffer ??= new(BufferSize)).AddRange(infos);
             if (buffer.Count > BufferSize)
