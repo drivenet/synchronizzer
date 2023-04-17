@@ -6,16 +6,16 @@
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <AssemblyName>synchronizzer</AssemblyName>
-    <Version>0.20.1</Version>
+    <Version>0.20.2</Version>
     <NoWarn>$(NoWarn);CA2007;CA1848</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.103.27" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.103.50" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
-    <PackageReference Include="mongodb.driver.gridfs" Version="2.19.0" />
+    <PackageReference Include="mongodb.driver.gridfs" Version="2.19.1" />
     <PackageReference Include="Tmds.Systemd.Logging" Version="0.8.0" />
   </ItemGroup>
 
