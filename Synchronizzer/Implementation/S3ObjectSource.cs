@@ -104,22 +104,28 @@ namespace Synchronizzer.Implementation
 
         private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size, DateTime Timestamp)> list)
         {
+            var prefixes = response.CommonPrefixes;
+            var prefixIndex = 0;
+            var prefix = GetNextPrefix();
             foreach (var s3Object in response.S3Objects)
             {
-                if (s3Object.Key == response.Prefix)
+                while (prefix is not null
+                    && string.CompareOrdinal(prefix, s3Object.Key) < 0)
                 {
-                    continue;
+                    list.Add((prefix, -1L, PrefixTimestamp));
+                    prefix = GetNextPrefix();
                 }
 
                 list.Add((s3Object.Key, s3Object.Size, s3Object.LastModified.ToUniversalTime()));
             }
 
-            foreach (var commonPrefix in response.CommonPrefixes)
+            while (prefix is not null)
             {
-                list.Add((commonPrefix, -1L, PrefixTimestamp));
+                list.Add((prefix, -1L, PrefixTimestamp));
+                prefix = GetNextPrefix();
             }
 
-            list.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+            string? GetNextPrefix() => prefixIndex < prefixes.Count ? prefixes[prefixIndex++] : null;
         }
     }
 }
