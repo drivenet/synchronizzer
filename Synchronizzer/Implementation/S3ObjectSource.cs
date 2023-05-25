@@ -25,7 +25,6 @@ namespace Synchronizzer.Implementation
         private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             const int MaxKeys = 1000;
-            var list = new List<(string Key, long Size, DateTime Timestamp)>(MaxKeys);
             var request = new ListObjectsV2Request
             {
                 Prefix = prefix,
@@ -37,7 +36,6 @@ namespace Synchronizzer.Implementation
             while (true)
             {
                 nextTask ??= Next();
-                list.Clear();
                 var response = await nextTask;
                 if (response.NextContinuationToken is { } continuationToken)
                 {
@@ -52,9 +50,8 @@ namespace Synchronizzer.Implementation
                     nextTask = null;
                 }
 
-                PopulateList(response, list);
                 List<ObjectInfo>? result = null;
-                foreach (var (key, size, timestamp) in list)
+                foreach (var (key, size, timestamp) in PopulateList(response))
                 {
                     if (size < 0)
                     {
@@ -102,7 +99,7 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        private static void PopulateList(ListObjectsV2Response response, List<(string Key, long Size, DateTime Timestamp)> list)
+        private static IEnumerable<(string Key, long Size, DateTime Timestamp)> PopulateList(ListObjectsV2Response response)
         {
             var prefixes = response.CommonPrefixes;
             var prefixIndex = 0;
@@ -117,16 +114,16 @@ namespace Synchronizzer.Implementation
                 while (prefix is not null
                     && string.CompareOrdinal(prefix, s3Object.Key) < 0)
                 {
-                    list.Add((prefix, -1L, PrefixTimestamp));
+                    yield return (prefix, -1L, PrefixTimestamp);
                     prefix = GetNextPrefix();
                 }
 
-                list.Add((s3Object.Key, s3Object.Size, s3Object.LastModified.ToUniversalTime()));
+                yield return (s3Object.Key, s3Object.Size, s3Object.LastModified.ToUniversalTime());
             }
 
             while (prefix is not null)
             {
-                list.Add((prefix, -1L, PrefixTimestamp));
+                yield return (prefix, -1L, PrefixTimestamp);
                 prefix = GetNextPrefix();
             }
 
