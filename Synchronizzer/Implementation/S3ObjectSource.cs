@@ -109,6 +109,11 @@ namespace Synchronizzer.Implementation
             var prefix = GetNextPrefix();
             foreach (var s3Object in response.S3Objects)
             {
+                if (s3Object.Key == response.Prefix)
+                {
+                    continue;
+                }
+
                 while (prefix is not null
                     && string.CompareOrdinal(prefix, s3Object.Key) < 0)
                 {
