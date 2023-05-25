@@ -25,15 +25,13 @@ namespace Synchronizzer.Implementation
         private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             const int MaxKeys = 1000;
-            const int NiceMaxKeys = 100;
-            var maxKeys = nice ? NiceMaxKeys : MaxKeys;
-            var list = new List<(string Key, long Size, DateTime Timestamp)>(maxKeys);
+            var list = new List<(string Key, long Size, DateTime Timestamp)>(MaxKeys);
             var request = new ListObjectsV2Request
             {
                 Prefix = prefix,
                 BucketName = _context.BucketName,
                 Delimiter = "/",
-                MaxKeys = maxKeys,
+                MaxKeys = MaxKeys,
             };
             Task<ListObjectsV2Response>? nextTask = null;
             while (true)

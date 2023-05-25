@@ -29,14 +29,11 @@ namespace Synchronizzer.Implementation
         public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var filter = Builders.Filter.Empty;
-
-            const int Limit = 8192;
-            const int NiceLimit = 1000;
-            var limit = nice ? NiceLimit : Limit;
+            const int Limit = 1000;
             var options = new GridFSFindOptions<BsonValue>
             {
                 Sort = FilenameSort,
-                BatchSize = (limit / 2) + 1,
+                BatchSize = (Limit / 2) + 1,
             };
 
             Task<IReadOnlyList<ObjectInfo>>? nextTask = null;
@@ -68,7 +65,7 @@ namespace Synchronizzer.Implementation
                 return await GridFSUtils.SafeExecute(
                     async () =>
                     {
-                        var result = new List<ObjectInfo>(limit);
+                        var result = new List<ObjectInfo>(Limit);
                         using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
                         await infos.ForEachAsync(
                             (info, cancel) =>
@@ -80,7 +77,7 @@ namespace Synchronizzer.Implementation
                                 {
                                     result.RemoveAt(lastIndex);
                                 }
-                                else if (lastIndex == limit - 1)
+                                else if (lastIndex == Limit - 1)
                                 {
                                     cancel.Cancel();
                                 }
