@@ -36,7 +36,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(
+                    _logger.LogWarning(
                         Events.ReadCanceled,
                         exception,
                         "Read of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",

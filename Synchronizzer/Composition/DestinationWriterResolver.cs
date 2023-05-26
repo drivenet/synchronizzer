@@ -13,18 +13,21 @@ namespace Synchronizzer.Composition
         private readonly ILogger<TracingObjectWriter> _objectLogger;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectWriterLocker> _lockerLogger;
+        private readonly ILogger<TracingS3Mediator> _s3MediatorLogger;
         private readonly bool _logOperations;
 
         public DestinationWriterResolver(
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectWriter> objectLogger,
             ILogger<TracingObjectSource> objectSourceLogger,
-            ILogger<TracingObjectWriterLocker> lockerLogger)
+            ILogger<TracingObjectWriterLocker> lockerLogger,
+            ILogger<TracingS3Mediator> s3MediatorLogger)
         {
             _metricsWriter = metricsWriter ?? throw new ArgumentNullException(nameof(metricsWriter));
             _objectLogger = objectLogger ?? throw new ArgumentNullException(nameof(objectLogger));
             _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
             _lockerLogger = lockerLogger ?? throw new ArgumentNullException(nameof(lockerLogger));
+            _s3MediatorLogger = s3MediatorLogger ?? throw new ArgumentNullException(nameof(s3MediatorLogger));
             _logOperations = true;
         }
 
@@ -61,7 +64,7 @@ namespace Synchronizzer.Composition
 
         private IDestinationWriter CreateS3Writer(string? recycleAddress, Uri uri, bool dryRun)
         {
-            var context = S3Utils.CreateWriteContext(uri);
+            var context = S3Utils.CreateWriteContext(uri, _s3MediatorLogger);
             S3WriteContext? recycleContext;
             if (recycleAddress is not null)
             {
@@ -70,7 +73,7 @@ namespace Synchronizzer.Composition
                     throw new ArgumentOutOfRangeException(nameof(recycleAddress), "Invalid S3 recycle address.");
                 }
 
-                recycleContext = S3Utils.CreateWriteContext(recycleUri);
+                recycleContext = S3Utils.CreateWriteContext(recycleUri, _s3MediatorLogger);
             }
             else
             {

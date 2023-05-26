@@ -13,18 +13,21 @@ namespace Synchronizzer.Composition
         private readonly IMetricsWriter _metricsWriter;
         private readonly ILogger<TracingObjectSource> _objectSourceLogger;
         private readonly ILogger<TracingObjectReader> _objectReaderLogger;
+        private readonly ILogger<TracingS3Mediator> _s3MediatorLogger;
         private readonly RecyclableMemoryStreamManager _streamManager;
 
         public OriginReaderResolver(
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectSource> objectSourceLogger,
             ILogger<TracingObjectReader> objectReaderLogger,
+            ILogger<TracingS3Mediator> s3MediatorLogger,
             RecyclableMemoryStreamManager streamManager)
         {
             _metricsWriter = metricsWriter ?? throw new ArgumentNullException(nameof(metricsWriter));
             _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
             _objectReaderLogger = objectReaderLogger ?? throw new ArgumentNullException(nameof(objectReaderLogger));
             _streamManager = streamManager ?? throw new ArgumentNullException(nameof(streamManager));
+            _s3MediatorLogger = s3MediatorLogger ?? throw new ArgumentNullException(nameof(s3MediatorLogger));
         }
 
         public IOriginReader Resolve(string address)
@@ -80,7 +83,7 @@ namespace Synchronizzer.Composition
 
         private IOriginReader CreateS3Reader(Uri uri)
         {
-            var context = S3Utils.CreateContext(uri);
+            var context = S3Utils.CreateContext(uri, _s3MediatorLogger);
             return new OriginReader(
                 Trace(
                     Buffer(

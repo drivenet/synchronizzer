@@ -25,19 +25,19 @@ namespace Synchronizzer.Implementation
 
         public Uri ServiceUrl => _inner.ServiceUrl;
 
-        public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken)
+        public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, FormattableString description, CancellationToken cancellationToken)
         {
             if (_timeout != Timeout.InfiniteTimeSpan)
             {
                 using var cts = new CancellationTokenSource(_timeout);
                 using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
-                return await _inner.Invoke(action, combinedCts.Token);
+                return await _inner.Invoke(action, description, combinedCts.Token);
             }
 
-            return await _inner.Invoke(action, cancellationToken);
+            return await _inner.Invoke(action, description, cancellationToken);
         }
 
-        public Task Cleanup(Func<IAmazonS3, Task> action)
-            => _inner.Cleanup(action);
+        public Task Cleanup(Func<IAmazonS3, Task> action, FormattableString description)
+            => _inner.Cleanup(action, description);
     }
 }

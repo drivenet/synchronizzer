@@ -95,7 +95,10 @@ namespace Synchronizzer.Implementation
 
             async Task<ListObjectsV2Response> Next()
             {
-                return await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(request, token), cancellationToken);
+                return await _context.S3.Invoke(
+                    (s3, token) => s3.ListObjectsV2Async(request, token),
+                    $"list from \"{request.ContinuationToken}\", prefix \"{request.Prefix}\" @{request.BucketName}",
+                    cancellationToken);
             }
         }
 

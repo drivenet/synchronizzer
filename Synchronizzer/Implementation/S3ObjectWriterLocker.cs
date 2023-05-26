@@ -39,6 +39,7 @@ namespace Synchronizzer.Implementation
             };
             await _context.S3.Invoke(
                 (s3, token) => s3.DeleteObjectAsync(deleteObjectRequest, token),
+                $"clear lock \"{deleteObjectRequest.Key}\"@{deleteObjectRequest.BucketName}",
                 cancellationToken);
         }
 
@@ -54,7 +55,10 @@ namespace Synchronizzer.Implementation
             };
             while (true)
             {
-                var listResponse = await _context.S3.Invoke((s3, token) => s3.ListObjectsV2Async(listRequest, token), cancellationToken);
+                var listResponse = await _context.S3.Invoke(
+                    (s3, token) => s3.ListObjectsV2Async(listRequest, token),
+                    $"list locks @{listRequest.BucketName}",
+                    cancellationToken);
                 var threshold = (await nowTask) - lockLifetime;
                 var locked = false;
                 foreach (var s3Object in listResponse.S3Objects)
@@ -68,7 +72,10 @@ namespace Synchronizzer.Implementation
                             BucketName = _context.BucketName,
                             Key = key,
                         };
-                        var deleteTask = _context.S3.Invoke((s3, token) => s3.DeleteObjectAsync(deleteObjectRequest, token), cancellationToken);
+                        var deleteTask = _context.S3.Invoke(
+                            (s3, token) => s3.DeleteObjectAsync(deleteObjectRequest, token),
+                            $"delete lock \"{deleteObjectRequest.Key}\"@{deleteObjectRequest.BucketName}",
+                            cancellationToken);
                         tasks.Add(deleteTask);
                     }
                     else if (key.EndsWith(LockExtension, StringComparison.OrdinalIgnoreCase))
@@ -102,7 +109,10 @@ namespace Synchronizzer.Implementation
                 BucketName = _context.BucketName,
                 Key = S3Constants.LockPrefix + _lockName + LockExtension,
             };
-            var putTask = _context.S3.Invoke((s3, token) => s3.PutObjectAsync(request, token), cancellationToken);
+            var putTask = _context.S3.Invoke(
+                (s3, token) => s3.PutObjectAsync(request, token),
+                $"put lock \"{request.Key}\"@{request.BucketName}",
+                cancellationToken);
             tasks.Add(putTask);
             await Task.WhenAll(tasks);
             _isLocked = true;
@@ -131,14 +141,20 @@ namespace Synchronizzer.Implementation
 
             try
             {
-                await _context.S3.Invoke((s3, token) => s3.PutObjectAsync(putRequest, token), cancellationToken);
+                await _context.S3.Invoke(
+                    (s3, token) => s3.PutObjectAsync(putRequest, token),
+                    $"put lock.time \"{putRequest.Key}\"@{putRequest.BucketName}",
+                    cancellationToken);
                 DateTime lastModified;
                 var timer = Stopwatch.StartNew();
                 while (true)
                 {
                     try
                     {
-                        lastModified = (await _context.S3.Invoke((s3, token) => s3.GetObjectMetadataAsync(getMetadataRequest, token), cancellationToken)).LastModified;
+                        lastModified = (await _context.S3.Invoke(
+                            (s3, token) => s3.GetObjectMetadataAsync(getMetadataRequest, token),
+                            $"get metadata for lock.time \"{getMetadataRequest.Key}\"@{getMetadataRequest.BucketName}",
+                            cancellationToken)).LastModified;
                         break;
                     }
                     catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound && timer.Elapsed < LockTimeout)
@@ -152,7 +168,7 @@ namespace Synchronizzer.Implementation
             {
                 try
                 {
-                    await _context.S3.Cleanup(s3 => s3.DeleteObjectAsync(deleteRequest));
+                    await _context.S3.Cleanup(s3 => s3.DeleteObjectAsync(deleteRequest), $"delete lock.time \"{deleteRequest.Key}\"@{deleteRequest.BucketName}");
                 }
                 catch (AmazonS3Exception)
                 {

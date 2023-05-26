@@ -27,7 +27,10 @@ namespace Synchronizzer.Implementation
 
             try
             {
-                var response = await _context.S3.Invoke((s3, token) => s3.GetObjectAsync(request, token), cancellationToken);
+                var response = await _context.S3.Invoke(
+                    (s3, token) => s3.GetObjectAsync(request, token),
+                    $"get \"{request.Key}\"@{request.BucketName}",
+                    cancellationToken);
                 return new ReadObject(response.ResponseStream, response.ContentLength);
             }
             catch (AmazonS3Exception exception) when (exception.StatusCode == HttpStatusCode.NotFound)

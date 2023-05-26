@@ -7,6 +7,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
 using Synchronizzer.Implementation;
@@ -15,18 +16,18 @@ namespace Synchronizzer.Composition
 {
     internal static class S3Utils
     {
-        public static S3Context CreateContext(Uri uri)
+        public static S3Context CreateContext(Uri uri, ILogger<TracingS3Mediator> logger)
         {
             var (s3, bucketName) = CreateContext(uri, out _);
-            return new S3Context(CreateS3Mediator(s3), bucketName);
+            return new S3Context(CreateS3Mediator(s3, logger), bucketName);
         }
 
-        public static S3WriteContext CreateWriteContext(Uri uri)
+        public static S3WriteContext CreateWriteContext(Uri uri, ILogger<TracingS3Mediator> logger)
         {
             var (s3, bucketName) = CreateContext(uri, out var query);
             query.TryGetValue("class", out var storageClassString);
             var storageClass = ParseStorageClass(storageClassString);
-            return new S3WriteContext(CreateS3Mediator(s3), bucketName, storageClass);
+            return new S3WriteContext(CreateS3Mediator(s3, logger), bucketName, storageClass);
         }
 
         private static (IAmazonS3 S3, string BucketName) CreateContext(Uri uri, out Dictionary<string, StringValues> query)
@@ -101,12 +102,14 @@ namespace Synchronizzer.Composition
             return (client, bucketName);
         }
 
-        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3)
-            => new CancelationHandlingS3Mediator(
-                new TimeoutHandlingS3Mediator(
-                    new ExceptionHandlingS3Mediator(
-                        new DefaultS3Mediator(s3)),
-                    TimeSpan.FromSeconds(127)));
+        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3, ILogger<TracingS3Mediator> logger)
+            => new TracingS3Mediator(
+                new CancelationHandlingS3Mediator(
+                    new TimeoutHandlingS3Mediator(
+                        new ExceptionHandlingS3Mediator(
+                            new DefaultS3Mediator(s3)),
+                        TimeSpan.FromSeconds(127))),
+                logger);
 
         private static S3StorageClass ParseStorageClass(string? storageClass)
         {

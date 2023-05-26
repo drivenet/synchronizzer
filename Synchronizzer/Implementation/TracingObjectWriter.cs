@@ -37,7 +37,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(
+                    _logger.LogWarning(
                         Events.DeleteCanceled,
                         exception,
                         "Delete of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
@@ -79,7 +79,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (OperationCanceledException exception)
                 {
-                    _logger.LogInformation(
+                    _logger.LogWarning(
                         Events.UploadCanceled,
                         exception,
                         "Upload of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",

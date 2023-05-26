@@ -19,11 +19,11 @@ namespace Synchronizzer.Implementation
 
         public Uri ServiceUrl => _inner.ServiceUrl;
 
-        public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, CancellationToken cancellationToken)
+        public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, FormattableString description, CancellationToken cancellationToken)
         {
             try
             {
-                return await _inner.Invoke(action, cancellationToken);
+                return await _inner.Invoke(action, description, cancellationToken);
             }
             catch (AmazonServiceException exception) when (exception.InnerException is WebException webException && webException.Status == WebExceptionStatus.RequestCanceled)
             {
@@ -35,11 +35,11 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task Cleanup(Func<IAmazonS3, Task> action)
+        public async Task Cleanup(Func<IAmazonS3, Task> action, FormattableString description)
         {
             try
             {
-                await _inner.Cleanup(action);
+                await _inner.Cleanup(action, description);
             }
             catch (AmazonServiceException exception) when (exception.InnerException is WebException webException && webException.Status == WebExceptionStatus.RequestCanceled)
             {

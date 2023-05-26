@@ -45,7 +45,7 @@ namespace Synchronizzer.Implementation
                         }
                         catch (OperationCanceledException exception)
                         {
-                            _logger.LogInformation(
+                            _logger.LogWarning(
                                 Events.GetCanceled,
                                 exception,
                                 "Get was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
