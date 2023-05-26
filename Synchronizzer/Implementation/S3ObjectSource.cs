@@ -19,10 +19,10 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken)
+        public IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken)
             => GetOrdered(nice, null, cancellationToken);
 
-        private async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
+        private async IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, string? prefix, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             const int MaxKeys = 1000;
             var request = new ListObjectsV2Request

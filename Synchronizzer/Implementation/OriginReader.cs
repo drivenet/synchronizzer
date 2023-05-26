@@ -19,7 +19,7 @@ namespace Synchronizzer.Implementation
 
         public string Address { get; }
 
-        public IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken) => _source.GetOrdered(nice, cancellationToken);
+        public IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken) => _source.GetOrdered(nice, cancellationToken);
 
         public Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken) => _reader.Read(objectName, cancellationToken);
 

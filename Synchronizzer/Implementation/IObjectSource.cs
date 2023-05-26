@@ -5,6 +5,6 @@ namespace Synchronizzer.Implementation
 {
     internal interface IObjectSource
     {
-        IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken);
+        IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, CancellationToken cancellationToken);
     }
 }

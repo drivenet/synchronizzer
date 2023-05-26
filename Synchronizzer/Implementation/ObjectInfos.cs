@@ -59,7 +59,7 @@ namespace Synchronizzer.Implementation
 
             if (await _enumerationTask)
             {
-                IReadOnlyCollection<ObjectInfo> infos;
+                IReadOnlyList<ObjectInfo> infos;
                 try
                 {
                     infos = _enumerator.Current;

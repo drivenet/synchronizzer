@@ -24,9 +24,9 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
+            IAsyncEnumerator<IReadOnlyList<ObjectInfo>>? enumerator = null;
             try
             {
                 while (true)

@@ -14,7 +14,7 @@ internal sealed class BufferingObjectSource : IObjectSource
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const int BufferSize = 8192;
         List<ObjectInfo>? buffer = null;

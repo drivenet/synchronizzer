@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -21,15 +22,15 @@ namespace Synchronizzer.Implementation
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async IAsyncEnumerable<IReadOnlyCollection<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? enumerator = null;
+            IAsyncEnumerator<IReadOnlyList<ObjectInfo>>? enumerator = null;
             try
             {
                 while (true)
                 {
                     var timer = Stopwatch.StartNew();
-                    IReadOnlyCollection<ObjectInfo> result;
+                    IReadOnlyList<ObjectInfo> result;
                     using (_logger.BeginScope("{Source}", _source))
                     {
                         _logger.LogDebug(Events.Get, "Getting objects.");
@@ -59,7 +60,20 @@ namespace Synchronizzer.Implementation
                             throw;
                         }
 
-                        _logger.LogInformation(Events.Got, "Got objects, count {Count}, elapsed {Elapsed}.", result.Count, timer.Elapsed.TotalMilliseconds);
+                        if (result.Count == 0)
+                        {
+                            _logger.LogInformation(Events.Got, "Got no objects, elapsed {Elapsed}.", timer.Elapsed.TotalMilliseconds);
+                        }
+                        else
+                        {
+                            _logger.LogInformation(
+                                Events.Got,
+                                "Got objects, count {Count} (\"{From}\"->\"{To}\"), elapsed {Elapsed}.",
+                                result.Count,
+                                result[0].Name,
+                                result[^1].Name,
+                                timer.Elapsed.TotalMilliseconds);
+                        }
                     }
 
                     yield return result;
