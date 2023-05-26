@@ -18,7 +18,7 @@ namespace Synchronizzer.Implementation
         private readonly CancellationToken _cancellationToken;
         private List<ObjectInfo>? _infos = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed -- it's disposed, analyzer just doesn't understand it
-        private IAsyncEnumerator<IReadOnlyCollection<ObjectInfo>>? _enumerator;
+        private IAsyncEnumerator<IReadOnlyList<ObjectInfo>>? _enumerator;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private ValueTask<bool> _enumerationTask;
         private int _skip;
