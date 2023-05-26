@@ -32,7 +32,7 @@ namespace Synchronizzer.Implementation
                     IReadOnlyCollection<ObjectInfo> result;
                     using (_logger.BeginScope("{Source}", _source))
                     {
-                        _logger.LogDebug(Events.Get, "Get next.");
+                        _logger.LogDebug(Events.Get, "Getting objects.");
                         try
                         {
                             enumerator ??= _inner.GetOrdered(nice, cancellationToken).GetAsyncEnumerator(cancellationToken);
@@ -48,18 +48,18 @@ namespace Synchronizzer.Implementation
                             _logger.LogWarning(
                                 Events.GetCanceled,
                                 exception,
-                                "Get was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
+                                "Getting objects was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                                 timer.Elapsed.TotalMilliseconds,
                                 cancellationToken.IsCancellationRequested);
                             throw;
                         }
                         catch (Exception exception)
                         {
-                            _logger.LogWarning(exception, "Failed to get, elapsed {Elapsed}.", timer.Elapsed.TotalMilliseconds);
+                            _logger.LogError(exception, "Failed to get objects, elapsed {Elapsed}.", timer.Elapsed.TotalMilliseconds);
                             throw;
                         }
 
-                        _logger.LogInformation(Events.Got, "Got count {Count}, elapsed {Elapsed}.", result.Count, timer.Elapsed.TotalMilliseconds);
+                        _logger.LogInformation(Events.Got, "Got objects, count {Count}, elapsed {Elapsed}.", result.Count, timer.Elapsed.TotalMilliseconds);
                     }
 
                     yield return result;

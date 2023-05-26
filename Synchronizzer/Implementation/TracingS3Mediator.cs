@@ -35,7 +35,7 @@ namespace Synchronizzer.Implementation
             }
             catch (OperationCanceledException exception)
             {
-                _logger.LogInformation(exception, "Canceled cleaning up {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
+                _logger.LogWarning(exception, "Canceled cleaning up {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
                 throw;
             }
             catch (Exception exception)
@@ -59,7 +59,7 @@ namespace Synchronizzer.Implementation
             }
             catch (OperationCanceledException exception)
             {
-                _logger.LogInformation(exception, "Canceled invoking {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
+                _logger.LogWarning(exception, "Canceled invoking {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
                 throw;
             }
             catch (Exception exception)

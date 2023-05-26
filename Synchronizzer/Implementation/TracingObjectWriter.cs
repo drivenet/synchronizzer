@@ -48,7 +48,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to delete \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogError(exception, "Failed to delete \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
 
@@ -90,7 +90,7 @@ namespace Synchronizzer.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogError(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
                     throw;
                 }
 
