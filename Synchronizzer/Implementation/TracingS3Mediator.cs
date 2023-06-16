@@ -40,7 +40,7 @@ namespace Synchronizzer.Implementation
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Failed to clean up {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
+                _logger.LogWarning(exception, "Failed to clean up {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
                 throw;
             }
 
@@ -64,7 +64,7 @@ namespace Synchronizzer.Implementation
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Failed to invoke {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
+                _logger.LogWarning(exception, "Failed to invoke {Description}, elapsed {Elapsed}.", descriptionValue, timer.Elapsed.TotalMilliseconds);
                 throw;
             }
 
