@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 namespace Synchronizzer.Implementation
 {
     internal sealed class ObjectInfos : IEnumerable<ObjectInfo>, IAsyncDisposable
@@ -16,6 +18,7 @@ namespace Synchronizzer.Implementation
 
         private readonly IObjectSource _source;
         private readonly CancellationToken _cancellationToken;
+        private readonly ILogger? _logger;
         private List<ObjectInfo>? _infos = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed -- it's disposed, analyzer just doesn't understand it
         private IAsyncEnumerator<IReadOnlyList<ObjectInfo>>? _enumerator;
@@ -23,9 +26,10 @@ namespace Synchronizzer.Implementation
         private ValueTask<bool> _enumerationTask;
         private int _skip;
 
-        public ObjectInfos(IObjectSource source, CancellationToken cancellationToken)
+        public ObjectInfos(IObjectSource source, ILogger<ObjectInfos>? logger, CancellationToken cancellationToken)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
+            _logger = logger;
             _cancellationToken = cancellationToken;
         }
 
@@ -76,8 +80,16 @@ namespace Synchronizzer.Implementation
                 {
                     if (info.CompareTo(lastInfo) <= 0)
                     {
+                        if (_logger is { } logger)
+                        {
+                            foreach (var chunk in infos.Chunk(200))
+                            {
+                                logger.LogWarning("{Chunk}", string.Join("\n", chunk.Select(info => info.ToString())));
+                            }
+                        }
+
                         throw new InvalidDataException(FormattableString.Invariant(
-                            $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, last name \"{LastName}\", source {_source}."));
+                            $"Current object info {info} at index {index} is not sorted wrt {lastInfo}, source {_source}, see logs for more info."));
                     }
 
                     _infos.Add(info);

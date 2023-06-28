@@ -10,6 +10,7 @@ namespace Synchronizzer.Composition
     {
         private readonly ILogger<TracingSynchronizer> _syncLogger;
         private readonly ILogger<Synchronizer> _synchronizerLogger;
+        private readonly ILogger<ObjectInfos> _objectLogger;
         private readonly IOriginReaderResolver _originReaderResolver;
         private readonly IDestinationWriterResolver _destinationWriterResolver;
         private readonly IQueuingTaskManagerSelector _taskManagerSelector;
@@ -18,6 +19,7 @@ namespace Synchronizzer.Composition
         public SynchronizerFactory(
             ILogger<TracingSynchronizer> syncLogger,
             ILogger<Synchronizer> synchronizerLogger,
+            ILogger<ObjectInfos> objectLogger,
             IOriginReaderResolver originReaderResolver,
             IDestinationWriterResolver destinationWriterResolver,
             IQueuingTaskManagerSelector taskManagerSelector,
@@ -25,6 +27,7 @@ namespace Synchronizzer.Composition
         {
             _syncLogger = syncLogger ?? throw new ArgumentNullException(nameof(syncLogger));
             _synchronizerLogger = synchronizerLogger ?? throw new ArgumentNullException(nameof(synchronizerLogger));
+            _objectLogger = objectLogger ?? throw new ArgumentNullException(nameof(objectLogger));
             _originReaderResolver = originReaderResolver ?? throw new ArgumentNullException(nameof(originReaderResolver));
             _destinationWriterResolver = destinationWriterResolver ?? throw new ArgumentNullException(nameof(destinationWriterResolver));
             _taskManagerSelector = taskManagerSelector ?? throw new ArgumentNullException(nameof(taskManagerSelector));
@@ -58,7 +61,7 @@ namespace Synchronizzer.Composition
                 new TimedSynchronizer(
                     new RobustSynchronizer(
                         new TracingSynchronizer(
-                            new Synchronizer(originReader, destinationWriter, taskManager, copyOnly, ignoreTimestamp, nice, _synchronizerLogger),
+                            new Synchronizer(originReader, destinationWriter, taskManager, copyOnly, ignoreTimestamp, nice, _synchronizerLogger, _objectLogger),
                             _syncLogger,
                             name)),
                     _syncTimeHolderResolver.Resolve(name)));

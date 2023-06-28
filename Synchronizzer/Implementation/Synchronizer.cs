@@ -15,6 +15,7 @@ namespace Synchronizzer.Implementation
         private readonly bool _ignoreTimestamp;
         private readonly bool _nice;
         private readonly ILogger? _logger;
+        private readonly ILogger<ObjectInfos>? _objectLogger;
 
         public Synchronizer(
             IOriginReader originReader,
@@ -23,7 +24,8 @@ namespace Synchronizzer.Implementation
             bool copyOnly,
             bool ignoreTimestamp,
             bool nice,
-            ILogger<Synchronizer>? logger)
+            ILogger<Synchronizer>? logger,
+            ILogger<ObjectInfos>? objectLogger)
         {
             _originReader = originReader ?? throw new ArgumentNullException(nameof(originReader));
             _destinationWriter = destinationWriter ?? throw new ArgumentNullException(nameof(destinationWriter));
@@ -32,6 +34,7 @@ namespace Synchronizzer.Implementation
             _ignoreTimestamp = ignoreTimestamp;
             _nice = nice;
             _logger = logger;
+            _objectLogger = objectLogger;
         }
 
         public async Task Synchronize(CancellationToken cancellationToken)
@@ -56,8 +59,8 @@ namespace Synchronizzer.Implementation
 
         private async Task SynchronizeCore(CancellationToken cancellationToken)
         {
-            await using var originInfos = new ObjectInfos(_originReader, cancellationToken);
-            await using var destinationInfos = new ObjectInfos(_destinationWriter, cancellationToken);
+            await using var originInfos = new ObjectInfos(_originReader, _objectLogger, cancellationToken);
+            await using var destinationInfos = new ObjectInfos(_destinationWriter, _objectLogger, cancellationToken);
             while (true)
             {
                 _logger?.LogDebug(Events.Populating, "Populating infos.");
