@@ -55,7 +55,7 @@ namespace Synchronizzer.Implementation
                 {
                     if (size < 0)
                     {
-                        if (result is { Count: not 0 })
+                        if (result is not null)
                         {
                             yield return result;
                             result = null;
@@ -77,7 +77,7 @@ namespace Synchronizzer.Implementation
                     }
                 }
 
-                if (result is { Count: not 0 })
+                if (result is not null)
                 {
                     yield return result;
                 }
