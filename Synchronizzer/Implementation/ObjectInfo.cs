@@ -5,7 +5,7 @@ namespace Synchronizzer.Implementation
 {
     internal sealed class ObjectInfo : IComparable<ObjectInfo>
     {
-        public ObjectInfo(string name, long size, bool isHidden, DateTime timestamp)
+        public ObjectInfo(string name, long size, bool isHidden, DateTime timestamp, string? origin)
         {
             if (name is null)
             {
@@ -31,6 +31,7 @@ namespace Synchronizzer.Implementation
             Size = size;
             IsHidden = isHidden;
             Timestamp = timestamp;
+            Origin = origin;
         }
 
         public string Name { get; }
@@ -40,6 +41,8 @@ namespace Synchronizzer.Implementation
         public bool IsHidden { get; }
 
         public DateTime Timestamp { get; }
+
+        public string? Origin { get; }
 
         public int CompareTo(ObjectInfo? other)
         {
@@ -67,6 +70,6 @@ namespace Synchronizzer.Implementation
 
         public override int GetHashCode() => Name.GetHashCode(StringComparison.Ordinal);
 
-        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1} @{2}{3}", Name, Size, Timestamp, IsHidden ? ", hidden" : null);
+        public override string ToString() => string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1} @{2}{3} #{4}", Name, Size, Timestamp, IsHidden ? ", hidden" : null, Origin);
     }
 }

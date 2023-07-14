@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +51,7 @@ namespace Synchronizzer.Implementation
                     nextTask = null;
                 }
 
+                var origin = response.ResponseMetadata.RequestId;
                 List<ObjectInfo>? result = null;
                 foreach (var (key, size, timestamp) in PopulateList(response))
                 {
@@ -72,8 +74,22 @@ namespace Synchronizzer.Implementation
                     else
                     {
                         var isHidden = key.StartsWith(S3Constants.LockPrefix, StringComparison.OrdinalIgnoreCase);
-                        result ??= new();
-                        result.Add(new(key, size, isHidden, timestamp));
+                        var info = new ObjectInfo(key, size, isHidden, timestamp, origin);
+                        if (result is not null)
+                        {
+                            var lastInfo = result[^1];
+                            if (info.CompareTo(lastInfo) <= 0)
+                            {
+                                throw new InvalidDataException(FormattableString.Invariant(
+                                    $"S3 object info {info} is not sorted wrt {lastInfo}, bucket name \"{_context.BucketName}\"."));
+                            }
+                        }
+                        else
+                        {
+                            result = new();
+                        }
+
+                        result.Add(info);
                     }
                 }
 
