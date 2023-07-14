@@ -89,7 +89,7 @@ namespace Synchronizzer.Tests
             var locker = new ObjectWriterLockerStub();
             var destinationWriter = new DestinationWriter("", destinationSource, writer, locker);
             var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
-            var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, false, false, null);
+            var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, false, false, null, null);
             synchronizer.Synchronize(default).GetAwaiter().GetResult();
 
             var deleted = destinationInfos
@@ -116,7 +116,8 @@ namespace Synchronizzer.Tests
                     rng1.Next().ToString("x", CultureInfo.InvariantCulture) + "-" + rng2.Next().ToString("x", CultureInfo.InvariantCulture),
                     rng1.Next(),
                     rng1.NextDouble() < 0.1,
-                    new DateTime(0, DateTimeKind.Utc));
+                    new DateTime(0, DateTimeKind.Utc),
+                    null);
             }
 #pragma warning restore CA5394 // Do not use insecure randomness
         }
