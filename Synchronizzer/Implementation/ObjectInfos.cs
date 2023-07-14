@@ -98,6 +98,10 @@ namespace Synchronizzer.Implementation
                     LastName = info.Name;
                 }
             }
+            else
+            {
+                _enumerationTask = new(false);
+            }
 
             var count = _infos.Count;
             if (count == 0)
