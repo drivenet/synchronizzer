@@ -104,11 +104,11 @@ namespace Synchronizzer.Composition
 
         private static IS3Mediator CreateS3Mediator(IAmazonS3 s3, ILogger<TracingS3Mediator> logger)
             => new TracingS3Mediator(
-                new CancelationHandlingS3Mediator(
-                    new TimeoutHandlingS3Mediator(
-                        new ExceptionHandlingS3Mediator(
-                            new DefaultS3Mediator(s3)),
-                        TimeSpan.FromSeconds(127))),
+                new TimeoutHandlingS3Mediator(
+                    new ExceptionHandlingS3Mediator(
+                        new DefaultS3Mediator(s3)),
+                    TimeSpan.FromSeconds(67),
+                    3),
                 logger);
 
         private static S3StorageClass ParseStorageClass(string? storageClass)

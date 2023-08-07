@@ -10,34 +10,60 @@ namespace Synchronizzer.Implementation
     {
         private readonly IS3Mediator _inner;
         private readonly TimeSpan _timeout;
+        private readonly int _maxRetries;
 
-        public TimeoutHandlingS3Mediator(IS3Mediator inner, TimeSpan timeout)
+        public TimeoutHandlingS3Mediator(IS3Mediator inner, TimeSpan timeout, int maxRetries)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            if (timeout != Timeout.InfiniteTimeSpan
-                && (timeout.TotalMilliseconds < 1 || timeout.TotalMilliseconds > int.MaxValue))
+            if (timeout.TotalMilliseconds < 1 || timeout.TotalMilliseconds > int.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(timeout), timeout, "Invalid S3 timeout.");
             }
 
+            if (maxRetries < 0 || maxRetries > 10)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxRetries), maxRetries, "Invalid S3 timeout.");
+            }
+
             _timeout = timeout;
+            _maxRetries = maxRetries;
         }
 
         public Uri ServiceUrl => _inner.ServiceUrl;
 
         public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, FormattableString description, CancellationToken cancellationToken)
         {
-            if (_timeout != Timeout.InfiniteTimeSpan)
+            var retries = _maxRetries;
+            while (true)
             {
                 using var cts = new CancellationTokenSource(_timeout);
                 using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
-                return await _inner.Invoke(action, description, combinedCts.Token);
-            }
+                try
+                {
+                    return await _inner.Invoke(action, description, combinedCts.Token);
+                }
+                catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
+                {
+                    if (retries <= 0)
+                    {
+                        throw new TimeoutException("S3 operation timed out.", exception);
+                    }
 
-            return await _inner.Invoke(action, description, cancellationToken);
+                    --retries;
+                }
+            }
         }
 
-        public Task Cleanup(Func<IAmazonS3, Task> action, FormattableString description)
-            => _inner.Cleanup(action, description);
+        public async Task Cleanup(Func<IAmazonS3, Task> action, FormattableString description)
+        {
+            try
+            {
+                await _inner.Cleanup(action, description);
+            }
+            catch (OperationCanceledException exception)
+            {
+                throw new TimeoutException("S3 cleanup operation timed out.", exception);
+            }
+        }
     }
 }
