@@ -12,10 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.201.8" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.202.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
-    <PackageReference Include="mongodb.driver.gridfs" Version="2.20.0" />
+    <PackageReference Include="mongodb.driver.gridfs" Version="2.21.0" />
     <PackageReference Include="Tmds.Systemd.Logging" Version="0.8.0" />
   </ItemGroup>
 
