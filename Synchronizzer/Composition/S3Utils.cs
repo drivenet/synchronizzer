@@ -102,14 +102,14 @@ namespace Synchronizzer.Composition
             return (client, bucketName);
         }
 
-        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3, ILogger<TracingS3Mediator> logger)
-            => new TracingS3Mediator(
-                new TimeoutHandlingS3Mediator(
+        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3, ILogger<TracingS3Mediator> logger) =>
+            new TimeoutHandlingS3Mediator(
+                new TracingS3Mediator(
                     new ExceptionHandlingS3Mediator(
                         new DefaultS3Mediator(s3)),
-                    TimeSpan.FromSeconds(67),
-                    3),
-                logger);
+                    logger),
+                TimeSpan.FromSeconds(67),
+                3);
 
         private static S3StorageClass ParseStorageClass(string? storageClass)
         {
