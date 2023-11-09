@@ -138,7 +138,7 @@ namespace Synchronizzer.Implementation
 
         private async Task Upload(string name, CancellationToken cancellationToken)
         {
-            using var input = await _originReader.Read(name, cancellationToken);
+            await using var input = await _originReader.Read(name, cancellationToken);
             if (input is not null)
             {
                 await _destinationWriter.Upload(name, input, cancellationToken);

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
 {
-    internal sealed class ReadObject : IDisposable
+    internal sealed class ReadObject : IAsyncDisposable
     {
         public ReadObject(Stream stream, long length)
         {
@@ -15,6 +16,6 @@ namespace Synchronizzer.Implementation
 
         public long Length { get; }
 
-        public void Dispose() => Stream.Dispose();
+        public ValueTask DisposeAsync() => Stream.DisposeAsync();
     }
 }

@@ -106,7 +106,7 @@ namespace Synchronizzer.Implementation
                 Directory.CreateDirectory(directory);
             }
 
-            using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read | FileShare.Delete, sizeof(long), true);
+            await using var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read | FileShare.Delete, sizeof(long), true);
             await readObject.Stream.CopyToAsync(file, cancellationToken);
         }
     }

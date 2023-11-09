@@ -44,7 +44,7 @@ namespace Synchronizzer.Implementation
             }
             finally
             {
-                readObject.Dispose();
+                await readObject.DisposeAsync();
             }
 
             return new(bufferedStream, bufferedStream.Length);
