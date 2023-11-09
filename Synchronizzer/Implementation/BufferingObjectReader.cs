@@ -23,25 +23,31 @@ namespace Synchronizzer.Implementation
         public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
         {
             var readObject = await _inner.Read(objectName, cancellationToken);
-            if (readObject is { Length: <= MaxBufferedLength })
+            if (readObject is not { Length: <= MaxBufferedLength })
             {
-                Stream bufferedStream;
-                try
-                {
-#pragma warning disable CA2000 // Dispose objects before losing scope -- passed to ReadObject for future disposal
-                    bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), readObject.Length);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                    await readObject.Stream.CopyToAsync(bufferedStream, cancellationToken);
-                }
-                finally
-                {
-                    readObject.Dispose();
-                }
-
-                return new ReadObject(bufferedStream, bufferedStream.Length);
+                return readObject;
             }
 
-            return readObject;
+            Stream bufferedStream;
+            try
+            {
+                bufferedStream = new RecyclableMemoryStream(_streamManager, nameof(BufferingObjectReader), readObject.Length);
+                try
+                {
+                    await readObject.Stream.CopyToAsync(bufferedStream, cancellationToken);
+                }
+                catch
+                {
+                    await bufferedStream.DisposeAsync();
+                    throw;
+                }
+            }
+            finally
+            {
+                readObject.Dispose();
+            }
+
+            return new(bufferedStream, bufferedStream.Length);
         }
     }
 }
