@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Synchronizzer.Implementation;
 using Synchronizzer.Tests.Implementation;
@@ -77,7 +78,7 @@ namespace Synchronizzer.Tests
 
         [Theory]
         [MemberData(nameof(Sources))]
-        internal void Test(IEnumerable<ObjectInfo> originInfos, IEnumerable<ObjectInfo> destinationInfos)
+        internal async Task Test(IEnumerable<ObjectInfo> originInfos, IEnumerable<ObjectInfo> destinationInfos)
         {
             originInfos = originInfos.ToList();
             destinationInfos = destinationInfos.ToList();
@@ -90,7 +91,7 @@ namespace Synchronizzer.Tests
             var destinationWriter = new DestinationWriter("", destinationSource, writer, locker);
             var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
             var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, false, false, null, null);
-            synchronizer.Synchronize(default).GetAwaiter().GetResult();
+            await synchronizer.Synchronize(default);
 
             var deleted = destinationInfos
                 .Where(info => !info.IsHidden)
