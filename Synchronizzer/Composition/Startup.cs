@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,9 @@ namespace Synchronizzer.Composition
 
             services.Configure<SyncOptions>(_configuration);
             services.ConfigureOptions<SyncOptionsConfig>();
+#pragma warning disable RS0030 // Do not use banned APIs -- required for DI
+            services.AddSingleton(TimeProvider.System);
+#pragma warning restore RS0030 // Do not use banned APIs
             services.AddSingleton<Components.MetricsContainer>();
             services.AddSingleton<Components.IMetricsReader>(provider => provider.GetRequiredService<Components.MetricsContainer>());
             services.AddSingleton<Components.IMetricsWriter>(provider => provider.GetRequiredService<Components.MetricsContainer>());
