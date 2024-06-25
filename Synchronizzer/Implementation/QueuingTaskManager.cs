@@ -103,7 +103,7 @@ namespace Synchronizzer.Implementation
             }
             catch
             {
-                cancel.Cancel();
+                await cancel.CancelAsync();
                 throw;
             }
         }

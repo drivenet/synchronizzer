@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Synchronizzer.Implementation
 {
-    internal sealed class FilesystemObjectWriterLocker : IObjectWriterLocker
+    internal sealed partial class FilesystemObjectWriterLocker : IObjectWriterLocker
     {
         private const string LockExtension = ".lock";
 
-        private static readonly Regex LockNameFilter = new("^[a-zA-Z0-9_-]{1,64}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex LockNameFilter = CreateLockNameFilter();
 
         private readonly FilesystemContext _context;
         private readonly string _lockName;
@@ -86,5 +86,8 @@ namespace Synchronizzer.Implementation
         }
 
         public override string ToString() => FormattableString.Invariant($"FilesystemObjectWriterLocker(\"{_lockName}\")");
+
+        [GeneratedRegex("^[a-zA-Z0-9_-]{1,64}$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+        private static partial Regex CreateLockNameFilter();
     }
 }

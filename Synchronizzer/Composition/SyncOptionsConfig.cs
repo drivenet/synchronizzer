@@ -7,9 +7,9 @@ using Microsoft.Extensions.Options;
 
 namespace Synchronizzer.Composition
 {
-    internal sealed class SyncOptionsConfig : IPostConfigureOptions<SyncOptions>
+    internal sealed partial class SyncOptionsConfig : IPostConfigureOptions<SyncOptions>
     {
-        private static readonly Regex UriVars = new(@"\$(\w+)\$", RegexOptions.CultureInvariant);
+        private static readonly Regex UriVars = CreateUriVars();
 
         private readonly IConfiguration _configuration;
 
@@ -18,7 +18,7 @@ namespace Synchronizzer.Composition
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public void PostConfigure(string name, SyncOptions options)
+        public void PostConfigure(string? name, SyncOptions options)
         {
             var jobs = options.Jobs;
             if (jobs is null)
@@ -37,24 +37,27 @@ namespace Synchronizzer.Composition
 
         private static string? ReplaceAddress(string? address, IConfiguration template)
         {
-            if (address is not null)
+            if (address is null)
             {
-                address = UriVars.Replace(
-                    address,
-                    match =>
-                    {
-                        var key = match.Groups[1].Value;
-                        var value = template.GetValue(key, key);
-                        if (value != key)
-                        {
-                            value = WebUtility.UrlEncode(value);
-                        }
-
-                        return value;
-                    });
+                return null;
             }
 
-            return address;
+            return UriVars.Replace(
+                address,
+                match =>
+                {
+                    var key = match.Groups[1].Value;
+                    var value = template.GetValue(key, key);
+                    if (value != key)
+                    {
+                        value = value is not null ? WebUtility.UrlEncode(value) : key;
+                    }
+
+                    return value;
+                });
         }
+
+        [GeneratedRegex(@"\$(\w+)\$", RegexOptions.CultureInvariant)]
+        private static partial Regex CreateUriVars();
     }
 }

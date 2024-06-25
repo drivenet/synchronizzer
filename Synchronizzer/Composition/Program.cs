@@ -47,7 +47,7 @@ namespace Synchronizzer.Composition
         {
             loggingBuilder.AddFilter(
                 (category, level) => level >= LogLevel.Warning
-                    || (level >= LogLevel.Information && !category.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase)));
+                    || (level >= LogLevel.Information && category?.StartsWith("Microsoft.AspNetCore.", StringComparison.OrdinalIgnoreCase) != true));
 
 #if !MINIMAL_BUILD
             if (Journal.IsSupported)
@@ -98,7 +98,7 @@ namespace Synchronizzer.Composition
 
         private static IConfigurationBuilder ConfigureAppConfiguration(string[] args, HostBuilderContext builderContext, IConfigurationBuilder configBuilder)
             => configBuilder
-                .AddJsonFile(builderContext.Configuration.GetValue("ConfigPath", "appsettings.json"), optional: false, reloadOnChange: true)
+                .AddJsonFile(builderContext.Configuration.GetValue<string>("ConfigPath") ?? "appsettings.json", optional: false, reloadOnChange: true)
                 .AddEnvironmentVariables("GSS_")
                 .AddCommandLine(args);
 

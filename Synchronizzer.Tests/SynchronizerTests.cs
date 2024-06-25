@@ -108,7 +108,6 @@ namespace Synchronizzer.Tests
 
         private static IEnumerable<ObjectInfo> GenerateObjectInfos(int seed, int count)
         {
-#pragma warning disable CA5394 // Do not use insecure randomness -- security is not needed
             var rng1 = new Random(seed);
             var rng2 = new Random(seed + 1);
             for (var i = 0; i < count; i++)
@@ -120,7 +119,6 @@ namespace Synchronizzer.Tests
                     new DateTime(0, DateTimeKind.Utc),
                     null);
             }
-#pragma warning restore CA5394 // Do not use insecure randomness
         }
     }
 }
