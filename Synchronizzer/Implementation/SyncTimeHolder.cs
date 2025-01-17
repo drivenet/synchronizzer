@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,7 @@ namespace Synchronizzer.Implementation
             _wait = wait;
         }
 
-        public async Task Wait(CancellationToken cancellationToken)
+        public async Task Wait(TimeProvider timeProvider, CancellationToken cancellationToken)
         {
             var wait = _wait;
             if (wait == TimeSpan.Zero)
@@ -34,14 +33,14 @@ namespace Synchronizzer.Implementation
                 return;
             }
 
-            var timer = Stopwatch.StartNew();
+            var startedAt = timeProvider.GetTimestamp();
             try
             {
                 await Task.Delay(wait, cancellationToken);
             }
             finally
             {
-                SetWait(wait - timer.Elapsed);
+                SetWait(wait - timeProvider.GetElapsedTime(startedAt));
             }
         }
     }

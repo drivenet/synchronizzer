@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -13,12 +12,14 @@ namespace Synchronizzer.Implementation
         private readonly IObjectSource _inner;
         private readonly string _source;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
 
-        public TracingObjectSource(IObjectSource inner, string source, ILogger<TracingObjectSource> logger)
+        public TracingObjectSource(IObjectSource inner, string source, ILogger<TracingObjectSource> logger, TimeProvider timeProvider)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         public async IAsyncEnumerable<IReadOnlyList<ObjectInfo>> GetOrdered(bool nice, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -28,7 +29,7 @@ namespace Synchronizzer.Implementation
             {
                 while (true)
                 {
-                    var timer = Stopwatch.StartNew();
+                    var startedAt = _timeProvider.GetTimestamp();
                     IReadOnlyList<ObjectInfo> result;
                     using (_logger.BeginScope("{Source}", _source))
                     {
@@ -49,19 +50,19 @@ namespace Synchronizzer.Implementation
                                 Events.GetCanceled,
                                 exception,
                                 "Getting objects was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
-                                timer.Elapsed.TotalMilliseconds,
+                                _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds,
                                 cancellationToken.IsCancellationRequested);
                             throw;
                         }
                         catch (Exception exception)
                         {
-                            _logger.LogError(exception, "Failed to get objects, elapsed {Elapsed}.", timer.Elapsed.TotalMilliseconds);
+                            _logger.LogError(exception, "Failed to get objects, elapsed {Elapsed}.", _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds);
                             throw;
                         }
 
                         if (result.Count == 0)
                         {
-                            _logger.LogInformation(Events.Got, "Got no objects, elapsed {Elapsed}.", timer.Elapsed.TotalMilliseconds);
+                            _logger.LogInformation(Events.Got, "Got no objects, elapsed {Elapsed}.", _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds);
                         }
                         else
                         {
@@ -71,7 +72,7 @@ namespace Synchronizzer.Implementation
                                 result.Count,
                                 result[0].Name,
                                 result[^1].Name,
-                                timer.Elapsed.TotalMilliseconds);
+                                _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds);
                         }
                     }
 

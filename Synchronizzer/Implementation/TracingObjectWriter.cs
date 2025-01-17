@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,12 +11,14 @@ namespace Synchronizzer.Implementation
         private readonly IObjectWriter _inner;
         private readonly LogLevel _opLogLevel;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
 
-        public TracingObjectWriter(IObjectWriter inner, bool logOperations, ILogger<TracingObjectWriter> logger)
+        public TracingObjectWriter(IObjectWriter inner, bool logOperations, ILogger<TracingObjectWriter> logger, TimeProvider timeProvider)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _opLogLevel = logOperations ? LogLevel.Information : LogLevel.Debug;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         public async Task Delete(string objectName, CancellationToken cancellationToken)
@@ -29,7 +30,7 @@ namespace Synchronizzer.Implementation
 
             using (_logger.BeginScope("delete \"{ObjectName}\"", objectName))
             {
-                var timer = Stopwatch.StartNew();
+                var startTime = _timeProvider.GetTimestamp();
                 _logger.LogDebug(Events.Delete, "Delete \"{ObjectName}\".", objectName);
                 try
                 {
@@ -42,17 +43,17 @@ namespace Synchronizzer.Implementation
                         exception,
                         "Delete of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                         objectName,
-                        timer.Elapsed.TotalMilliseconds,
+                        _timeProvider.GetElapsedTime(startTime).TotalMilliseconds,
                         cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Failed to delete \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogError(exception, "Failed to delete \"{ObjectName}\", elapsed {Elapsed}.", objectName, _timeProvider.GetElapsedTime(startTime).TotalMilliseconds);
                     throw;
                 }
 
-                _logger.Log(_opLogLevel, Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
+                _logger.Log(_opLogLevel, Events.Deleted, "Deleted \"{ObjectName}\", elapsed {Elapsed}.", objectName, _timeProvider.GetElapsedTime(startTime).TotalMilliseconds);
             }
         }
 
@@ -70,7 +71,7 @@ namespace Synchronizzer.Implementation
 
             using (_logger.BeginScope("upload \"{ObjectName}\"", objectName))
             {
-                var timer = Stopwatch.StartNew();
+                var startTime = _timeProvider.GetTimestamp();
                 var objectLength = readObject.Length;
                 _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
                 try
@@ -84,17 +85,17 @@ namespace Synchronizzer.Implementation
                         exception,
                         "Upload of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                         objectName,
-                        timer.Elapsed.TotalMilliseconds,
+                        _timeProvider.GetElapsedTime(startTime).TotalMilliseconds,
                         cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogError(exception, "Failed to upload \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, _timeProvider.GetElapsedTime(startTime).TotalMilliseconds);
                     throw;
                 }
 
-                _logger.Log(_opLogLevel, Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, timer.Elapsed.TotalMilliseconds);
+                _logger.Log(_opLogLevel, Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, _timeProvider.GetElapsedTime(startTime).TotalMilliseconds);
             }
         }
 

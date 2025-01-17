@@ -15,19 +15,22 @@ namespace Synchronizzer.Composition
         private readonly ILogger<TracingObjectReader> _objectReaderLogger;
         private readonly ILogger<TracingS3Mediator> _s3MediatorLogger;
         private readonly RecyclableMemoryStreamManager _streamManager;
+        private readonly TimeProvider _timeProvider;
 
         public OriginReaderResolver(
             IMetricsWriter metricsWriter,
             ILogger<TracingObjectSource> objectSourceLogger,
             ILogger<TracingObjectReader> objectReaderLogger,
             ILogger<TracingS3Mediator> s3MediatorLogger,
-            RecyclableMemoryStreamManager streamManager)
+            RecyclableMemoryStreamManager streamManager,
+            TimeProvider timeProvider)
         {
             _metricsWriter = metricsWriter ?? throw new ArgumentNullException(nameof(metricsWriter));
             _objectSourceLogger = objectSourceLogger ?? throw new ArgumentNullException(nameof(objectSourceLogger));
             _objectReaderLogger = objectReaderLogger ?? throw new ArgumentNullException(nameof(objectReaderLogger));
-            _streamManager = streamManager ?? throw new ArgumentNullException(nameof(streamManager));
             _s3MediatorLogger = s3MediatorLogger ?? throw new ArgumentNullException(nameof(s3MediatorLogger));
+            _streamManager = streamManager ?? throw new ArgumentNullException(nameof(streamManager));
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         public IOriginReader Resolve(string address)
@@ -60,10 +63,10 @@ namespace Synchronizzer.Composition
             => new CountingObjectSource(source, _metricsWriter, key);
 
         private IObjectReader Trace(IObjectReader reader)
-            => new TracingObjectReader(reader, _objectReaderLogger);
+            => new TracingObjectReader(reader, _objectReaderLogger, _timeProvider);
 
         private IObjectSource Trace(IObjectSource source)
-            => new TracingObjectSource(source, "origin", _objectSourceLogger);
+            => new TracingObjectSource(source, "origin", _objectSourceLogger, _timeProvider);
 
         private IOriginReader CreateFilesystemReader(Uri uri)
         {
@@ -83,7 +86,7 @@ namespace Synchronizzer.Composition
 
         private IOriginReader CreateS3Reader(Uri uri)
         {
-            var context = S3Utils.CreateContext(uri, _s3MediatorLogger);
+            var context = S3Utils.CreateContext(uri, _s3MediatorLogger, _timeProvider);
             return new OriginReader(
                 Trace(
                     Buffer(

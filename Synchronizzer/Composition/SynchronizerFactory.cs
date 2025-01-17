@@ -15,6 +15,7 @@ namespace Synchronizzer.Composition
         private readonly IDestinationWriterResolver _destinationWriterResolver;
         private readonly IQueuingTaskManagerSelector _taskManagerSelector;
         private readonly ISyncTimeHolderResolver _syncTimeHolderResolver;
+        private readonly TimeProvider _timeProvider;
 
         public SynchronizerFactory(
             ILogger<TracingSynchronizer> syncLogger,
@@ -23,7 +24,8 @@ namespace Synchronizzer.Composition
             IOriginReaderResolver originReaderResolver,
             IDestinationWriterResolver destinationWriterResolver,
             IQueuingTaskManagerSelector taskManagerSelector,
-            ISyncTimeHolderResolver syncTimeHolderResolver)
+            ISyncTimeHolderResolver syncTimeHolderResolver,
+            TimeProvider timeProvider)
         {
             _syncLogger = syncLogger ?? throw new ArgumentNullException(nameof(syncLogger));
             _synchronizerLogger = synchronizerLogger ?? throw new ArgumentNullException(nameof(synchronizerLogger));
@@ -32,6 +34,7 @@ namespace Synchronizzer.Composition
             _destinationWriterResolver = destinationWriterResolver ?? throw new ArgumentNullException(nameof(destinationWriterResolver));
             _taskManagerSelector = taskManagerSelector ?? throw new ArgumentNullException(nameof(taskManagerSelector));
             _syncTimeHolderResolver = syncTimeHolderResolver ?? throw new ArgumentNullException(nameof(syncTimeHolderResolver));
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         public ISynchronizer Create(SyncInfo info)
@@ -64,6 +67,7 @@ namespace Synchronizzer.Composition
                             new Synchronizer(originReader, destinationWriter, taskManager, copyOnly, ignoreTimestamp, nice, _synchronizerLogger, _objectLogger),
                             _syncLogger,
                             name)),
-                    _syncTimeHolderResolver.Resolve(name)));
+                    _syncTimeHolderResolver.Resolve(name),
+                    _timeProvider));
     }
 }

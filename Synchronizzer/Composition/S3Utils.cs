@@ -16,18 +16,18 @@ namespace Synchronizzer.Composition
 {
     internal static class S3Utils
     {
-        public static S3Context CreateContext(Uri uri, ILogger<TracingS3Mediator> logger)
+        public static S3Context CreateContext(Uri uri, ILogger<TracingS3Mediator> logger, TimeProvider timeProvider)
         {
             var (s3, bucketName) = CreateContext(uri, out _);
-            return new S3Context(CreateS3Mediator(s3, logger), bucketName);
+            return new S3Context(CreateS3Mediator(s3, logger, timeProvider), bucketName);
         }
 
-        public static S3WriteContext CreateWriteContext(Uri uri, ILogger<TracingS3Mediator> logger)
+        public static S3WriteContext CreateWriteContext(Uri uri, ILogger<TracingS3Mediator> logger, TimeProvider timeProvider)
         {
             var (s3, bucketName) = CreateContext(uri, out var query);
             query.TryGetValue("class", out var storageClassString);
             var storageClass = ParseStorageClass(storageClassString);
-            return new S3WriteContext(CreateS3Mediator(s3, logger), bucketName, storageClass);
+            return new S3WriteContext(CreateS3Mediator(s3, logger, timeProvider), bucketName, storageClass);
         }
 
         private static (IAmazonS3 S3, string BucketName) CreateContext(Uri uri, out Dictionary<string, StringValues> query)
@@ -102,12 +102,13 @@ namespace Synchronizzer.Composition
             return (client, bucketName);
         }
 
-        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3, ILogger<TracingS3Mediator> logger) =>
+        private static IS3Mediator CreateS3Mediator(IAmazonS3 s3, ILogger<TracingS3Mediator> logger, TimeProvider timeProvider) =>
             new TimeoutHandlingS3Mediator(
                 new TracingS3Mediator(
                     new ExceptionHandlingS3Mediator(
                         new DefaultS3Mediator(s3)),
-                    logger),
+                    logger,
+                    timeProvider),
                 TimeSpan.FromSeconds(67),
                 3);
 

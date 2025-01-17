@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,11 +10,13 @@ namespace Synchronizzer.Implementation
     {
         private readonly IObjectReader _inner;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
 
-        public TracingObjectReader(IObjectReader inner, ILogger<TracingObjectReader> logger)
+        public TracingObjectReader(IObjectReader inner, ILogger<TracingObjectReader> logger, TimeProvider timeProvider)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         public async Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken)
@@ -28,7 +29,7 @@ namespace Synchronizzer.Implementation
             ReadObject? readObject;
             using (_logger.BeginScope("read \"{ObjectName}\"", objectName))
             {
-                var timer = Stopwatch.StartNew();
+                var startedAt = _timeProvider.GetTimestamp();
                 _logger.LogDebug(Events.Reading, "Reading \"{ObjectName}\".", objectName);
                 try
                 {
@@ -41,17 +42,17 @@ namespace Synchronizzer.Implementation
                         exception,
                         "Read of \"{ObjectName}\" was canceled, elapsed {Elapsed} (direct: {IsDirect}).",
                         objectName,
-                        timer.Elapsed.TotalMilliseconds,
+                        _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds,
                         cancellationToken.IsCancellationRequested);
                     throw;
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Failed to read \"{ObjectName}\", elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds);
+                    _logger.LogError(exception, "Failed to read \"{ObjectName}\", elapsed {Elapsed}.", objectName, _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds);
                     throw;
                 }
 
-                _logger.LogDebug(Events.Read, "Read \"{ObjectName}\", length {Length}, elapsed {Elapsed}.", objectName, timer.Elapsed.TotalMilliseconds, readObject?.Length);
+                _logger.LogDebug(Events.Read, "Read \"{ObjectName}\", length {Length}, elapsed {Elapsed}.", objectName, _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds, readObject?.Length);
             }
 
             return readObject;

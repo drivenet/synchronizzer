@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,9 +15,10 @@ namespace Synchronizzer.Implementation
 
         private readonly S3Context _context;
         private readonly string _lockName;
+        private readonly TimeProvider _timeProvider;
         private bool _isLocked;
 
-        public S3ObjectWriterLocker(S3Context context, string lockName)
+        public S3ObjectWriterLocker(S3Context context, string lockName, TimeProvider timeProvider)
         {
             if (string.IsNullOrEmpty(lockName))
             {
@@ -27,6 +27,7 @@ namespace Synchronizzer.Implementation
 
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _lockName = lockName;
+            _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
         public async Task Clear(CancellationToken cancellationToken)
@@ -146,7 +147,7 @@ namespace Synchronizzer.Implementation
                     $"put lock.time \"{putRequest.Key}\"@{putRequest.BucketName}",
                     cancellationToken);
                 DateTime lastModified;
-                var timer = Stopwatch.StartNew();
+                var startTime = _timeProvider.GetTimestamp();
                 while (true)
                 {
                     try
@@ -157,7 +158,7 @@ namespace Synchronizzer.Implementation
                             cancellationToken)).LastModified;
                         break;
                     }
-                    catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound && timer.Elapsed < LockTimeout)
+                    catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound && _timeProvider.GetElapsedTime(startTime) < LockTimeout)
                     {
                     }
                 }

@@ -51,7 +51,7 @@ namespace Synchronizzer.Composition
 
         private static IObjectWriterLocker Lock(IObjectWriterLocker inner) => new LockingObjectWriterLocker(inner);
 
-        private static IObjectWriterLocker Cache(IObjectWriterLocker inner) => new CachingObjectWriterLocker(inner);
+        private IObjectWriterLocker Cache(IObjectWriterLocker inner) => new CachingObjectWriterLocker(inner, _timeProvider);
 
         private static IObjectWriter Robust(IObjectWriter inner) => new RobustObjectWriter(inner);
 
@@ -59,15 +59,15 @@ namespace Synchronizzer.Composition
 
         private IObjectWriter Count(IObjectWriter inner, string key) => new CountingObjectWriter(inner, _metricsWriter, key);
 
-        private IObjectWriter Trace(IObjectWriter inner) => new TracingObjectWriter(inner, _logOperations, _objectLogger);
+        private IObjectWriter Trace(IObjectWriter inner) => new TracingObjectWriter(inner, _logOperations, _objectLogger, _timeProvider);
 
         private IObjectSource Count(IObjectSource inner, string key) => new CountingObjectSource(inner, _metricsWriter, key);
 
-        private IObjectSource Trace(IObjectSource inner, string source) => new TracingObjectSource(inner, source, _objectSourceLogger);
+        private IObjectSource Trace(IObjectSource inner, string source) => new TracingObjectSource(inner, source, _objectSourceLogger, _timeProvider);
 
         private IDestinationWriter CreateS3Writer(string? recycleAddress, Uri uri, bool dryRun)
         {
-            var context = S3Utils.CreateWriteContext(uri, _s3MediatorLogger);
+            var context = S3Utils.CreateWriteContext(uri, _s3MediatorLogger, _timeProvider);
             S3WriteContext? recycleContext;
             if (recycleAddress is not null)
             {
@@ -76,7 +76,7 @@ namespace Synchronizzer.Composition
                     throw new ArgumentOutOfRangeException(nameof(recycleAddress), "Invalid S3 recycle address.");
                 }
 
-                recycleContext = S3Utils.CreateWriteContext(recycleUri, _s3MediatorLogger);
+                recycleContext = S3Utils.CreateWriteContext(recycleUri, _s3MediatorLogger, _timeProvider);
             }
             else
             {
@@ -103,7 +103,7 @@ namespace Synchronizzer.Composition
                 Lock(
                     Cache(
                         Trace(
-                            new S3ObjectWriterLocker(context, lockName)))));
+                            new S3ObjectWriterLocker(context, lockName, _timeProvider)))));
         }
 
         private IDestinationWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri, bool dryRun)
