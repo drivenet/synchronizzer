@@ -17,7 +17,11 @@ namespace Synchronizzer.Implementation
             var url = MongoUrl.Create(address);
             var client = new MongoClient(url);
             var database = client.GetDatabase(url.DatabaseName);
-            var bucket = new GridFSBucket<BsonValue>(database, new GridFSBucketOptions { DisableMD5 = true });
+            var bucket = new GridFSBucket<BsonValue>(
+                database,
+#pragma warning disable CS0618 // Type or member is obsolete -- disabling is still needed for current version
+                new GridFSBucketOptions { DisableMD5 = true });
+#pragma warning restore CS0618 // Type or member is obsolete
             return new GridFSContext(bucket);
         }
 
