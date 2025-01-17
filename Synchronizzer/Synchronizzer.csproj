@@ -9,6 +9,7 @@
     <Version>0.23.2</Version>
     <NoWarn>$(NoWarn);CA1848</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
   <ItemGroup>
