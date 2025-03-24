@@ -15,12 +15,18 @@ namespace Synchronizzer.Implementation
         public static GridFSContext CreateContext(string address)
         {
             var url = MongoUrl.Create(address);
-#pragma warning disable CA2000 // Dispose objects before losing scope -- introducing lifetime management isn't worth it right now
             var client = new MongoClient(url);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            var database = client.GetDatabase(url.DatabaseName);
-            var bucket = new GridFSBucket<BsonValue>(database);
-            return new GridFSContext(bucket);
+            try
+            {
+                var database = client.GetDatabase(url.DatabaseName);
+                var bucket = new GridFSBucket<BsonValue>(database);
+                return new GridFSContext(bucket, client);
+            }
+            catch
+            {
+                client.Dispose();
+                throw;
+            }
         }
 
         public static async Task<T> SafeExecute<T>(Func<Task<T>> action, byte retries, CancellationToken cancellationToken)

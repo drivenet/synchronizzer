@@ -18,11 +18,12 @@ namespace Synchronizzer.Composition
             try
             {
                 var task = synchronizer.Synchronize(cancel.Token);
-                return new SynchronizationJob(task, cancel);
+                return new SynchronizationJob(task, cancel, synchronizer);
             }
             catch
             {
                 cancel.Dispose();
+                synchronizer.Dispose();
                 throw;
             }
         }

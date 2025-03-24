@@ -81,43 +81,62 @@ namespace Synchronizzer.Composition
                         Count(
                             new FilesystemObjectReader(context),
                             "fs"))),
+                null,
                 "file://" + context.FilePath);
         }
 
         private IOriginReader CreateS3Reader(Uri uri)
         {
             var context = S3Utils.CreateContext(uri, _s3MediatorLogger, _timeProvider);
-            return new OriginReader(
-                Trace(
-                    Buffer(
-                        Count(
-                            new S3ObjectSource(context),
-                            "origin.s3"))),
-                Robust(
+            try
+            {
+                return new OriginReader(
                     Trace(
-                        Count(
-                            new S3ObjectReader(context),
-                            "s3"))),
-                "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName);
+                        Buffer(
+                            Count(
+                                new S3ObjectSource(context),
+                                "origin.s3"))),
+                    Robust(
+                        Trace(
+                            Count(
+                                new S3ObjectReader(context),
+                                "s3"))),
+                    context,
+                    "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName);
+            }
+            catch
+            {
+                ((IDisposable)context).Dispose();
+                throw;
+            }
         }
 
         private IOriginReader CreateGridFSReader(string address)
         {
             var context = GridFSUtils.CreateContext(address);
-            return new OriginReader(
-                Trace(
-                    Count(
-                        new GridFSObjectSource(context),
-                        "origin.gridfs")),
-                Robust(
+            try
+            {
+                return new OriginReader(
                     Trace(
                         Count(
-                            new GridFSFilteringObjectReader(
-                                new BufferingObjectReader(
-                                    new GridFSObjectReader(context),
-                                    _streamManager)),
-                            "gridfs"))),
-                "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName);
+                            new GridFSObjectSource(context),
+                            "origin.gridfs")),
+                    Robust(
+                        Trace(
+                            Count(
+                                new GridFSFilteringObjectReader(
+                                    new BufferingObjectReader(
+                                        new GridFSObjectReader(context),
+                                        _streamManager)),
+                                "gridfs"))),
+                    context,
+                    "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName);
+            }
+            catch
+            {
+                ((IDisposable)context).Dispose();
+                throw;
+            }
         }
 
         private static IObjectSource Buffer(IObjectSource source)

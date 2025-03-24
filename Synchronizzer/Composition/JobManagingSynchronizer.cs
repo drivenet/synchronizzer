@@ -10,7 +10,7 @@ using Synchronizzer.Implementation;
 
 namespace Synchronizzer.Composition
 {
-    internal sealed class JobManagingSynchronizer : ISynchronizer, IDisposable
+    internal sealed class JobManagingSynchronizer : ISynchronizer
     {
         private readonly ConcurrentDictionary<SyncInfo, Lazy<SynchronizationJob>> _jobs = new();
         private readonly IEnumerable<SyncInfo> _infos;
@@ -28,7 +28,7 @@ namespace Synchronizzer.Composition
             {
                 if (job.IsValueCreated)
                 {
-                    job.Value.Dispose();
+                    ((IDisposable)job.Value).Dispose();
                 }
             }
         }

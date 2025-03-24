@@ -50,6 +50,8 @@ namespace Synchronizzer.Implementation
             }
         }
 
+        public void Dispose() => _inner.Dispose();
+
         private static class Events
         {
             public static readonly EventId Begin = new(1, nameof(Begin));

@@ -9,12 +9,14 @@ namespace Synchronizzer.Implementation
     {
         private readonly IObjectSource _source;
         private readonly IObjectReader _reader;
+        private readonly IDisposable? _disposable;
 
-        public OriginReader(IObjectSource source, IObjectReader reader, string address)
+        public OriginReader(IObjectSource source, IObjectReader reader, IDisposable? disposable, string address)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));
             Address = address ?? throw new ArgumentNullException(nameof(address));
+            _disposable = disposable;
         }
 
         public string Address { get; }
@@ -24,5 +26,7 @@ namespace Synchronizzer.Implementation
         public Task<ReadObject?> Read(string objectName, CancellationToken cancellationToken) => _reader.Read(objectName, cancellationToken);
 
         public override string ToString() => Address;
+
+        public void Dispose() => _disposable?.Dispose();
     }
 }

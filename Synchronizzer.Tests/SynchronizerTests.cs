@@ -86,11 +86,11 @@ namespace Synchronizzer.Tests
             var reader = new ObjectReaderMock();
             var destinationSource = new ObjectSourceStub(destinationInfos);
             var writer = new ObjectWriterMock();
-            var originReader = new OriginReader(originSource, reader, "");
+            using var originReader = new OriginReader(originSource, reader, null, "");
             var locker = new ObjectWriterLockerStub();
-            var destinationWriter = new DestinationWriter("", destinationSource, writer, locker);
+            using var destinationWriter = new DestinationWriter("", destinationSource, writer, locker, null);
             var taskManager = new QueuingTaskManager(new FixedQueuingSettings());
-            var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, false, false, null, null);
+            using var synchronizer = new Synchronizer(originReader, destinationWriter, taskManager, false, false, false, null, null);
             await synchronizer.Synchronize(default);
 
             var deleted = destinationInfos

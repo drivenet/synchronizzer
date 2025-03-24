@@ -67,43 +67,57 @@ namespace Synchronizzer.Composition
 
         private IDestinationWriter CreateS3Writer(string? recycleAddress, Uri uri, bool dryRun)
         {
+            IDisposable disposable;
+            S3WriteContext? recycleContext = null;
             var context = S3Utils.CreateWriteContext(uri, _s3MediatorLogger, _timeProvider);
-            S3WriteContext? recycleContext;
-            if (recycleAddress is not null)
+            try
             {
-                if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
+                if (recycleAddress is not null)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(recycleAddress), "Invalid S3 recycle address.");
+                    if (!Uri.TryCreate(recycleAddress, UriKind.Absolute, out var recycleUri))
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(recycleAddress), "Invalid S3 recycle address.");
+                    }
+
+#pragma warning disable CA2000 // Dispose objects before losing scope -- disposed by composite
+                    recycleContext = S3Utils.CreateWriteContext(recycleUri, _s3MediatorLogger, _timeProvider);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    disposable = new CompositeDisposable([context, recycleContext]);
+                }
+                else
+                {
+                    disposable = context;
                 }
 
-                recycleContext = S3Utils.CreateWriteContext(recycleUri, _s3MediatorLogger, _timeProvider);
-            }
-            else
-            {
-                recycleContext = null;
-            }
-
-            var destinationAddress = context.S3.ServiceUrl.AbsoluteUri;
-            var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
-            return new DestinationWriter(
-                destinationAddress,
-                Trace(
-                    Buffer(
-                        Count(
-                            new S3ObjectSource(context),
-                            "destination.s3")),
-                    "destination"),
-                Robust(
+                var destinationAddress = context.S3.ServiceUrl.AbsoluteUri;
+                var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
+                return new DestinationWriter(
+                    destinationAddress,
                     Trace(
-                        Count(
-                            dryRun
-                                ? NullObjectWriter.Instance
-                                : new S3ObjectWriter(context, recycleContext),
-                            "s3"))),
-                Lock(
-                    Cache(
+                        Buffer(
+                            Count(
+                                new S3ObjectSource(context),
+                                "destination.s3")),
+                        "destination"),
+                    Robust(
                         Trace(
-                            new S3ObjectWriterLocker(context, lockName, _timeProvider)))));
+                            Count(
+                                dryRun
+                                    ? NullObjectWriter.Instance
+                                    : new S3ObjectWriter(context, recycleContext),
+                                "s3"))),
+                    Lock(
+                        Cache(
+                            Trace(
+                                new S3ObjectWriterLocker(context, lockName, _timeProvider)))),
+                    disposable);
+            }
+            catch
+            {
+                (recycleContext as IDisposable)?.Dispose();
+                ((IDisposable)context).Dispose();
+                throw;
+            }
         }
 
         private IDestinationWriter CreateFilesystemWriter(string address, string? recycleAddress, Uri uri, bool dryRun)
@@ -141,7 +155,8 @@ namespace Synchronizzer.Composition
                 Lock(
                     Cache(
                         Trace(
-                            new FilesystemObjectWriterLocker(context, lockName, _timeProvider)))));
+                            new FilesystemObjectWriterLocker(context, lockName, _timeProvider)))),
+                null);
         }
 
         private static IObjectSource Buffer(IObjectSource source)

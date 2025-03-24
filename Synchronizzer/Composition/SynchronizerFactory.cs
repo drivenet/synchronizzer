@@ -39,17 +39,28 @@ namespace Synchronizzer.Composition
 
         public ISynchronizer Create(SyncInfo info)
         {
-            var originReader = _originReaderResolver.Resolve(info.Origin);
-            if (info.Exclude is { } exclude)
+            IDestinationWriter? destinationWriter = null;
+            IOriginReader? originReader = null;
+            try
             {
-                var filteringSource = new FilteringObjectSource(originReader, exclude);
-                originReader = new OriginReader(filteringSource, originReader, originReader.Address);
-            }
+                originReader = _originReaderResolver.Resolve(info.Origin);
+                if (info.Exclude is { } exclude)
+                {
+                    var filteringSource = new FilteringObjectSource(originReader, exclude);
+                    originReader = new OriginReader(filteringSource, originReader, originReader, originReader.Address);
+                }
 
-            var destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle, info.DryRun);
-            var taskManager = _taskManagerSelector.Select(destinationWriter.Address);
-            var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager, info.CopyOnly, info.IgnoreTimestamp, info.Nice);
-            return synchronizer;
+                destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle, info.DryRun);
+                var taskManager = _taskManagerSelector.Select(destinationWriter.Address);
+                var synchronizer = Create(info.Name, originReader, destinationWriter, taskManager, info.CopyOnly, info.IgnoreTimestamp, info.Nice);
+                return synchronizer;
+            }
+            catch
+            {
+                destinationWriter?.Dispose();
+                originReader?.Dispose();
+                throw;
+            }
         }
 
         private ISynchronizer Create(

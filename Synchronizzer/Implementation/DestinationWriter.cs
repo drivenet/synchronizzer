@@ -11,13 +11,15 @@ namespace Synchronizzer.Implementation
         private readonly IObjectSource _source;
         private readonly IObjectWriter _writer;
         private readonly IObjectWriterLocker _locker;
+        private readonly IDisposable? _disposable;
 
-        public DestinationWriter(string address, IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker)
+        public DestinationWriter(string address, IObjectSource source, IObjectWriter writer, IObjectWriterLocker locker, IDisposable? disposable)
         {
             Address = address ?? throw new ArgumentNullException(nameof(address));
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             _locker = locker ?? throw new ArgumentNullException(nameof(locker));
+            _disposable = disposable;
         }
 
         public string Address { get; }
@@ -63,6 +65,8 @@ namespace Synchronizzer.Implementation
         }
 
         public override string ToString() => Address;
+
+        public void Dispose() => _disposable?.Dispose();
 
         private static void CheckObjectName(string objectName)
         {

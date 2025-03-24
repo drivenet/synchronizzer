@@ -19,7 +19,7 @@ namespace Synchronizzer.Composition
         public static S3Context CreateContext(Uri uri, ILogger<TracingS3Mediator> logger, TimeProvider timeProvider)
         {
             var (s3, bucketName) = CreateContext(uri, out _);
-            return new S3Context(CreateS3Mediator(s3, logger, timeProvider), bucketName);
+            return new S3Context(CreateS3Mediator(s3, logger, timeProvider), bucketName, s3);
         }
 
         public static S3WriteContext CreateWriteContext(Uri uri, ILogger<TracingS3Mediator> logger, TimeProvider timeProvider)
@@ -27,7 +27,7 @@ namespace Synchronizzer.Composition
             var (s3, bucketName) = CreateContext(uri, out var query);
             query.TryGetValue("class", out var storageClassString);
             var storageClass = ParseStorageClass(storageClassString);
-            return new S3WriteContext(CreateS3Mediator(s3, logger, timeProvider), bucketName, storageClass);
+            return new S3WriteContext(CreateS3Mediator(s3, logger, timeProvider), bucketName, storageClass, s3);
         }
 
         private static (IAmazonS3 S3, string BucketName) CreateContext(Uri uri, out Dictionary<string, StringValues> query)

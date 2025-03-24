@@ -9,11 +9,13 @@ namespace Synchronizzer.Composition
     {
         private readonly Task _task;
         private readonly CancellationTokenSource _cancel;
+        private readonly IDisposable? _disposable;
 
-        public SynchronizationJob(Task task, CancellationTokenSource cancel)
+        public SynchronizationJob(Task task, CancellationTokenSource cancel, IDisposable? disposable)
         {
             _task = task ?? throw new ArgumentNullException(nameof(task));
             _cancel = cancel ?? throw new ArgumentNullException(nameof(cancel));
+            _disposable = disposable;
         }
 
         public bool IsCompleted => _task.IsCompleted;
@@ -31,6 +33,10 @@ namespace Synchronizzer.Composition
 
         public TaskAwaiter GetAwaiter() => _task.GetAwaiter();
 
-        public void Dispose() => _cancel.Dispose();
+        void IDisposable.Dispose()
+        {
+            _cancel.Dispose();
+            _disposable?.Dispose();
+        }
     }
 }

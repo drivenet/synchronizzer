@@ -35,5 +35,7 @@ namespace Synchronizzer.Composition
                 throw;
             }
         }
+
+        public void Dispose() => _inner.Dispose();
     }
 }

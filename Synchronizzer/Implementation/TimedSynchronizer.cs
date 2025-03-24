@@ -36,6 +36,8 @@ namespace Synchronizzer.Implementation
             UpdateInterval(startedAt);
         }
 
+        public void Dispose() => _inner.Dispose();
+
         private void UpdateInterval(long startedAt)
             => _timeHolder.SetWait(Interval - _timeProvider.GetElapsedTime(startedAt));
     }

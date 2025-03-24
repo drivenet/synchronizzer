@@ -193,6 +193,12 @@ namespace Synchronizzer.Implementation
             return count;
         }
 
+        public void Dispose()
+        {
+            _destinationWriter.Dispose();
+            _originReader.Dispose();
+        }
+
         private static class Events
         {
             public static readonly EventId Populating = new(1, nameof(Populating));

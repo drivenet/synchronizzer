@@ -18,5 +18,7 @@ namespace Synchronizzer.Implementation
             await Task.Delay(1, cancellationToken);
             await _inner.Synchronize(cancellationToken);
         }
+
+        public void Dispose() => _inner.Dispose();
     }
 }

@@ -28,7 +28,7 @@ namespace Synchronizzer.Composition
                 var cancel = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 try
                 {
-                    return new SynchronizationJob(Task.Delay(DelayBetweenErrors, cancellationToken), cancel);
+                    return new SynchronizationJob(Task.Delay(DelayBetweenErrors, cancellationToken), cancel, null);
                 }
                 catch
                 {
