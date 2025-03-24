@@ -15,13 +15,11 @@ namespace Synchronizzer.Implementation
         public static GridFSContext CreateContext(string address)
         {
             var url = MongoUrl.Create(address);
+#pragma warning disable CA2000 // Dispose objects before losing scope -- introducing lifetime management isn't worth it right now
             var client = new MongoClient(url);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             var database = client.GetDatabase(url.DatabaseName);
-            var bucket = new GridFSBucket<BsonValue>(
-                database,
-#pragma warning disable CS0618 // Type or member is obsolete -- disabling is still needed for current version
-                new GridFSBucketOptions { DisableMD5 = true });
-#pragma warning restore CS0618 // Type or member is obsolete
+            var bucket = new GridFSBucket<BsonValue>(database);
             return new GridFSContext(bucket);
         }
 
