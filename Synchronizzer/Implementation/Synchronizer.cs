@@ -57,6 +57,12 @@ namespace Synchronizzer.Implementation
             }
         }
 
+        public void Dispose()
+        {
+            _destinationWriter.Dispose();
+            _originReader.Dispose();
+        }
+
         private async Task SynchronizeCore(CancellationToken cancellationToken)
         {
             await using var originInfos = new ObjectInfos(_originReader, _objectLogger, cancellationToken);
@@ -191,12 +197,6 @@ namespace Synchronizzer.Implementation
             }
 
             return count;
-        }
-
-        public void Dispose()
-        {
-            _destinationWriter.Dispose();
-            _originReader.Dispose();
         }
 
         private static class Events
