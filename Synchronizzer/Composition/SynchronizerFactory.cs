@@ -47,7 +47,7 @@ namespace Synchronizzer.Composition
                 if (info.Exclude is { } exclude)
                 {
                     var filteringSource = new FilteringObjectSource(originReader, exclude);
-                    originReader = new OriginReader(filteringSource, originReader, originReader, originReader.Address);
+                    originReader = new OriginReader(originReader.Address, filteringSource, originReader, originReader);
                 }
 
                 destinationWriter = _destinationWriterResolver.Resolve(info.Destination, info.Recycle, info.DryRun);

@@ -11,11 +11,11 @@ namespace Synchronizzer.Implementation
         private readonly IObjectReader _reader;
         private readonly IDisposable? _disposable;
 
-        public OriginReader(IObjectSource source, IObjectReader reader, IDisposable? disposable, string address)
+        public OriginReader(string address, IObjectSource source, IObjectReader reader, IDisposable? disposable)
         {
+            Address = address ?? throw new ArgumentNullException(nameof(address));
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));
-            Address = address ?? throw new ArgumentNullException(nameof(address));
             _disposable = disposable;
         }
 

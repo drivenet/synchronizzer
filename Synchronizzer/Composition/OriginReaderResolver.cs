@@ -72,6 +72,7 @@ namespace Synchronizzer.Composition
         {
             var context = FilesystemUtils.CreateContext(uri);
             return new OriginReader(
+                "file://" + context.FilePath,
                 Trace(
                     Count(
                         new FilesystemObjectSource(context),
@@ -81,8 +82,7 @@ namespace Synchronizzer.Composition
                         Count(
                             new FilesystemObjectReader(context),
                             "fs"))),
-                null,
-                "file://" + context.FilePath);
+                null);
         }
 
         private IOriginReader CreateS3Reader(Uri uri)
@@ -91,6 +91,7 @@ namespace Synchronizzer.Composition
             try
             {
                 return new OriginReader(
+                    "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName,
                     Trace(
                         Buffer(
                             Count(
@@ -101,8 +102,7 @@ namespace Synchronizzer.Composition
                             Count(
                                 new S3ObjectReader(context),
                                 "s3"))),
-                    context,
-                    "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName);
+                    context);
             }
             catch
             {
@@ -117,6 +117,7 @@ namespace Synchronizzer.Composition
             try
             {
                 return new OriginReader(
+                    "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName,
                     Trace(
                         Count(
                             new GridFSObjectSource(context),
@@ -129,8 +130,7 @@ namespace Synchronizzer.Composition
                                         new GridFSObjectReader(context),
                                         _streamManager)),
                                 "gridfs"))),
-                    context,
-                    "gridfs://" + context.Bucket.Database.DatabaseNamespace.DatabaseName + "/" + context.Bucket.Options.BucketName);
+                    context);
             }
             catch
             {
