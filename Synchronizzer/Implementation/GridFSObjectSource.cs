@@ -67,24 +67,31 @@ namespace Synchronizzer.Implementation
                     {
                         var result = new List<ObjectInfo>(Limit);
                         using var infos = await _context.Bucket.FindAsync(filter, options, cancellationToken);
-                        await infos.ForEachAsync(
-                            (info, cancel) =>
-                            {
-                                var objectInfo = new ObjectInfo(info.Filename, info.Length, false, info.UploadDateTime, null);
-                                var lastIndex = result.Count - 1;
-                                if (lastIndex >= 0
-                                    && result[lastIndex].Name == objectInfo.Name)
+                        try
+                        {
+                            await infos.ForEachAsync(
+                                info =>
                                 {
-                                    result.RemoveAt(lastIndex);
-                                }
-                                else if (lastIndex == Limit - 1)
-                                {
-                                    cancel.Cancel();
-                                }
+                                    var objectInfo = new ObjectInfo(info.Filename, info.Length, false, info.UploadDateTime, null);
+                                    var lastIndex = result.Count - 1;
+                                    if (lastIndex >= 0
+                                        && result[lastIndex].Name == objectInfo.Name)
+                                    {
+                                        result.RemoveAt(lastIndex);
+                                    }
+                                    else if (lastIndex == Limit - 1)
+                                    {
+                                        throw new OperationCanceledException();
+                                    }
 
-                                result.Add(objectInfo);
-                            },
-                            cancellationToken);
+                                    result.Add(objectInfo);
+                                },
+                                cancellationToken);
+                        }
+                        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                        {
+                        }
+
                         return result;
                     },
                     10,
