@@ -21,13 +21,13 @@ namespace Synchronizzer.Implementation
             _context = context ?? throw new ArgumentNullException(nameof(context));
             if (recycleContext is not null)
             {
-                var url = context.S3.ServiceUrl;
-                var recycleUrl = recycleContext.S3.ServiceUrl;
-                if (Uri.Compare(url, recycleUrl, UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.SafeUnescaped, StringComparison.Ordinal) != 0)
+                var recyclePrefix = recycleContext.S3.Prefix;
+                var prefix = context.S3.Prefix;
+                if (recyclePrefix != prefix)
                 {
                     throw new ArgumentOutOfRangeException(
                         nameof(recycleContext),
-                        FormattableString.Invariant($"The recycle URL \"{recycleUrl}\" does not match base URL \"{url}\"."));
+                        FormattableString.Invariant($"The recycle prefix \"{recyclePrefix}\" does not match base prefix \"{prefix}\"."));
                 }
 
                 _recycleContext = recycleContext;

@@ -23,7 +23,7 @@ namespace Synchronizzer.Implementation
             _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         }
 
-        public Uri ServiceUrl => _inner.ServiceUrl;
+        public string Prefix => _inner.Prefix;
 
         public async Task Cleanup(Func<IAmazonS3, Task> action, FormattableString description)
         {

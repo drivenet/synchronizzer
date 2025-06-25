@@ -29,7 +29,7 @@ namespace Synchronizzer.Implementation
             _maxRetries = maxRetries;
         }
 
-        public Uri ServiceUrl => _inner.ServiceUrl;
+        public string Prefix => _inner.Prefix;
 
         public async Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, FormattableString description, CancellationToken cancellationToken)
         {

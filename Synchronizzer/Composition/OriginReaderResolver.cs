@@ -91,7 +91,7 @@ namespace Synchronizzer.Composition
             try
             {
                 return new OriginReader(
-                    "s3://" + context.S3.ServiceUrl.GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped) + context.BucketName,
+                    "s3://" + context.S3.Prefix + context.BucketName,
                     Trace(
                         Buffer(
                             Count(

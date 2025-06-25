@@ -89,10 +89,9 @@ namespace Synchronizzer.Composition
                     disposable = context;
                 }
 
-                var destinationAddress = context.S3.ServiceUrl.AbsoluteUri;
                 var lockName = FormattableString.Invariant($"{Environment.MachineName.ToUpperInvariant()}_{Environment.ProcessId}_{Guid.NewGuid():N}");
                 return new DestinationWriter(
-                    destinationAddress,
+                    "s3://" + context.S3.Prefix + context.BucketName,
                     Trace(
                         Buffer(
                             Count(

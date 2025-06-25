@@ -13,12 +13,12 @@ namespace Synchronizzer.Implementation
         public DefaultS3Mediator(IAmazonS3 s3)
         {
             _s3 = s3 ?? throw new ArgumentNullException(nameof(s3));
-#pragma warning disable CS0618 // Type or member is obsolete -- required for implementation
-            ServiceUrl = new Uri(_s3.Config.DetermineServiceURL(), UriKind.Absolute);
-#pragma warning restore CS0618 // Type or member is obsolete
+            Prefix = s3.Config.ServiceURL is { Length: not 0 } serviceUrl
+                ? new Uri(serviceUrl, UriKind.Absolute).GetComponents(UriComponents.NormalizedHost | UriComponents.Path, UriFormat.UriEscaped)
+                : _s3.Config.RegionEndpoint.SystemName + "/";
         }
 
-        public Uri ServiceUrl { get; }
+        public string Prefix { get; }
 
         public Task<TResult> Invoke<TResult>(Func<IAmazonS3, CancellationToken, Task<TResult>> action, FormattableString description, CancellationToken cancellationToken)
             => action(_s3, cancellationToken);
