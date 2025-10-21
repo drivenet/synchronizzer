@@ -30,7 +30,7 @@ namespace Synchronizzer.Tests.Implementation
             return Task.CompletedTask;
         }
 
-        public Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
+        public Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_deleted.Contains(objectName))

@@ -72,7 +72,7 @@ namespace Synchronizzer.Implementation
                 cancellationToken);
         }
 
-        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken)
         {
             if (readObject.Length <= PartSize)
             {

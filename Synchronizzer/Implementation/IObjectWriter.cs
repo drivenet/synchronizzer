@@ -5,7 +5,7 @@ namespace Synchronizzer.Implementation
 {
     internal interface IObjectWriter
     {
-        Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken);
+        Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken);
 
         Task Delete(string objectName, CancellationToken cancellationToken);
     }

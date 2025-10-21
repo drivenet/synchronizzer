@@ -128,9 +128,12 @@ namespace Synchronizzer.Implementation
                     if (destinationObjectInfo is null
                         || (!_ignoreTimestamp && objectInfo.Timestamp > destinationObjectInfo.Timestamp))
                     {
+                        var reason = destinationObjectInfo is null
+                            ? "missing"
+                            : FormattableString.Invariant($"outdated ({objectInfo.Timestamp} > {destinationObjectInfo.Timestamp})");
                         await _taskManager.Enqueue(
                             this,
-                            token => Upload(name, token),
+                            token => Upload(name, reason, token),
                             cancellationToken);
                     }
                 }
@@ -142,12 +145,12 @@ namespace Synchronizzer.Implementation
             return count;
         }
 
-        private async Task Upload(string name, CancellationToken cancellationToken)
+        private async Task Upload(string name, string reason, CancellationToken cancellationToken)
         {
             await using var input = await _originReader.Read(name, cancellationToken);
             if (input is not null)
             {
-                await _destinationWriter.Upload(name, input, cancellationToken);
+                await _destinationWriter.Upload(name, input, reason, cancellationToken);
             }
         }
 

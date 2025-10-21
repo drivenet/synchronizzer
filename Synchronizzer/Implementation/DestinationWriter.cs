@@ -51,7 +51,7 @@ namespace Synchronizzer.Implementation
             await _locker.Clear(cts.Token);
         }
 
-        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken)
         {
             if (readObject is null)
             {
@@ -61,7 +61,7 @@ namespace Synchronizzer.Implementation
             CheckObjectName(objectName);
             await Task.WhenAll(
                 _locker.Lock(cancellationToken),
-                _writer.Upload(objectName, readObject, cancellationToken));
+                _writer.Upload(objectName, readObject, reason, cancellationToken));
         }
 
         public override string ToString() => Address;

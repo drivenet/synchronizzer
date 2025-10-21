@@ -57,7 +57,7 @@ namespace Synchronizzer.Implementation
             }
         }
 
-        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken)
         {
             if (objectName is null)
             {
@@ -73,10 +73,10 @@ namespace Synchronizzer.Implementation
             {
                 var startTime = _timeProvider.GetTimestamp();
                 var objectLength = readObject.Length;
-                _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}.", objectName, objectLength);
+                _logger.LogDebug(Events.Upload, "Upload \"{ObjectName}\", length {ObjectLength}, reason {Reason}.", objectName, objectLength, reason);
                 try
                 {
-                    await _inner.Upload(objectName, readObject, cancellationToken);
+                    await _inner.Upload(objectName, readObject, reason, cancellationToken);
                 }
                 catch (OperationCanceledException exception)
                 {
@@ -95,7 +95,7 @@ namespace Synchronizzer.Implementation
                     throw;
                 }
 
-                _logger.Log(_opLogLevel, Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, elapsed {Elapsed}.", objectName, objectLength, _timeProvider.GetElapsedTime(startTime).TotalMilliseconds);
+                _logger.Log(_opLogLevel, Events.Uploaded, "Uploaded \"{ObjectName}\", length {ObjectLength}, reason {Reason}, elapsed {Elapsed}.", objectName, objectLength, reason, _timeProvider.GetElapsedTime(startTime).TotalMilliseconds);
             }
         }
 

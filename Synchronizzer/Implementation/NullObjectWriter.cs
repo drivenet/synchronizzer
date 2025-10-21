@@ -9,6 +9,6 @@ namespace Synchronizzer.Implementation
 
         public Task Delete(string objectName, CancellationToken cancellationToken) => Task.CompletedTask;
 
-        public Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

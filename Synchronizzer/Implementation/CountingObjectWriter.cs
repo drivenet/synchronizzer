@@ -42,7 +42,7 @@ namespace Synchronizzer.Implementation
             _writer.Add(_prefix + "deletes", 1);
         }
 
-        public async Task Upload(string objectName, ReadObject readObject, CancellationToken cancellationToken)
+        public async Task Upload(string objectName, ReadObject readObject, string reason, CancellationToken cancellationToken)
         {
             if (readObject is null)
             {
@@ -51,7 +51,7 @@ namespace Synchronizzer.Implementation
 
             try
             {
-                await _inner.Upload(objectName, readObject, cancellationToken);
+                await _inner.Upload(objectName, readObject, reason, cancellationToken);
             }
             catch (OperationCanceledException)
             {
