@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -45,7 +45,7 @@ namespace Synchronizzer.Implementation
         private async Task EnsureQueueSize(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
             int limit = _settings.MaxParallelism;
             if (limit == 0)
