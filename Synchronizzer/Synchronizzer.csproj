@@ -6,19 +6,18 @@
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <AssemblyName>synchronizzer</AssemblyName>
-    <Version>0.24.7</Version>
+    <Version>0.25.1</Version>
     <NoWarn>$(NoWarn);CA1848;CA1873</NoWarn>
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.511.7" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.1" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-    <PackageReference Include="MongoDB.Driver" Version="3.8.1" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.511.8" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.14" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="4.0.1" />
+    <PackageReference Include="MongoDB.Driver" Version="3.13.0" />
     <PackageReference Include="Tmds.Systemd.Logging" Version="0.8.0" />
-    <PackageReference Include="SharpCompress" Version="0.48.1" />
   </ItemGroup>
 
   <ItemGroup Label="TestInternalsVisibleTo">
