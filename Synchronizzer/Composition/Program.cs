@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+using System;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +15,6 @@ namespace Synchronizzer.Composition
     {
         public static async Task Main(string[] args)
         {
-            ConfigureNetworking();
             using var host = BuildHost(args);
             await host.RunAsync();
         }
@@ -101,14 +99,5 @@ namespace Synchronizzer.Composition
                 .AddJsonFile(builderContext.Configuration.GetValue<string>("ConfigPath") ?? "appsettings.json", optional: false, reloadOnChange: true)
                 .AddEnvironmentVariables("GSS_")
                 .AddCommandLine(args);
-
-        private static void ConfigureNetworking()
-        {
-            ServicePointManager.DefaultConnectionLimit = 1000;
-            ServicePointManager.CheckCertificateRevocationList = true;
-            ServicePointManager.DnsRefreshTimeout = 3000;
-            ServicePointManager.EnableDnsRoundRobin = true;
-            ServicePointManager.ReusePort = true;
-        }
     }
 }
